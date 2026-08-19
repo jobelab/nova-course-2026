@@ -32,3 +32,6 @@ cloth_nodes.txt
 
 # TreeAIBox model weights (~20 MB each, re-downloadable from the NRCan release page)
 models/
+
+# marimo session cache — cell outputs, regenerated on run
+notebooks/__marimo__/
