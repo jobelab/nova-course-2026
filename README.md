@@ -9,7 +9,7 @@ material from the organisers; regenerate derived products with the scripts here.
 
 ## Layout
 
-    docs/           background notes
+    docs/           methods + equations reference, background notes
     setup/          how CloudCompare + its plugins were built and wired on this machine
     csf/            CSF ground/off-ground split from the shell
     src/novatrees/  the Python pipeline (xarray-based)
@@ -100,7 +100,10 @@ config is labelled for 3–12 GB of VRAM. Expect slow inference and test on a
 small clip first.
 
 Full detail, including the two version traps that cost the most time, is in
-[`setup/cloudcompare-linux.md`](setup/cloudcompare-linux.md).
+[`setup/cloudcompare-linux.md`](setup/cloudcompare-linux.md). Every formula the
+pipeline computes — bias, RMSE, IoU, the CSF and Dijkstra definitions — is written
+out with the measured numbers in
+[`docs/methods-and-equations.md`](docs/methods-and-equations.md).
 
 ## Comparing against Yrttimaa's method
 
