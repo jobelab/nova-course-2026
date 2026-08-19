@@ -8,14 +8,7 @@
     {
       "id": "Hbol",
       "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
+      "outputs": [],
       "console": []
     },
     {
@@ -34,27 +27,13 @@
     {
       "id": "vblA",
       "code_hash": "1ab8903488b5da550332360c1773672e",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
+      "outputs": [],
       "console": []
     },
     {
       "id": "bkHC",
       "code_hash": "3f4d3ee8b496e80c43bb78bd7a8fdd13",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>crsot_mixed_stand_hnorm.laz</strong> \u2014 15,595,864 points, Z from -0.46 to\n22.85 m (height-normalised), extent\n18.0 x 18.8 m.\nReference labelling: <strong>41 tree instances</strong>,\n4,550,702 points left unassigned.</span>\n<span class=\"paragraph\">Carried as an <code>xarray.Dataset</code> over a <code>point</code> dimension, so every per-point\nattribute the file already had \u2014 <code>x</code>, <code>y</code>, <code>z</code>, <code>intensity</code>, <code>classification</code>, <code>reflectance</code>, <code>h</code>, <code>treeid</code> \u2014\nstays named and aligned:</span></span>"
-          }
-        }
-      ],
+      "outputs": [],
       "console": []
     },
     {
@@ -73,27 +52,13 @@
     {
       "id": "PKri",
       "code_hash": "6a7bf7b01f9f0459528ce2934f17bf98",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "application/vnd.vegalite.v6+json": "{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v6.4.1.json\",\n  \"config\": {\n    \"view\": {\n      \"continuousHeight\": 300,\n      \"continuousWidth\": 300\n    }\n  },\n  \"data\": {\n    \"name\": \"data-55fecf11ba3b6a2210ed90eed17c2b90\"\n  },\n  \"datasets\": {\n    \"data-55fecf11ba3b6a2210ed90eed17c2b90\": [\n      {\n        \"height\": 6.9088,\n        \"treeid\": 1\n      },\n      {\n        \"height\": 7.5358,\n        \"treeid\": 25\n      },\n      {\n        \"height\": 1.472,\n        \"treeid\": 37\n      },\n      {\n        \"height\": 4.2709,\n        \"treeid\": 40\n      },\n      {\n        \"height\": 2.5363,\n        \"treeid\": 41\n      },\n      {\n        \"height\": 6.2738000000000005,\n        \"treeid\": 42\n      },\n      {\n        \"height\": 1.7335,\n        \"treeid\": 43\n      },\n      {\n        \"height\": 2.4494000000000002,\n        \"treeid\": 48\n      },\n      {\n        \"height\": 5.6782,\n        \"treeid\": 49\n      },\n      {\n        \"height\": 12.2902,\n        \"treeid\": 51\n      },\n      {\n        \"height\": 3.101,\n        \"treeid\": 54\n      },\n      {\n        \"height\": 5.470000000000001,\n        \"treeid\": 55\n      },\n      {\n        \"height\": 12.8147,\n        \"treeid\": 59\n      },\n      {\n        \"height\": 7.7197000000000005,\n        \"treeid\": 60\n      },\n      {\n        \"height\": 1.6067,\n        \"treeid\": 61\n      },\n      {\n        \"height\": 14.124,\n        \"treeid\": 62\n      },\n      {\n        \"height\": 1.1477000000000002,\n        \"treeid\": 63\n      },\n      {\n        \"height\": 12.3606,\n        \"treeid\": 64\n      },\n      {\n        \"height\": 2.8363,\n        \"treeid\": 65\n      },\n      {\n        \"height\": 18.5636,\n        \"treeid\": 70\n      },\n      {\n        \"height\": 1.3699000000000001,\n        \"treeid\": 71\n      },\n      {\n        \"height\": 2.0296000000000003,\n        \"treeid\": 72\n      },\n      {\n        \"height\": 16.563200000000002,\n        \"treeid\": 73\n      },\n      {\n        \"height\": 1.4306,\n        \"treeid\": 74\n      },\n      {\n        \"height\": 2.3084000000000002,\n        \"treeid\": 75\n      },\n      {\n        \"height\": 11.1117,\n        \"treeid\": 77\n      },\n      {\n        \"height\": 17.111700000000003,\n        \"treeid\": 78\n      },\n      {\n        \"height\": 21.161,\n        \"treeid\": 79\n      },\n      {\n        \"height\": 1.9957,\n        \"treeid\": 81\n      },\n      {\n        \"height\": 20.5574,\n        \"treeid\": 84\n      },\n      {\n        \"height\": 2.0607,\n        \"treeid\": 86\n      },\n      {\n        \"height\": 18.7698,\n        \"treeid\": 89\n      },\n      {\n        \"height\": 22.8476,\n        \"treeid\": 92\n      },\n      {\n        \"height\": 17.9018,\n        \"treeid\": 101\n      },\n      {\n        \"height\": 14.811200000000001,\n        \"treeid\": 114\n      },\n      {\n        \"height\": 11.1533,\n        \"treeid\": 130\n      },\n      {\n        \"height\": 17.701800000000002,\n        \"treeid\": 134\n      },\n      {\n        \"height\": 19.9629,\n        \"treeid\": 141\n      },\n      {\n        \"height\": 13.9441,\n        \"treeid\": 146\n      },\n      {\n        \"height\": 5.5129,\n        \"treeid\": 170\n      },\n      {\n        \"height\": 8.5417,\n        \"treeid\": 266\n      }\n    ]\n  },\n  \"encoding\": {\n    \"tooltip\": [\n      {\n        \"aggregate\": \"count\",\n        \"type\": \"quantitative\"\n      }\n    ],\n    \"x\": {\n      \"bin\": {\n        \"step\": 2\n      },\n      \"field\": \"height\",\n      \"title\": \"tree height (m)\",\n      \"type\": \"quantitative\"\n    },\n    \"y\": {\n      \"aggregate\": \"count\",\n      \"title\": \"trees\",\n      \"type\": \"quantitative\"\n    }\n  },\n  \"height\": 200,\n  \"mark\": {\n    \"color\": \"#4c78a8\",\n    \"type\": \"bar\"\n  },\n  \"title\": \"Reference tree heights \u2014 most of the stand is suppressed\",\n  \"usermeta\": {\n    \"embedOptions\": {}\n  }\n}"
-          }
-        }
-      ],
+      "outputs": [],
       "console": []
     },
     {
       "id": "Xref",
       "code_hash": "0a13042f26460e547638a174c0e0dcec",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>23 of 41 trees are under 10 m</strong>, with a canopy reaching\n22.8 m and a median tree only\n7.5 m tall.</span>\n<span class=\"paragraph\">A canopy height model records the <em>highest</em> return per cell, so a suppressed tree\nunder a taller neighbour leaves no trace in it at all. Method A cannot find those\ntrees no matter how it is tuned \u2014 not a bug in the port, a property of working\nfrom a raster of the canopy surface. Method B looks for stems at breast height,\nwhere a suppressed tree is just as visible as a dominant one.</span></span>"
-          }
-        }
-      ],
+      "outputs": [],
       "console": []
     },
     {
@@ -112,27 +77,13 @@
     {
       "id": "BYtC",
       "code_hash": "d37360868863cda371a40bd754acf664",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/html": "<marimo-ui-element object-id='BYtC-0' random-id='6700b4e1-ccc8-d20a-38b4-3a03e017dcee'><marimo-slider data-initial-value='0.3' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003edrop points below (m)&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-start='0.0' data-stop='1.0' data-step='0.05' data-steps='[]' data-debounce='false' data-disabled='false' data-orientation='&quot;horizontal&quot;' data-show-value='true' data-include-input='false' data-full-width='false'></marimo-slider></marimo-ui-element>"
-          }
-        }
-      ],
+      "outputs": [],
       "console": []
     },
     {
       "id": "RGSE",
       "code_hash": "49e03f4a091983da4d8a94ce7d42a284",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><marimo-mime-renderer data-mime='&quot;application/vnd.vegalite.v6+json&quot;' data-data='&quot;{&#92;n  &#92;&quot;&#36;schema&#92;&quot;: &#92;&quot;https://vega.github.io/schema/vega-lite/v6.4.1.json&#92;&quot;,&#92;n  &#92;&quot;config&#92;&quot;: {&#92;n    &#92;&quot;view&#92;&quot;: {&#92;n      &#92;&quot;continuousHeight&#92;&quot;: 300,&#92;n      &#92;&quot;continuousWidth&#92;&quot;: 300&#92;n    }&#92;n  },&#92;n  &#92;&quot;datasets&#92;&quot;: {&#92;n    &#92;&quot;data-7fa538860b364b1e2e3daaab816699a5&#92;&quot;: [&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 0,&#92;n        &#92;&quot;z&#92;&quot;: -1.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 1143500,&#92;n        &#92;&quot;z&#92;&quot;: -0.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 3131767,&#92;n        &#92;&quot;z&#92;&quot;: 0.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 498280,&#92;n        &#92;&quot;z&#92;&quot;: 0.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 379019,&#92;n        &#92;&quot;z&#92;&quot;: 1.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 285495,&#92;n        &#92;&quot;z&#92;&quot;: 1.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 278110,&#92;n        &#92;&quot;z&#92;&quot;: 2.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 242142,&#92;n        &#92;&quot;z&#92;&quot;: 2.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 298330,&#92;n        &#92;&quot;z&#92;&quot;: 3.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 302239,&#92;n        &#92;&quot;z&#92;&quot;: 3.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 285701,&#92;n        &#92;&quot;z&#92;&quot;: 4.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 311015,&#92;n        &#92;&quot;z&#92;&quot;: 4.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 283528,&#92;n        &#92;&quot;z&#92;&quot;: 5.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 305125,&#92;n        &#92;&quot;z&#92;&quot;: 5.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 348407,&#92;n        &#92;&quot;z&#92;&quot;: 6.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 506596,&#92;n        &#92;&quot;z&#92;&quot;: 6.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 455670,&#92;n        &#92;&quot;z&#92;&quot;: 7.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 452489,&#92;n        &#92;&quot;z&#92;&quot;: 7.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 450449,&#92;n        &#92;&quot;z&#92;&quot;: 8.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 392972,&#92;n        &#92;&quot;z&#92;&quot;: 8.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 419454,&#92;n        &#92;&quot;z&#92;&quot;: 9.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 536007,&#92;n        &#92;&quot;z&#92;&quot;: 9.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 497641,&#92;n        &#92;&quot;z&#92;&quot;: 10.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 421231,&#92;n        &#92;&quot;z&#92;&quot;: 10.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 311565,&#92;n        &#92;&quot;z&#92;&quot;: 11.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 323405,&#92;n        &#92;&quot;z&#92;&quot;: 11.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 332266,&#92;n        &#92;&quot;z&#92;&quot;: 12.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 292360,&#92;n        &#92;&quot;z&#92;&quot;: 12.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 288745,&#92;n        &#92;&quot;z&#92;&quot;: 13.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 262733,&#92;n        &#92;&quot;z&#92;&quot;: 13.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 223418,&#92;n        &#92;&quot;z&#92;&quot;: 14.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 213039,&#92;n        &#92;&quot;z&#92;&quot;: 14.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 174879,&#92;n        &#92;&quot;z&#92;&quot;: 15.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 182137,&#92;n        &#92;&quot;z&#92;&quot;: 15.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 164627,&#92;n        &#92;&quot;z&#92;&quot;: 16.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 133583,&#92;n        &#92;&quot;z&#92;&quot;: 16.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 113247,&#92;n        &#92;&quot;z&#92;&quot;: 17.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 91031,&#92;n        &#92;&quot;z&#92;&quot;: 17.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 68937,&#92;n        &#92;&quot;z&#92;&quot;: 18.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 53520,&#92;n        &#92;&quot;z&#92;&quot;: 18.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 38887,&#92;n        &#92;&quot;z&#92;&quot;: 19.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 29950,&#92;n        &#92;&quot;z&#92;&quot;: 19.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 17996,&#92;n        &#92;&quot;z&#92;&quot;: 20.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 15447,&#92;n        &#92;&quot;z&#92;&quot;: 20.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 14483,&#92;n        &#92;&quot;z&#92;&quot;: 21.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 12313,&#92;n        &#92;&quot;z&#92;&quot;: 21.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 10262,&#92;n        &#92;&quot;z&#92;&quot;: 22.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 1867,&#92;n        &#92;&quot;z&#92;&quot;: 22.5&#92;n      }&#92;n    ],&#92;n    &#92;&quot;data-86eccca838a327cff9429a2d5a6276d6&#92;&quot;: [&#92;n      {&#92;n        &#92;&quot;z&#92;&quot;: 0.8&#92;n      }&#92;n    ]&#92;n  },&#92;n  &#92;&quot;height&#92;&quot;: 260,&#92;n  &#92;&quot;layer&#92;&quot;: [&#92;n    {&#92;n      &#92;&quot;data&#92;&quot;: {&#92;n        &#92;&quot;name&#92;&quot;: &#92;&quot;data-7fa538860b364b1e2e3daaab816699a5&#92;&quot;&#92;n      },&#92;n      &#92;&quot;encoding&#92;&quot;: {&#92;n        &#92;&quot;tooltip&#92;&quot;: [&#92;n          {&#92;n            &#92;&quot;field&#92;&quot;: &#92;&quot;z&#92;&quot;,&#92;n            &#92;&quot;type&#92;&quot;: &#92;&quot;quantitative&#92;&quot;&#92;n          },&#92;n          {&#92;n            &#92;&quot;field&#92;&quot;: &#92;&quot;points&#92;&quot;,&#92;n            &#92;&quot;type&#92;&quot;: &#92;&quot;quantitative&#92;&quot;&#92;n          }&#92;n        ],&#92;n        &#92;&quot;x&#92;&quot;: {&#92;n          &#92;&quot;field&#92;&quot;: &#92;&quot;points&#92;&quot;,&#92;n          &#92;&quot;title&#92;&quot;: &#92;&quot;points&#92;&quot;,&#92;n          &#92;&quot;type&#92;&quot;: &#92;&quot;quantitative&#92;&quot;&#92;n        },&#92;n        &#92;&quot;y&#92;&quot;: {&#92;n          &#92;&quot;field&#92;&quot;: &#92;&quot;z&#92;&quot;,&#92;n          &#92;&quot;scale&#92;&quot;: {&#92;n            &#92;&quot;zero&#92;&quot;: false&#92;n          },&#92;n          &#92;&quot;title&#92;&quot;: &#92;&quot;height (m)&#92;&quot;,&#92;n          &#92;&quot;type&#92;&quot;: &#92;&quot;quantitative&#92;&quot;&#92;n        }&#92;n      },&#92;n      &#92;&quot;mark&#92;&quot;: {&#92;n        &#92;&quot;color&#92;&quot;: &#92;&quot;#54a24b&#92;&quot;,&#92;n        &#92;&quot;type&#92;&quot;: &#92;&quot;bar&#92;&quot;&#92;n      },&#92;n      &#92;&quot;title&#92;&quot;: &#92;&quot;Vertical point distribution&#92;&quot;&#92;n    },&#92;n    {&#92;n      &#92;&quot;data&#92;&quot;: {&#92;n        &#92;&quot;name&#92;&quot;: &#92;&quot;data-86eccca838a327cff9429a2d5a6276d6&#92;&quot;&#92;n      },&#92;n      &#92;&quot;encoding&#92;&quot;: {&#92;n        &#92;&quot;y&#92;&quot;: {&#92;n          &#92;&quot;field&#92;&quot;: &#92;&quot;z&#92;&quot;,&#92;n          &#92;&quot;type&#92;&quot;: &#92;&quot;quantitative&#92;&quot;&#92;n        }&#92;n      },&#92;n      &#92;&quot;mark&#92;&quot;: {&#92;n        &#92;&quot;color&#92;&quot;: &#92;&quot;crimson&#92;&quot;,&#92;n        &#92;&quot;size&#92;&quot;: 2,&#92;n        &#92;&quot;strokeDash&#92;&quot;: [&#92;n          4,&#92;n          4&#92;n        ],&#92;n        &#92;&quot;type&#92;&quot;: &#92;&quot;rule&#92;&quot;&#92;n      }&#92;n    }&#92;n  ],&#92;n  &#92;&quot;usermeta&#92;&quot;: {&#92;n    &#92;&quot;embedOptions&#92;&quot;: {}&#92;n  }&#92;n}&quot;'></marimo-mime-renderer><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Removing <strong>4,606,554</strong> points (29.5%), keeping <strong>10,989,310</strong>.</span></span></div>"
-          }
-        }
-      ],
+      "outputs": [],
       "console": []
     },
     {
@@ -168,7 +119,7 @@
     },
     {
       "id": "iLit",
-      "code_hash": "7843857aba25c4945fcb6e6ef99b0d83",
+      "code_hash": "ad397586b79cf9991c0c4b1f3705cc3e",
       "outputs": [
         {
           "type": "data",
@@ -199,7 +150,7 @@
     },
     {
       "id": "TqIu",
-      "code_hash": "7b8770aa5830721681c59649d0dfa049",
+      "code_hash": "471202f30aa03f2f785162fc5c89c0d1",
       "outputs": [
         {
           "type": "data",
@@ -218,13 +169,13 @@
     },
     {
       "id": "DnEU",
-      "code_hash": "62529cddc3a16bfbd70a18273cddd21c",
+      "code_hash": "f7a13ab45fc8699ad5bacbb84c0e4e3c",
       "outputs": [],
       "console": []
     },
     {
       "id": "ulZA",
-      "code_hash": "396e90c45e1f94904c8b9ded84a1f623",
+      "code_hash": "7182c066ea59c92b45de7cc85315893a",
       "outputs": [
         {
           "type": "data",
@@ -243,13 +194,13 @@
     },
     {
       "id": "Pvdt",
-      "code_hash": "2818db034b24716bac8751f7f2a8cd90",
+      "code_hash": "53c4a171e9fb4ce83aedcbf20016a10b",
       "outputs": [],
       "console": []
     },
     {
       "id": "ZBYS",
-      "code_hash": "e3ec828f3cb11d79204868d10b15cc7c",
+      "code_hash": "4f8af9756bbb85a97ef4c6e77cb41648",
       "outputs": [
         {
           "type": "data",
@@ -262,13 +213,13 @@
     },
     {
       "id": "aLJB",
-      "code_hash": "2ec104acce3b880945155e30f646f27a",
+      "code_hash": "0237c7131e957d5712251c2094fe713f",
       "outputs": [],
       "console": []
     },
     {
       "id": "nHfw",
-      "code_hash": "43e5457969b4516c1e29da247f1a5882",
+      "code_hash": "cdf262e4d642768b52251f27125eba46",
       "outputs": [
         {
           "type": "data",
@@ -281,7 +232,7 @@
     },
     {
       "id": "xXTn",
-      "code_hash": "2b06e969fc1f15e1e882a1332ef7ae90",
+      "code_hash": "6e37ccf53cd06a60356c870d60e41084",
       "outputs": [],
       "console": []
     },
@@ -293,13 +244,13 @@
     },
     {
       "id": "pHFh",
-      "code_hash": "034a40bbf0505278fc89e69b53454537",
+      "code_hash": "148a7f39c3da89aaa78f75c497709f99",
       "outputs": [],
       "console": []
     },
     {
       "id": "NCOB",
-      "code_hash": "070f10e124edf71b8da592f9ed1c8378",
+      "code_hash": "96fedda1be22d675b56603de6cab92f7",
       "outputs": [
         {
           "type": "data",
@@ -318,13 +269,13 @@
     },
     {
       "id": "TRpd",
-      "code_hash": "3d9a2cf1ae35993085f93a55e6fb7811",
+      "code_hash": "4773a39223c84f9791ece2d620c77d58",
       "outputs": [],
       "console": []
     },
     {
       "id": "TXez",
-      "code_hash": "8582d7be56452440d6ce7dd6b1738817",
+      "code_hash": "624ce17c1746615ea19a445418456d23",
       "outputs": [
         {
           "type": "data",

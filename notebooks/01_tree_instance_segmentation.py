@@ -249,7 +249,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     chm_px = mo.ui.slider(0.1, 0.5, value=0.2, step=0.05, label="CHM pixel (m)", show_value=True)
     chm_dist = mo.ui.slider(
@@ -260,7 +260,7 @@ def _(mo):
     return chm_dist, chm_minh, chm_px
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(ChmParams, chm_dist, chm_minh, chm_px, chm_segment, ground_z, xyz):
     result_a = chm_segment(
         xyz,
@@ -275,7 +275,7 @@ def _(ChmParams, chm_dist, chm_minh, chm_px, chm_segment, ground_z, xyz):
     return labels_a, result_a
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(alt, mo, result_a):
     _chm = result_a["chm"]  # xarray DataArray, real x/y coords
     _step = max(1, _chm.sizes["y"] // 120)
@@ -307,7 +307,7 @@ def _(alt, mo, result_a):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ## Method B — cross-section seeds
@@ -320,7 +320,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     slice_lo = mo.ui.slider(0.5, 2.5, value=1.15, step=0.05, label="slice bottom (m)", show_value=True)
     slice_hi = mo.ui.slider(0.6, 3.0, value=1.45, step=0.05, label="slice top (m)", show_value=True)
@@ -330,7 +330,7 @@ def _(mo):
     return eps, min_support, slice_hi, slice_lo
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(SeedParams, detect_seeds, eps, min_support, slice_hi, slice_lo, xyz):
     seed_params = SeedParams(
         slice_lo=slice_lo.value,
@@ -342,7 +342,7 @@ def _(SeedParams, detect_seeds, eps, min_support, slice_hi, slice_lo, xyz):
     return seed_params, seeds
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(alt, mo, np, pd, seed_params, seeds, xyz):
     _sl = xyz[(xyz[:, 2] >= seed_params.slice_lo) & (xyz[:, 2] < seed_params.slice_hi)]
     _s = _sl[:: max(1, len(_sl) // 12000)]
@@ -373,7 +373,7 @@ def _(alt, mo, np, pd, seed_params, seeds, xyz):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ## Method B — 3D Dijkstra region growing
@@ -401,7 +401,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     voxel = mo.ui.slider(0.05, 0.30, value=0.10, step=0.05, label="voxel size (m)", show_value=True)
     max_edge = mo.ui.slider(0.2, 1.5, value=0.5, step=0.1, label="max edge length (m)", show_value=True)
@@ -411,7 +411,7 @@ def _(mo):
     return knn, max_edge, run, voxel
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(
     GrowParams,
     ground_z,
@@ -424,29 +424,37 @@ def _(
     voxel,
     xyz,
 ):
-    mo.stop(not run.value, mo.md("*Set the parameters above, then press **Run region growing**.*"))
-    mo.stop(len(seeds) == 0, mo.md("**No seeds detected** — loosen the detection parameters."))
-
-    result_b = grow_instances(
-        xyz,
-        seeds,
-        GrowParams(
-            ground_z=ground_z.value, voxel=voxel.value, k=knn.value, max_edge=max_edge.value
-        ),
-    )
-    labels_b = result_b.labels
-    mo.md(
-        f"""
-        Graph: **{result_b.stats['n_nodes']:,} nodes**, {result_b.stats['n_edges']:,} edges.
-        Reached {100 * result_b.stats['frac_reached']:.1f}% of nodes;
-        labelled {result_b.stats['points_labelled']:,} points across
-        {result_b.stats['n_trees']} trees.
-        """
-    )
+    # `labels_b` is always defined, even before the button is pressed. Using
+    # mo.stop here instead would halt this cell, and every cell downstream would
+    # report "ancestor stopped" rather than saying what to do about it.
+    if not run.value:
+        labels_b = None
+        _out = mo.md("*Set the parameters above, then press **Run region growing**.*")
+    elif len(seeds) == 0:
+        labels_b = None
+        _out = mo.md("**No seeds detected** — loosen the detection parameters.")
+    else:
+        _res = grow_instances(
+            xyz,
+            seeds,
+            GrowParams(
+                ground_z=ground_z.value, voxel=voxel.value, k=knn.value, max_edge=max_edge.value
+            ),
+        )
+        labels_b = _res.labels
+        _out = mo.md(
+            f"""
+            Graph: **{_res.stats['n_nodes']:,} nodes**, {_res.stats['n_edges']:,} edges.
+            Reached {100 * _res.stats['frac_reached']:.1f}% of nodes;
+            labelled {_res.stats['points_labelled']:,} points across
+            {_res.stats['n_trees']} trees.
+            """
+        )
+    _out
     return (labels_b,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ## Look at it in 3D
@@ -463,7 +471,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     which = mo.ui.dropdown(
         {"B — cross-section + Dijkstra": "b", "A — CHM watershed": "a", "reference treeid": "ref"},
@@ -478,7 +486,7 @@ def _(mo):
     return hide_unlabelled, n_show, which
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(
     go,
     hide_unlabelled,
@@ -491,7 +499,16 @@ def _(
     which,
     xyz,
 ):
-    _lab = {"a": labels_a + 1, "b": labels_b + 1, "ref": reference}[which.value]
+    _avail = {"a": labels_a + 1, "ref": reference}
+    if labels_b is not None:
+        _avail["b"] = labels_b + 1
+    _key = which.value if which.value in _avail else "a"
+    _lab = _avail[_key]
+    _note = (
+        ""
+        if _key == which.value
+        else "\n\n*Method B has not been run yet — showing method A instead.*"
+    )
 
     _keep = np.ones(len(xyz), bool) if not hide_unlabelled.value else (_lab > 0)
     _idx = np.flatnonzero(_keep)
@@ -532,10 +549,9 @@ def _(
             yaxis_title="y (m)",
             zaxis_title="height (m)",
         ),
-        title=f"{which.selected_key} — {len(_idx):,} of {int(_keep.sum()):,} points, "
-        f"{len(_uniq[_uniq > 0])} trees",
+        title=f"{len(_idx):,} of {int(_keep.sum()):,} points, {len(_uniq[_uniq > 0])} trees",
     )
-    mo.ui.plotly(_fig)
+    mo.vstack([mo.ui.plotly(_fig), mo.md(_note)]) if _note else mo.ui.plotly(_fig)
     return
 
 
@@ -549,8 +565,12 @@ def _(mo):
 
 @app.cell
 def _(instance_scores, labels_a, labels_b, mo, pd, reference):
+    _methods = [("A  CHM watershed", labels_a)]
+    if labels_b is not None:
+        _methods.append(("B  XS + Dijkstra", labels_b))
+
     _rows = []
-    for _name, _lab in (("A  CHM watershed", labels_a), ("B  XS + Dijkstra", labels_b)):
+    for _name, _lab in _methods:
         _s = instance_scores(_lab, reference)
         _rows.append(
             {
@@ -618,19 +638,26 @@ def _(mo):
 
 @app.cell
 def _(labels_b, mo, seeds, semantic_labels, tree_table, xyz):
-    semantic = semantic_labels(xyz, labels_b, seeds, ground_z=0.30)
-    trees = tree_table(xyz, labels_b, seeds, semantic)
-    mo.vstack(
-        [
-            mo.ui.table(
-                trees.sort_values("points", ascending=False).round(
-                    {"x": 2, "y": 2, "dbh_m": 3, "height_m": 2}
+    if labels_b is None:
+        semantic, trees = None, None
+        _tbl = mo.md("*Run region growing first — the per-tree table needs its labels.*")
+    else:
+        semantic = semantic_labels(xyz, labels_b, seeds, ground_z=0.30)
+        trees = tree_table(xyz, labels_b, seeds, semantic)
+        _tbl = mo.vstack(
+            [
+                mo.ui.table(
+                    trees.sort_values("points", ascending=False).round(
+                        {"x": 2, "y": 2, "dbh_m": 3, "height_m": 2}
+                    ),
+                    selection=None,
                 ),
-                selection=None,
-            ),
-            mo.md(f"**{len(trees)} trees.** DBH and height come from the segmentation itself."),
-        ]
-    )
+                mo.md(
+                    f"**{len(trees)} trees.** DBH and height come from the segmentation itself."
+                ),
+            ]
+        )
+    _tbl
     return (semantic,)
 
 
@@ -658,6 +685,10 @@ def _(
     with_ground,
     xyz,
 ):
+    mo.stop(
+        semantic is None,
+        mo.md("*Run region growing first — extraction needs the tree labels.*"),
+    )
     mo.stop(not do_extract.value, mo.md("*Press to write per-tree files.*"))
 
     _paths = extract_trees(
@@ -708,6 +739,10 @@ def _(mo):
 
 @app.cell
 def _(CLOUD, OUTDIR, export, labels_a, labels_b, laspy, mo, np, seeds):
+    mo.stop(
+        labels_b is None,
+        mo.md("*Run region growing first — the export writes both methods.*"),
+    )
     mo.stop(not export.value, mo.md("*Press the button to write the files.*"))
 
     OUTDIR.mkdir(parents=True, exist_ok=True)
