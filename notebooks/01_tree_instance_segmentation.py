@@ -75,10 +75,13 @@ def _():
         chm_segment,
         csf_ground,
         detect_seeds,
+        extract_trees,
         grow_instances,
         instance_scores,
         normalize_heights,
         read_cloud,
+        semantic_labels,
+        tree_table,
         write_cloud,
     )
 
@@ -88,25 +91,28 @@ def _():
     OUTDIR = REPO / "out" / "trees"
     return (
         CLOUD,
-        RAW,
         ChmParams,
         CsfParams,
         GrowParams,
         OUTDIR,
         Path,
+        RAW,
         SeedParams,
         alt,
         chm_segment,
         csf_ground,
         detect_seeds,
+        extract_trees,
+        go,
         grow_instances,
         instance_scores,
-        go,
         laspy,
         normalize_heights,
         np,
         pd,
         read_cloud,
+        semantic_labels,
+        tree_table,
         write_cloud,
     )
 
@@ -576,6 +582,89 @@ def _(instance_scores, labels_a, labels_b, mo, pd, reference):
         ]
     )
     return (scores,)
+
+
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
+        ## Pull individual trees out of the stand
+
+        Instance ids answer *which tree*. To lift one tree out whole you also need
+        *which part*, so a semantic labelling runs alongside:
+
+        | | |
+        |---|---|
+        | 0 | ground |
+        | 1 | stem — within the fitted radius of the tree's own vertical axis |
+        | 2 | foliage — everything else belonging to the tree |
+
+        Together those two labellings are a **panoptic** result: a class for every
+        point, and an instance id for every point that belongs to a countable object.
+
+        Ground deliberately gets **no** tree id. A patch of forest floor does not belong
+        to the tree standing on it in any measurable sense, and assigning it inflates
+        every per-tree statistic computed downstream.
+        """
+    )
+    return
+
+
+@app.cell
+def _(labels_b, mo, seeds, semantic_labels, tree_table, xyz):
+    semantic = semantic_labels(xyz, labels_b, seeds, ground_z=0.30)
+    trees = tree_table(xyz, labels_b, seeds, semantic)
+    mo.vstack(
+        [
+            mo.ui.table(
+                trees.sort_values("points", ascending=False).round(
+                    {"x": 2, "y": 2, "dbh_m": 3, "height_m": 2}
+                ),
+                selection=None,
+            ),
+            mo.md(f"**{len(trees)} trees.** DBH and height come from the segmentation itself."),
+        ]
+    )
+    return semantic, trees
+
+
+@app.cell
+def _(mo):
+    min_pts = mo.ui.slider(
+        1000, 50_000, value=20_000, step=1000, label="minimum points per tree", show_value=True
+    )
+    with_ground = mo.ui.checkbox(value=False, label="include ground under each tree")
+    do_extract = mo.ui.run_button(label="Write one LAZ per tree")
+    mo.vstack([min_pts, with_ground, do_extract])
+    return do_extract, min_pts, with_ground
+
+
+@app.cell
+def _(CLOUD, OUTDIR, do_extract, extract_trees, labels_b, min_pts, mo, semantic, with_ground, xyz):
+    mo.stop(not do_extract.value, mo.md("*Press to write per-tree files.*"))
+
+    _paths = extract_trees(
+        xyz,
+        labels_b,
+        OUTDIR / "individual",
+        source=CLOUD,
+        semantic=semantic,
+        min_points=min_pts.value,
+        include_ground=with_ground.value,
+    )
+    mo.md(
+        f"""
+        Wrote **{len(_paths)} trees** to `{OUTDIR / "individual"}`.
+
+        LAS classification codes are set on the way out — 2 ground, 5 stem, 4 foliage —
+        so each file opens in CloudCompare already split by class.
+
+        ```
+        cloudcompare {OUTDIR / "individual"}/tree_001.laz
+        ```
+        """
+    )
+    return
 
 
 @app.cell

@@ -104,10 +104,15 @@ tops → marker-controlled watershed.
 
 Scored against the reference `treeid` labels in the cloud (41 instances):
 
-| method | trees | matched | recall | precision | mean IoU |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| A  CHM watershed (PCT port) | 9–13 | 4–6 | 0.10–0.15 | 0.44–0.60 | 0.74–0.79 |
-| B  cross-section + Dijkstra | 38 | 20 | 0.51 | 0.67 | 0.78 |
+| method | trees | matched | recall | precision | mean IoU | h RMSE |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| A  CHM watershed (PCT port) | 13 | 6 | 0.15 | 0.46 | 0.735 | 1.99 m |
+| B  cross-section + Dijkstra | 30 | 20 | 0.51 | 0.67 | 0.778 | 0.97 m |
+| C  TreeAIBox seeds + Dijkstra | 28 | 21 | **0.54** | **0.75** | **0.808** | **0.95 m** |
+
+Method C swaps our cross-section seeds for TreeAIBox's trained stem detector and keeps
+the growing identical, so it isolates the seeding. It wins on every measure; see
+[`TREEAIBOX.md`](TREEAIBOX.md). It costs under 3 minutes of CPU for the full plot.
 
 The gap is not a tuning failure, and no CHM parameters close it. **23 of the 41
 trees are under 10 m** in a canopy reaching 22.8 m, median tree height 7.5 m — over
