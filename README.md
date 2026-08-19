@@ -9,15 +9,51 @@ material from the organisers; regenerate derived products with the scripts here.
 
 ## Layout
 
-    setup/      how CloudCompare + its plugins were built and wired on this machine
-    csf/        Cloth Simulation Filter ground/off-ground split
+    setup/          how CloudCompare + its plugins were built and wired on this machine
+    csf/            CSF ground/off-ground split from the shell
+    src/novatrees/  the Python pipeline (xarray-based)
+    notebooks/      marimo notebooks
 
 ## Quick start
 
-    ./csf/run-csf.sh Day03_ToumasYrttima/crsot_mixed_stand.laz DEMO
+    uv sync
+    uv run marimo edit notebooks/00_ground_filtering_csf.py        # raw -> ground -> normalised
+    uv run marimo edit notebooks/01_tree_instance_segmentation.py  # trees, two methods compared
 
-CloudCompare itself launches with `cloudcompare` (the wrapper in `setup/bin`,
-installed to `~/.local/bin`). It carries the CSF, PCL and Python plugins.
+Or from the shell:
+
+    uv run nova-trees Day03_ToumasYrttima/crsot_mixed_stand_hnorm.laz \
+        --reference "Day03_ToumasYrttima/tree seeds.laz"
+    ./csf/run-csf.sh PCT_demo/PCT_demo/crsot_mixed_stand.laz DEMO
+
+CloudCompare launches with `cloudcompare` (the wrapper in `setup/bin`, installed
+to `~/.local/bin`). It carries the CSF, PCL and Python plugins.
+
+## The pipeline
+
+Point clouds are carried as `xarray.Dataset` objects over a `point` dimension, so
+the per-point attributes a LAS file already has (`reflectance`, `treeid`, …) stay
+named and aligned. The numeric kernels — scipy, scikit-learn, CSF — still take raw
+arrays; xarray is the container, not the maths.
+
+1. **Ground filtering** (`novatrees.csf`) — CSF via the authors' Python bindings,
+   ~1 s on 15 M points. The CloudCompare plugin runs the same algorithm and is
+   available for cross-checking.
+2. **Height normalisation** — DTM per cell from the ground points. The per-cell
+   statistic matters: the textbook minimum is biased low by sub-surface noise.
+   Quantile 0.25 reproduces the course's own `_hnorm` to a bias of −0.002 m and
+   RMSE 0.068 m; the minimum drifts to +0.264 m.
+3. **Cross-section stem seeds** (`novatrees.pipeline`) — cluster a slice at breast
+   height, fit circles, keep clusters that are stem-shaped *and* vertically
+   continuous.
+4. **3D Dijkstra region growing** — multi-source shortest path over a kNN graph of
+   the above-ground points; each point takes the label of its geodesically nearest
+   seed.
+
+**The ground must come off before step 4.** The forest floor is one continuous
+sheet of points touching the base of every stem, so with it in place the cheapest
+path from one tree's seed to another tree's crown runs straight through the
+ground, and labels bleed across the plot.
 
 ## State of the tooling, 2026-08-19
 
@@ -36,15 +72,40 @@ small clip first.
 Full detail, including the two version traps that cost the most time, is in
 [`setup/cloudcompare-linux.md`](setup/cloudcompare-linux.md).
 
+## Comparing against Yrttimaa's method
+
+`novatrees.chm_watershed` ports the crown-detection stage of **Point-Cloud-Tools**
+(PCT) — the MATLAB toolbox by Dr. Tuomas Yrttimaa behind `PCT_demo_installer.exe`
+in the course material. It is top-down: CHM → gaussian smooth → local-maxima tree
+tops → marker-controlled watershed.
+
+Scored against the reference `treeid` labels in the cloud (41 instances):
+
+| method | trees | matched | recall | precision | mean IoU |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| A  CHM watershed (PCT port) | 9–13 | 4–6 | 0.10–0.15 | 0.44–0.60 | 0.74–0.79 |
+| B  cross-section + Dijkstra | 38 | 20 | 0.51 | 0.67 | 0.78 |
+
+The gap is not a tuning failure, and no CHM parameters close it. **23 of the 41
+trees are under 10 m** in a canopy reaching 22.8 m, median tree height 7.5 m — over
+half this stand is suppressed. A canopy height model keeps only the highest return
+per cell, so a tree beneath a taller neighbour leaves no trace in it. Cross-section
+seeding looks at breast height, where a suppressed stem is as visible as a dominant
+one.
+
+Note what is being compared: PCT uses crown segments as a *partition* step and then
+classifies stem points within each segment. This is one stage of that pipeline
+against a complete alternative, not the whole toolbox.
+
 ## Reference results
 
-CSF on `crsot_mixed_stand.laz` (TLS, 18.0 × 18.8 m, 15,595,864 points) with
-`-SCENES RELIEF -CLOTH_RESOLUTION 0.2 -CLASS_THRESHOLD 0.3`:
+CSF on `crsot_mixed_stand.laz` (TLS, 18.0 × 18.8 m, 15,595,864 points),
+cloth 0.2 m, threshold 0.3 m, relief:
 
-| subset | points | share | Z range |
-| --- | ---: | ---: | --- |
-| ground | 3,830,441 | 24.6 % | 148.05 – 149.08 m |
-| off-ground | 11,765,423 | 75.4 % | 148.06 – 171.29 m |
+| implementation | ground | share |
+| --- | ---: | ---: |
+| CloudCompare `qCSF` | 3,830,441 | 24.6 % |
+| Python `cloth-simulation-filter` | 3,659,893 | 23.5 % |
 
-The two subsets sum exactly to the input. Ground spans only ~1.03 m across the
-plot, so `-SCENES FLAT` is worth comparing against if the DTM matters.
+Ground spans only ~1.03 m across the plot. Tree instance segmentation from our own
+CSF normalisation finds **40–41 stems**, against 41 reference instances.

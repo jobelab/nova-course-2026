@@ -23,3 +23,9 @@ out/
 __pycache__/
 .venv/
 *.pyc
+
+# Build artefacts of the editable install
+*.egg-info/
+
+# CSF writes this next to the working directory
+cloth_nodes.txt

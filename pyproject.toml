@@ -1,0 +1,33 @@
+[project]
+name = "nova-course2026"
+version = "0.1.0"
+description = "NOVA 2026 point-cloud tooling: CSF ground filtering, cross-section stem seeds, 3D Dijkstra tree instance segmentation"
+requires-python = ">=3.12"
+dependencies = [
+    "laspy[lazrs]>=2.7",
+    "numpy>=2.0",
+    "scipy>=1.14",
+    "scikit-learn>=1.5",
+    "circle-fit>=0.2",
+    "marimo>=0.23",
+    "altair>=5.4",
+    "pandas>=2.2",
+    "pyarrow>=17",
+    "scikit-image>=0.24",
+    "xarray>=2024.7",
+    "cloth-simulation-filter>=1.1",
+]
+
+[project.optional-dependencies]
+# Only for the optional PCT stage. Torch is large and CPU-only on this machine.
+pct = ["torch>=2.5"]
+
+[project.scripts]
+nova-trees = "novatrees.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/novatrees"]
