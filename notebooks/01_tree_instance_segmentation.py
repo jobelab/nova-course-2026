@@ -14,7 +14,7 @@ Run:  uv run marimo edit notebooks/01_tree_instance_segmentation.py
 
 import marimo
 
-__generated_with = "0.23.16"
+__generated_with = "0.24.0"
 app = marimo.App(width="medium")
 
 
@@ -25,39 +25,37 @@ def _():
     return (mo,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        # Tree instance segmentation on a TLS plot
+    mo.md(r"""
+    # Tree instance segmentation on a TLS plot
 
-        Same cloud, two philosophies.
+    Same cloud, two philosophies.
 
-        **A — CHM watershed (top-down).** Rasterise the canopy, smooth it, find the
-        local maxima, let watershed basins grow down from those tree tops. This is a
-        port of the crown-detection stage of Tuomas Yrttimaa's *Point-Cloud-Tools*
-        (PCT) — the MATLAB toolbox behind `PCT_demo_installer.exe` in the course
-        material.
+    **A — CHM watershed (top-down).** Rasterise the canopy, smooth it, find the
+    local maxima, let watershed basins grow down from those tree tops. This is a
+    port of the crown-detection stage of Tuomas Yrttimaa's *Point-Cloud-Tools*
+    (PCT) — the MATLAB toolbox behind `PCT_demo_installer.exe` in the course
+    material.
 
-        **B — cross-section seeds + 3D Dijkstra (bottom-up).** Slice the cloud at
-        breast height, cluster the slice, fit circles, keep what looks like a stem.
-        Those centres become seeds. Then every point is assigned to whichever seed is
-        closest *through the point cloud* — geodesic distance along a nearest-neighbour
-        graph, not straight-line distance.
+    **B — cross-section seeds + 3D Dijkstra (bottom-up).** Slice the cloud at
+    breast height, cluster the slice, fit circles, keep what looks like a stem.
+    Those centres become seeds. Then every point is assigned to whichever seed is
+    closest *through the point cloud* — geodesic distance along a nearest-neighbour
+    graph, not straight-line distance.
 
-        Both are scored against the per-point `treeid` field already in the cloud.
+    Both are scored against the per-point `treeid` field already in the cloud.
 
-        > **Remove the ground first.** This is not housekeeping. The graph in method B
-        > walks between neighbouring points, and the forest floor is one continuous
-        > sheet touching the base of every stem. Leave it in and the cheapest path from
-        > one tree's seed to another tree's crown runs straight through the ground —
-        > labels bleed across the whole plot.
-        """
-    )
+    > **Remove the ground first.** This is not housekeeping. The graph in method B
+    > walks between neighbouring points, and the forest floor is one continuous
+    > sheet touching the base of every stem. Leave it in and the cheapest path from
+    > one tree's seed to another tree's crown runs straight through the ground —
+    > labels bleed across the whole plot.
+    """)
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     from pathlib import Path
 
@@ -92,33 +90,27 @@ def _():
     return (
         CLOUD,
         ChmParams,
-        CsfParams,
         GrowParams,
         OUTDIR,
-        Path,
-        RAW,
         SeedParams,
         alt,
         chm_segment,
-        csf_ground,
         detect_seeds,
         extract_trees,
         go,
         grow_instances,
         instance_scores,
         laspy,
-        normalize_heights,
         np,
         pd,
         read_cloud,
         semantic_labels,
         tree_table,
-        write_cloud,
     )
 
 
-@app.cell
-def _(CLOUD, laspy, mo, np):
+@app.cell(hide_code=True)
+def _(CLOUD, mo, np, read_cloud):
     mo.stop(
         not CLOUD.exists(),
         mo.md(f"**Missing cloud.** Expected `{CLOUD}` — re-fetch the course data."),
@@ -142,23 +134,21 @@ def _(CLOUD, laspy, mo, np):
         stays named and aligned:
         """
     )
-    return ds, n_ref, reference, xyz
+    return reference, xyz
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        ## Why this stand is hard
+    mo.md(r"""
+    ## Why this stand is hard
 
-        Most of the trees never reach the canopy. That single fact decides which method
-        can work here, so it is worth seeing before touching any parameters.
-        """
-    )
+    Most of the trees never reach the canopy. That single fact decides which method
+    can work here, so it is worth seeing before touching any parameters.
+    """)
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(alt, np, pd, reference, xyz):
     _ids = np.unique(reference[reference > 0])
     _h = np.array([xyz[reference == t, 2].max() for t in _ids])
@@ -178,7 +168,7 @@ def _(alt, np, pd, reference, xyz):
     return (tree_heights,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo, np, tree_heights, xyz):
     _under = int((tree_heights.height < 10).sum())
     mo.md(
@@ -199,7 +189,9 @@ def _(mo, np, tree_heights, xyz):
 
 @app.cell
 def _(mo):
-    mo.md(r"""## Ground removal""")
+    mo.md(r"""
+    ## Ground removal
+    """)
     return
 
 
@@ -212,7 +204,7 @@ def _(mo):
     return (ground_z,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(alt, ground_z, mo, np, pd, xyz):
     _above = xyz[:, 2] > ground_z.value
     # Bin in numpy, not in Vega: shipping 15 M rows to the browser is how you
@@ -245,17 +237,15 @@ def _(alt, ground_z, mo, np, pd, xyz):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        ## Method A — CHM watershed (PCT port)
+    mo.md(r"""
+    ## Method A — CHM watershed (PCT port)
 
-        `pc2dem(max)` → gaussian(σ=1) → local-maxima tree tops → marker-controlled
-        watershed → drop crowns below `min_crown_area`. Defaults are PCT's own
-        (`chmPixelSize = 0.2`, `minCrownArea = 2`, `minTreeHeight = 2`).
-        """
-    )
+    `pc2dem(max)` → gaussian(σ=1) → local-maxima tree tops → marker-controlled
+    watershed → drop crowns below `min_crown_area`. Defaults are PCT's own
+    (`chmPixelSize = 0.2`, `minCrownArea = 2`, `minTreeHeight = 2`).
+    """)
     return
 
 
@@ -286,7 +276,7 @@ def _(ChmParams, chm_dist, chm_minh, chm_px, chm_segment, ground_z, xyz):
 
 
 @app.cell
-def _(alt, mo, np, pd, result_a):
+def _(alt, mo, result_a):
     _chm = result_a["chm"]  # xarray DataArray, real x/y coords
     _step = max(1, _chm.sizes["y"] // 120)
     _sub = _chm.isel(y=slice(None, None, _step), x=slice(None, None, _step))
@@ -319,16 +309,14 @@ def _(alt, mo, np, pd, result_a):
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
-        ## Method B — cross-section seeds
+    mo.md(r"""
+    ## Method B — cross-section seeds
 
-        Slice at breast height, cluster in 2D, fit a circle per cluster, and keep only
-        clusters that are stem-shaped *and* vertically continuous — points must also
-        exist in a slab above and a slab below. That continuity check is what rejects
-        understory clutter and low branches.
-        """
-    )
+    Slice at breast height, cluster in 2D, fit a circle per cluster, and keep only
+    clusters that are stem-shaped *and* vertically continuous — points must also
+    exist in a slab above and a slab below. That continuity check is what rejects
+    understory clutter and low branches.
+    """)
     return
 
 
@@ -387,31 +375,29 @@ def _(alt, mo, np, pd, seed_params, seeds, xyz):
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
-        ## Method B — 3D Dijkstra region growing
+    mo.md(r"""
+    ## Method B — 3D Dijkstra region growing
 
-        A kNN graph over the voxel-downsampled above-ground points, edges weighted by
-        distance and refused beyond $d_{\max}$ (`max_edge`):
+    A kNN graph over the voxel-downsampled above-ground points, edges weighted by
+    distance and refused beyond $d_{\max}$ (`max_edge`):
 
-        $$w(u,v) =
-          \begin{cases}
-            \lVert \mathbf{p}_{u} - \mathbf{p}_{v} \rVert_{2},
-              & v \in \mathrm{kNN}_{k}(u) \ \wedge\ \lVert \mathbf{p}_{u} - \mathbf{p}_{v} \rVert_{2} \le d_{\max} \\
-            \infty, & \text{otherwise}
-          \end{cases}$$
+    $$w(u,v) =
+      \begin{cases}
+        \lVert \mathbf{p}_{u} - \mathbf{p}_{v} \rVert_{2},
+          & v \in \mathrm{kNN}_{k}(u) \ \wedge\ \lVert \mathbf{p}_{u} - \mathbf{p}_{v} \rVert_{2} \le d_{\max} \\
+        \infty, & \text{otherwise}
+      \end{cases}$$
 
-        Multi-source Dijkstra then gives each node the label of its geodesically nearest
-        seed — a **geodesic Voronoi partition**:
+    Multi-source Dijkstra then gives each node the label of its geodesically nearest
+    seed — a **geodesic Voronoi partition**:
 
-        $$d_{g}(s, x) = \min_{\pi \in \Pi(s,x)} \sum_{(a,b) \in \pi} w(a,b),
-          \qquad \ell(x) = \arg\min_{s \in S} d_{g}(s, x)$$
+    $$d_{g}(s, x) = \min_{\pi \in \Pi(s,x)} \sum_{(a,b) \in \pi} w(a,b),
+      \qquad \ell(x) = \arg\min_{s \in S} d_{g}(s, x)$$
 
-        $d_{\max}$ is the parameter that matters: a graph allowed to leap wide gaps will
-        happily leap into a neighbouring crown. Distance *through the tree*, rather than
-        straight-line, is what keeps a low branch with the trunk it hangs from.
-        """
-    )
+    $d_{\max}$ is the parameter that matters: a graph allowed to leap wide gaps will
+    happily leap into a neighbouring crown. Distance *through the tree*, rather than
+    straight-line, is what keeps a low branch with the trunk it hangs from.
+    """)
     return
 
 
@@ -426,7 +412,18 @@ def _(mo):
 
 
 @app.cell
-def _(GrowParams, grow_instances, ground_z, knn, max_edge, mo, run, seeds, voxel, xyz):
+def _(
+    GrowParams,
+    ground_z,
+    grow_instances,
+    knn,
+    max_edge,
+    mo,
+    run,
+    seeds,
+    voxel,
+    xyz,
+):
     mo.stop(not run.value, mo.md("*Set the parameters above, then press **Run region growing**.*"))
     mo.stop(len(seeds) == 0, mo.md("**No seeds detected** — loosen the detection parameters."))
 
@@ -446,25 +443,23 @@ def _(GrowParams, grow_instances, ground_z, knn, max_edge, mo, run, seeds, voxel
         {result_b.stats['n_trees']} trees.
         """
     )
-    return labels_b, result_b
+    return (labels_b,)
 
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
-        ## Look at it in 3D
+    mo.md(r"""
+    ## Look at it in 3D
 
-        Drag to rotate, scroll to zoom. Points are subsampled for the browser — the
-        full 15.6 M would not survive the trip — but the segmentation shown is the real
-        one, sampled uniformly.
+    Drag to rotate, scroll to zoom. Points are subsampled for the browser — the
+    full 15.6 M would not survive the trip — but the segmentation shown is the real
+    one, sampled uniformly.
 
-        Flip between the two methods and the reference to see *where* they disagree.
-        The give-away for method A is whole understory trees painted the colour of the
-        dominant above them; for method B it is a crown that reaches across into its
-        neighbour.
-        """
-    )
+    Flip between the two methods and the reference to see *where* they disagree.
+    The give-away for method A is whole understory trees painted the colour of the
+    dominant above them; for method B it is a crown that reaches across into its
+    neighbour.
+    """)
     return
 
 
@@ -484,7 +479,18 @@ def _(mo):
 
 
 @app.cell
-def _(go, hide_unlabelled, labels_a, labels_b, mo, n_show, np, reference, which, xyz):
+def _(
+    go,
+    hide_unlabelled,
+    labels_a,
+    labels_b,
+    mo,
+    n_show,
+    np,
+    reference,
+    which,
+    xyz,
+):
     _lab = {"a": labels_a + 1, "b": labels_b + 1, "ref": reference}[which.value]
 
     _keep = np.ones(len(xyz), bool) if not hide_unlabelled.value else (_lab > 0)
@@ -535,7 +541,9 @@ def _(go, hide_unlabelled, labels_a, labels_b, mo, n_show, np, reference, which,
 
 @app.cell
 def _(mo):
-    mo.md(r"""## Scored against the reference labels""")
+    mo.md(r"""
+    ## Scored against the reference labels
+    """)
     return
 
 
@@ -581,32 +589,30 @@ def _(instance_scores, labels_a, labels_b, mo, pd, reference):
             ),
         ]
     )
-    return (scores,)
+    return
 
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
-        ## Pull individual trees out of the stand
+    mo.md(r"""
+    ## Pull individual trees out of the stand
 
-        Instance ids answer *which tree*. To lift one tree out whole you also need
-        *which part*, so a semantic labelling runs alongside:
+    Instance ids answer *which tree*. To lift one tree out whole you also need
+    *which part*, so a semantic labelling runs alongside:
 
-        | | |
-        |---|---|
-        | 0 | ground |
-        | 1 | stem — within the fitted radius of the tree's own vertical axis |
-        | 2 | foliage — everything else belonging to the tree |
+    | | |
+    |---|---|
+    | 0 | ground |
+    | 1 | stem — within the fitted radius of the tree's own vertical axis |
+    | 2 | foliage — everything else belonging to the tree |
 
-        Together those two labellings are a **panoptic** result: a class for every
-        point, and an instance id for every point that belongs to a countable object.
+    Together those two labellings are a **panoptic** result: a class for every
+    point, and an instance id for every point that belongs to a countable object.
 
-        Ground deliberately gets **no** tree id. A patch of forest floor does not belong
-        to the tree standing on it in any measurable sense, and assigning it inflates
-        every per-tree statistic computed downstream.
-        """
-    )
+    Ground deliberately gets **no** tree id. A patch of forest floor does not belong
+    to the tree standing on it in any measurable sense, and assigning it inflates
+    every per-tree statistic computed downstream.
+    """)
     return
 
 
@@ -625,7 +631,7 @@ def _(labels_b, mo, seeds, semantic_labels, tree_table, xyz):
             mo.md(f"**{len(trees)} trees.** DBH and height come from the segmentation itself."),
         ]
     )
-    return semantic, trees
+    return (semantic,)
 
 
 @app.cell
@@ -640,7 +646,18 @@ def _(mo):
 
 
 @app.cell
-def _(CLOUD, OUTDIR, do_extract, extract_trees, labels_b, min_pts, mo, semantic, with_ground, xyz):
+def _(
+    CLOUD,
+    OUTDIR,
+    do_extract,
+    extract_trees,
+    labels_b,
+    min_pts,
+    mo,
+    semantic,
+    with_ground,
+    xyz,
+):
     mo.stop(not do_extract.value, mo.md("*Press to write per-tree files.*"))
 
     _paths = extract_trees(
@@ -669,18 +686,16 @@ def _(CLOUD, OUTDIR, do_extract, extract_trees, labels_b, min_pts, mo, semantic,
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
-        ## Export for CloudCompare
+    mo.md(r"""
+    ## Export for CloudCompare
 
-        Writes both labellings as extra scalar fields so the two methods and the
-        reference can be flipped between in one viewer.
+    Writes both labellings as extra scalar fields so the two methods and the
+    reference can be flipped between in one viewer.
 
-        Open the result and colour by **`treeID_dj`** (method B), **`treeID_chm`**
-        (method A) or the original **`treeid`** (reference). The cloud already carries
-        `treeid`, so nothing is overwritten.
-        """
-    )
+    Open the result and colour by **`treeID_dj`** (method B), **`treeID_chm`**
+    (method A) or the original **`treeid`** (reference). The cloud already carries
+    `treeid`, so nothing is overwritten.
+    """)
     return
 
 
@@ -724,23 +739,21 @@ def _(CLOUD, OUTDIR, export, labels_a, labels_b, laspy, mo, np, seeds):
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
-        ---
+    mo.md(r"""
+    ---
 
-        ### Credit
+    ### Credit
 
-        Method A ports the crown-detection stage of **Point-Cloud-Tools** by
-        Dr. Tuomas Yrttimaa (University of Eastern Finland), CC BY 4.0 —
-        [zenodo.5779288](https://doi.org/10.5281/zenodo.5779288),
-        [Yrttimaa et al. 2019](https://doi.org/10.3390/rs11121423),
-        [2020](https://doi.org/10.1016/j.isprsjprs.2020.08.017).
+    Method A ports the crown-detection stage of **Point-Cloud-Tools** by
+    Dr. Tuomas Yrttimaa (University of Eastern Finland), CC BY 4.0 —
+    [zenodo.5779288](https://doi.org/10.5281/zenodo.5779288),
+    [Yrttimaa et al. 2019](https://doi.org/10.3390/rs11121423),
+    [2020](https://doi.org/10.1016/j.isprsjprs.2020.08.017).
 
-        Note what is being compared: PCT uses crown segments as a *partition* step and
-        then classifies stem points within each segment, so this is one stage of his
-        pipeline against a complete alternative, not the whole toolbox.
-        """
-    )
+    Note what is being compared: PCT uses crown segments as a *partition* step and
+    then classifies stem points within each segment, so this is one stage of his
+    pipeline against a complete alternative, not the whole toolbox.
+    """)
     return
 
 

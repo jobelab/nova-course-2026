@@ -1,0 +1,339 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.24.0",
+    "script_metadata_hash": null
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "fc751b761a1999aeb2de68567b90b5e2",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"tree-instance-segmentation-on-a-tls-plot\">Tree instance segmentation on a TLS plot</h1>\n<span class=\"paragraph\">Same cloud, two philosophies.</span>\n<span class=\"paragraph\"><strong>A \u2014 CHM watershed (top-down).</strong> Rasterise the canopy, smooth it, find the\nlocal maxima, let watershed basins grow down from those tree tops. This is a\nport of the crown-detection stage of Tuomas Yrttimaa's <em>Point-Cloud-Tools</em>\n(PCT) \u2014 the MATLAB toolbox behind <code>PCT_demo_installer.exe</code> in the course\nmaterial.</span>\n<span class=\"paragraph\"><strong>B \u2014 cross-section seeds + 3D Dijkstra (bottom-up).</strong> Slice the cloud at\nbreast height, cluster the slice, fit circles, keep what looks like a stem.\nThose centres become seeds. Then every point is assigned to whichever seed is\nclosest <em>through the point cloud</em> \u2014 geodesic distance along a nearest-neighbour\ngraph, not straight-line distance.</span>\n<span class=\"paragraph\">Both are scored against the per-point <code>treeid</code> field already in the cloud.</span>\n<blockquote>\n<span class=\"paragraph\"><strong>Remove the ground first.</strong> This is not housekeeping. The graph in method B\nwalks between neighbouring points, and the forest floor is one continuous\nsheet touching the base of every stem. Leave it in and the cheapest path from\none tree's seed to another tree's crown runs straight through the ground \u2014\nlabels bleed across the whole plot.</span>\n</blockquote></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "1ab8903488b5da550332360c1773672e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "3f4d3ee8b496e80c43bb78bd7a8fdd13",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>crsot_mixed_stand_hnorm.laz</strong> \u2014 15,595,864 points, Z from -0.46 to\n22.85 m (height-normalised), extent\n18.0 x 18.8 m.\nReference labelling: <strong>41 tree instances</strong>,\n4,550,702 points left unassigned.</span>\n<span class=\"paragraph\">Carried as an <code>xarray.Dataset</code> over a <code>point</code> dimension, so every per-point\nattribute the file already had \u2014 <code>x</code>, <code>y</code>, <code>z</code>, <code>intensity</code>, <code>classification</code>, <code>reflectance</code>, <code>h</code>, <code>treeid</code> \u2014\nstays named and aligned:</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "26f505f2a2fdd68a11e575e4e90d4d50",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"why-this-stand-is-hard\">Why this stand is hard</h2>\n<span class=\"paragraph\">Most of the trees never reach the canopy. That single fact decides which method\ncan work here, so it is worth seeing before touching any parameters.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "6a7bf7b01f9f0459528ce2934f17bf98",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/vnd.vegalite.v6+json": "{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v6.4.1.json\",\n  \"config\": {\n    \"view\": {\n      \"continuousHeight\": 300,\n      \"continuousWidth\": 300\n    }\n  },\n  \"data\": {\n    \"name\": \"data-55fecf11ba3b6a2210ed90eed17c2b90\"\n  },\n  \"datasets\": {\n    \"data-55fecf11ba3b6a2210ed90eed17c2b90\": [\n      {\n        \"height\": 6.9088,\n        \"treeid\": 1\n      },\n      {\n        \"height\": 7.5358,\n        \"treeid\": 25\n      },\n      {\n        \"height\": 1.472,\n        \"treeid\": 37\n      },\n      {\n        \"height\": 4.2709,\n        \"treeid\": 40\n      },\n      {\n        \"height\": 2.5363,\n        \"treeid\": 41\n      },\n      {\n        \"height\": 6.2738000000000005,\n        \"treeid\": 42\n      },\n      {\n        \"height\": 1.7335,\n        \"treeid\": 43\n      },\n      {\n        \"height\": 2.4494000000000002,\n        \"treeid\": 48\n      },\n      {\n        \"height\": 5.6782,\n        \"treeid\": 49\n      },\n      {\n        \"height\": 12.2902,\n        \"treeid\": 51\n      },\n      {\n        \"height\": 3.101,\n        \"treeid\": 54\n      },\n      {\n        \"height\": 5.470000000000001,\n        \"treeid\": 55\n      },\n      {\n        \"height\": 12.8147,\n        \"treeid\": 59\n      },\n      {\n        \"height\": 7.7197000000000005,\n        \"treeid\": 60\n      },\n      {\n        \"height\": 1.6067,\n        \"treeid\": 61\n      },\n      {\n        \"height\": 14.124,\n        \"treeid\": 62\n      },\n      {\n        \"height\": 1.1477000000000002,\n        \"treeid\": 63\n      },\n      {\n        \"height\": 12.3606,\n        \"treeid\": 64\n      },\n      {\n        \"height\": 2.8363,\n        \"treeid\": 65\n      },\n      {\n        \"height\": 18.5636,\n        \"treeid\": 70\n      },\n      {\n        \"height\": 1.3699000000000001,\n        \"treeid\": 71\n      },\n      {\n        \"height\": 2.0296000000000003,\n        \"treeid\": 72\n      },\n      {\n        \"height\": 16.563200000000002,\n        \"treeid\": 73\n      },\n      {\n        \"height\": 1.4306,\n        \"treeid\": 74\n      },\n      {\n        \"height\": 2.3084000000000002,\n        \"treeid\": 75\n      },\n      {\n        \"height\": 11.1117,\n        \"treeid\": 77\n      },\n      {\n        \"height\": 17.111700000000003,\n        \"treeid\": 78\n      },\n      {\n        \"height\": 21.161,\n        \"treeid\": 79\n      },\n      {\n        \"height\": 1.9957,\n        \"treeid\": 81\n      },\n      {\n        \"height\": 20.5574,\n        \"treeid\": 84\n      },\n      {\n        \"height\": 2.0607,\n        \"treeid\": 86\n      },\n      {\n        \"height\": 18.7698,\n        \"treeid\": 89\n      },\n      {\n        \"height\": 22.8476,\n        \"treeid\": 92\n      },\n      {\n        \"height\": 17.9018,\n        \"treeid\": 101\n      },\n      {\n        \"height\": 14.811200000000001,\n        \"treeid\": 114\n      },\n      {\n        \"height\": 11.1533,\n        \"treeid\": 130\n      },\n      {\n        \"height\": 17.701800000000002,\n        \"treeid\": 134\n      },\n      {\n        \"height\": 19.9629,\n        \"treeid\": 141\n      },\n      {\n        \"height\": 13.9441,\n        \"treeid\": 146\n      },\n      {\n        \"height\": 5.5129,\n        \"treeid\": 170\n      },\n      {\n        \"height\": 8.5417,\n        \"treeid\": 266\n      }\n    ]\n  },\n  \"encoding\": {\n    \"tooltip\": [\n      {\n        \"aggregate\": \"count\",\n        \"type\": \"quantitative\"\n      }\n    ],\n    \"x\": {\n      \"bin\": {\n        \"step\": 2\n      },\n      \"field\": \"height\",\n      \"title\": \"tree height (m)\",\n      \"type\": \"quantitative\"\n    },\n    \"y\": {\n      \"aggregate\": \"count\",\n      \"title\": \"trees\",\n      \"type\": \"quantitative\"\n    }\n  },\n  \"height\": 200,\n  \"mark\": {\n    \"color\": \"#4c78a8\",\n    \"type\": \"bar\"\n  },\n  \"title\": \"Reference tree heights \u2014 most of the stand is suppressed\",\n  \"usermeta\": {\n    \"embedOptions\": {}\n  }\n}"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "0a13042f26460e547638a174c0e0dcec",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>23 of 41 trees are under 10 m</strong>, with a canopy reaching\n22.8 m and a median tree only\n7.5 m tall.</span>\n<span class=\"paragraph\">A canopy height model records the <em>highest</em> return per cell, so a suppressed tree\nunder a taller neighbour leaves no trace in it at all. Method A cannot find those\ntrees no matter how it is tuned \u2014 not a bug in the port, a property of working\nfrom a raster of the canopy surface. Method B looks for stems at breast height,\nwhere a suppressed tree is just as visible as a dominant one.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "d8d132a42c82de2e5c3ec1e72c31d1ab",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"ground-removal\">Ground removal</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "d37360868863cda371a40bd754acf664",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='BYtC-0' random-id='6700b4e1-ccc8-d20a-38b4-3a03e017dcee'><marimo-slider data-initial-value='0.3' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003edrop points below (m)&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-start='0.0' data-stop='1.0' data-step='0.05' data-steps='[]' data-debounce='false' data-disabled='false' data-orientation='&quot;horizontal&quot;' data-show-value='true' data-include-input='false' data-full-width='false'></marimo-slider></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "49e03f4a091983da4d8a94ce7d42a284",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><marimo-mime-renderer data-mime='&quot;application/vnd.vegalite.v6+json&quot;' data-data='&quot;{&#92;n  &#92;&quot;&#36;schema&#92;&quot;: &#92;&quot;https://vega.github.io/schema/vega-lite/v6.4.1.json&#92;&quot;,&#92;n  &#92;&quot;config&#92;&quot;: {&#92;n    &#92;&quot;view&#92;&quot;: {&#92;n      &#92;&quot;continuousHeight&#92;&quot;: 300,&#92;n      &#92;&quot;continuousWidth&#92;&quot;: 300&#92;n    }&#92;n  },&#92;n  &#92;&quot;datasets&#92;&quot;: {&#92;n    &#92;&quot;data-7fa538860b364b1e2e3daaab816699a5&#92;&quot;: [&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 0,&#92;n        &#92;&quot;z&#92;&quot;: -1.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 1143500,&#92;n        &#92;&quot;z&#92;&quot;: -0.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 3131767,&#92;n        &#92;&quot;z&#92;&quot;: 0.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 498280,&#92;n        &#92;&quot;z&#92;&quot;: 0.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 379019,&#92;n        &#92;&quot;z&#92;&quot;: 1.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 285495,&#92;n        &#92;&quot;z&#92;&quot;: 1.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 278110,&#92;n        &#92;&quot;z&#92;&quot;: 2.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 242142,&#92;n        &#92;&quot;z&#92;&quot;: 2.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 298330,&#92;n        &#92;&quot;z&#92;&quot;: 3.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 302239,&#92;n        &#92;&quot;z&#92;&quot;: 3.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 285701,&#92;n        &#92;&quot;z&#92;&quot;: 4.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 311015,&#92;n        &#92;&quot;z&#92;&quot;: 4.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 283528,&#92;n        &#92;&quot;z&#92;&quot;: 5.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 305125,&#92;n        &#92;&quot;z&#92;&quot;: 5.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 348407,&#92;n        &#92;&quot;z&#92;&quot;: 6.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 506596,&#92;n        &#92;&quot;z&#92;&quot;: 6.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 455670,&#92;n        &#92;&quot;z&#92;&quot;: 7.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 452489,&#92;n        &#92;&quot;z&#92;&quot;: 7.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 450449,&#92;n        &#92;&quot;z&#92;&quot;: 8.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 392972,&#92;n        &#92;&quot;z&#92;&quot;: 8.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 419454,&#92;n        &#92;&quot;z&#92;&quot;: 9.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 536007,&#92;n        &#92;&quot;z&#92;&quot;: 9.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 497641,&#92;n        &#92;&quot;z&#92;&quot;: 10.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 421231,&#92;n        &#92;&quot;z&#92;&quot;: 10.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 311565,&#92;n        &#92;&quot;z&#92;&quot;: 11.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 323405,&#92;n        &#92;&quot;z&#92;&quot;: 11.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 332266,&#92;n        &#92;&quot;z&#92;&quot;: 12.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 292360,&#92;n        &#92;&quot;z&#92;&quot;: 12.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 288745,&#92;n        &#92;&quot;z&#92;&quot;: 13.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 262733,&#92;n        &#92;&quot;z&#92;&quot;: 13.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 223418,&#92;n        &#92;&quot;z&#92;&quot;: 14.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 213039,&#92;n        &#92;&quot;z&#92;&quot;: 14.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 174879,&#92;n        &#92;&quot;z&#92;&quot;: 15.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 182137,&#92;n        &#92;&quot;z&#92;&quot;: 15.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 164627,&#92;n        &#92;&quot;z&#92;&quot;: 16.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 133583,&#92;n        &#92;&quot;z&#92;&quot;: 16.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 113247,&#92;n        &#92;&quot;z&#92;&quot;: 17.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 91031,&#92;n        &#92;&quot;z&#92;&quot;: 17.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 68937,&#92;n        &#92;&quot;z&#92;&quot;: 18.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 53520,&#92;n        &#92;&quot;z&#92;&quot;: 18.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 38887,&#92;n        &#92;&quot;z&#92;&quot;: 19.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 29950,&#92;n        &#92;&quot;z&#92;&quot;: 19.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 17996,&#92;n        &#92;&quot;z&#92;&quot;: 20.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 15447,&#92;n        &#92;&quot;z&#92;&quot;: 20.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 14483,&#92;n        &#92;&quot;z&#92;&quot;: 21.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 12313,&#92;n        &#92;&quot;z&#92;&quot;: 21.5&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 10262,&#92;n        &#92;&quot;z&#92;&quot;: 22.0&#92;n      },&#92;n      {&#92;n        &#92;&quot;points&#92;&quot;: 1867,&#92;n        &#92;&quot;z&#92;&quot;: 22.5&#92;n      }&#92;n    ],&#92;n    &#92;&quot;data-86eccca838a327cff9429a2d5a6276d6&#92;&quot;: [&#92;n      {&#92;n        &#92;&quot;z&#92;&quot;: 0.8&#92;n      }&#92;n    ]&#92;n  },&#92;n  &#92;&quot;height&#92;&quot;: 260,&#92;n  &#92;&quot;layer&#92;&quot;: [&#92;n    {&#92;n      &#92;&quot;data&#92;&quot;: {&#92;n        &#92;&quot;name&#92;&quot;: &#92;&quot;data-7fa538860b364b1e2e3daaab816699a5&#92;&quot;&#92;n      },&#92;n      &#92;&quot;encoding&#92;&quot;: {&#92;n        &#92;&quot;tooltip&#92;&quot;: [&#92;n          {&#92;n            &#92;&quot;field&#92;&quot;: &#92;&quot;z&#92;&quot;,&#92;n            &#92;&quot;type&#92;&quot;: &#92;&quot;quantitative&#92;&quot;&#92;n          },&#92;n          {&#92;n            &#92;&quot;field&#92;&quot;: &#92;&quot;points&#92;&quot;,&#92;n            &#92;&quot;type&#92;&quot;: &#92;&quot;quantitative&#92;&quot;&#92;n          }&#92;n        ],&#92;n        &#92;&quot;x&#92;&quot;: {&#92;n          &#92;&quot;field&#92;&quot;: &#92;&quot;points&#92;&quot;,&#92;n          &#92;&quot;title&#92;&quot;: &#92;&quot;points&#92;&quot;,&#92;n          &#92;&quot;type&#92;&quot;: &#92;&quot;quantitative&#92;&quot;&#92;n        },&#92;n        &#92;&quot;y&#92;&quot;: {&#92;n          &#92;&quot;field&#92;&quot;: &#92;&quot;z&#92;&quot;,&#92;n          &#92;&quot;scale&#92;&quot;: {&#92;n            &#92;&quot;zero&#92;&quot;: false&#92;n          },&#92;n          &#92;&quot;title&#92;&quot;: &#92;&quot;height (m)&#92;&quot;,&#92;n          &#92;&quot;type&#92;&quot;: &#92;&quot;quantitative&#92;&quot;&#92;n        }&#92;n      },&#92;n      &#92;&quot;mark&#92;&quot;: {&#92;n        &#92;&quot;color&#92;&quot;: &#92;&quot;#54a24b&#92;&quot;,&#92;n        &#92;&quot;type&#92;&quot;: &#92;&quot;bar&#92;&quot;&#92;n      },&#92;n      &#92;&quot;title&#92;&quot;: &#92;&quot;Vertical point distribution&#92;&quot;&#92;n    },&#92;n    {&#92;n      &#92;&quot;data&#92;&quot;: {&#92;n        &#92;&quot;name&#92;&quot;: &#92;&quot;data-86eccca838a327cff9429a2d5a6276d6&#92;&quot;&#92;n      },&#92;n      &#92;&quot;encoding&#92;&quot;: {&#92;n        &#92;&quot;y&#92;&quot;: {&#92;n          &#92;&quot;field&#92;&quot;: &#92;&quot;z&#92;&quot;,&#92;n          &#92;&quot;type&#92;&quot;: &#92;&quot;quantitative&#92;&quot;&#92;n        }&#92;n      },&#92;n      &#92;&quot;mark&#92;&quot;: {&#92;n        &#92;&quot;color&#92;&quot;: &#92;&quot;crimson&#92;&quot;,&#92;n        &#92;&quot;size&#92;&quot;: 2,&#92;n        &#92;&quot;strokeDash&#92;&quot;: [&#92;n          4,&#92;n          4&#92;n        ],&#92;n        &#92;&quot;type&#92;&quot;: &#92;&quot;rule&#92;&quot;&#92;n      }&#92;n    }&#92;n  ],&#92;n  &#92;&quot;usermeta&#92;&quot;: {&#92;n    &#92;&quot;embedOptions&#92;&quot;: {}&#92;n  }&#92;n}&quot;'></marimo-mime-renderer><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Removing <strong>4,606,554</strong> points (29.5%), keeping <strong>10,989,310</strong>.</span></span></div>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": "5ea8991dfc1e0ac7efc3bd8563cef95e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"method-a-chm-watershed-pct-port\">Method A \u2014 CHM watershed (PCT port)</h2>\n<span class=\"paragraph\"><code>pc2dem(max)</code> \u2192 gaussian(\u03c3=1) \u2192 local-maxima tree tops \u2192 marker-controlled\nwatershed \u2192 drop crowns below <code>min_crown_area</code>. Defaults are PCT's own\n(<code>chmPixelSize = 0.2</code>, <code>minCrownArea = 2</code>, <code>minTreeHeight = 2</code>).</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "5b0383f75b6cd280cd18e0fc2dd9e732",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Hstk",
+      "code_hash": "262be073f52a2e69ad6f819204b021df",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "nWHF",
+      "code_hash": "98be22d8352fc29c14edebd4e58ebaf1",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "iLit",
+      "code_hash": "7843857aba25c4945fcb6e6ef99b0d83",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"method-b-cross-section-seeds\">Method B \u2014 cross-section seeds</h2>\n<span class=\"paragraph\">Slice at breast height, cluster in 2D, fit a circle per cluster, and keep only\nclusters that are stem-shaped <em>and</em> vertically continuous \u2014 points must also\nexist in a slab above and a slab below. That continuity check is what rejects\nunderstory clutter and low branches.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "d8a85d1a8e9d6d6f953e9ec14314bb65",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "2189efce5144ec6b92e3ced1cd428e79",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "qnkX",
+      "code_hash": "200497e54fbfbb9ec847c562145988d6",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "TqIu",
+      "code_hash": "7b8770aa5830721681c59649d0dfa049",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"method-b-3d-dijkstra-region-growing\">Method B \u2014 3D Dijkstra region growing</h2>\n<span class=\"paragraph\">A kNN graph over the voxel-downsampled above-ground points, edges weighted by\ndistance and refused beyond <marimo-tex class=\"arithmatex\">||(d_{\\max}||)</marimo-tex> (<code>max_edge</code>):</span>\n<marimo-tex class=\"arithmatex\">||[w(u,v) =\n  \\begin{cases}\n    \\lVert \\mathbf{p}_{u} - \\mathbf{p}_{v} \\rVert_{2},\n      &amp; v \\in \\mathrm{kNN}_{k}(u) \\ \\wedge\\ \\lVert \\mathbf{p}_{u} - \\mathbf{p}_{v} \\rVert_{2} \\le d_{\\max} \\\\\n    \\infty, &amp; \\text{otherwise}\n  \\end{cases}||]</marimo-tex><span class=\"paragraph\">Multi-source Dijkstra then gives each node the label of its geodesically nearest\nseed \u2014 a <strong>geodesic Voronoi partition</strong>:</span>\n<marimo-tex class=\"arithmatex\">||[d_{g}(s, x) = \\min_{\\pi \\in \\Pi(s,x)} \\sum_{(a,b) \\in \\pi} w(a,b),\n  \\qquad \\ell(x) = \\arg\\min_{s \\in S} d_{g}(s, x)||]</marimo-tex><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(d_{\\max}||)</marimo-tex> is the parameter that matters: a graph allowed to leap wide gaps will\nhappily leap into a neighbouring crown. Distance <em>through the tree</em>, rather than\nstraight-line, is what keeps a low branch with the trunk it hangs from.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Vxnm",
+      "code_hash": "64253238d8e9878a1e5b9fa881c5b422",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "DnEU",
+      "code_hash": "62529cddc3a16bfbd70a18273cddd21c",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ulZA",
+      "code_hash": "396e90c45e1f94904c8b9ded84a1f623",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"look-at-it-in-3d\">Look at it in 3D</h2>\n<span class=\"paragraph\">Drag to rotate, scroll to zoom. Points are subsampled for the browser \u2014 the\nfull 15.6 M would not survive the trip \u2014 but the segmentation shown is the real\none, sampled uniformly.</span>\n<span class=\"paragraph\">Flip between the two methods and the reference to see <em>where</em> they disagree.\nThe give-away for method A is whole understory trees painted the colour of the\ndominant above them; for method B it is a crown that reaches across into its\nneighbour.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ecfG",
+      "code_hash": "13820fade91373809c876c8cb39695cc",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Pvdt",
+      "code_hash": "2818db034b24716bac8751f7f2a8cd90",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ZBYS",
+      "code_hash": "e3ec828f3cb11d79204868d10b15cc7c",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"scored-against-the-reference-labels\">Scored against the reference labels</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "aLJB",
+      "code_hash": "2ec104acce3b880945155e30f646f27a",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "nHfw",
+      "code_hash": "43e5457969b4516c1e29da247f1a5882",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"pull-individual-trees-out-of-the-stand\">Pull individual trees out of the stand</h2>\n<span class=\"paragraph\">Instance ids answer <em>which tree</em>. To lift one tree out whole you also need\n<em>which part</em>, so a semantic labelling runs alongside:</span>\n<table>\n<thead>\n<tr>\n<th></th>\n<th></th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>0</td>\n<td>ground</td>\n</tr>\n<tr>\n<td>1</td>\n<td>stem \u2014 within the fitted radius of the tree's own vertical axis</td>\n</tr>\n<tr>\n<td>2</td>\n<td>foliage \u2014 everything else belonging to the tree</td>\n</tr>\n</tbody>\n</table>\n<span class=\"paragraph\">Together those two labellings are a <strong>panoptic</strong> result: a class for every\npoint, and an instance id for every point that belongs to a countable object.</span>\n<span class=\"paragraph\">Ground deliberately gets <strong>no</strong> tree id. A patch of forest floor does not belong\nto the tree standing on it in any measurable sense, and assigning it inflates\nevery per-tree statistic computed downstream.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "xXTn",
+      "code_hash": "2b06e969fc1f15e1e882a1332ef7ae90",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "AjVT",
+      "code_hash": "a932990150665d71eb6f591944f092dc",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "pHFh",
+      "code_hash": "034a40bbf0505278fc89e69b53454537",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "NCOB",
+      "code_hash": "070f10e124edf71b8da592f9ed1c8378",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"export-for-cloudcompare\">Export for CloudCompare</h2>\n<span class=\"paragraph\">Writes both labellings as extra scalar fields so the two methods and the\nreference can be flipped between in one viewer.</span>\n<span class=\"paragraph\">Open the result and colour by <strong><code>treeID_dj</code></strong> (method B), <strong><code>treeID_chm</code></strong>\n(method A) or the original <strong><code>treeid</code></strong> (reference). The cloud already carries\n<code>treeid</code>, so nothing is overwritten.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "aqbW",
+      "code_hash": "af3bfeb48ada946299fe3095075a2a02",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "TRpd",
+      "code_hash": "3d9a2cf1ae35993085f93a55e6fb7811",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "TXez",
+      "code_hash": "8582d7be56452440d6ce7dd6b1738817",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><hr />\n<h3 id=\"credit\">Credit</h3>\n<span class=\"paragraph\">Method A ports the crown-detection stage of <strong>Point-Cloud-Tools</strong> by\nDr. Tuomas Yrttimaa (University of Eastern Finland), CC BY 4.0 \u2014\n<a href=\"https://doi.org/10.5281/zenodo.5779288\" rel=\"noopener noreferrer\" target=\"_blank\">zenodo.5779288</a>,\n<a href=\"https://doi.org/10.3390/rs11121423\" rel=\"noopener noreferrer\" target=\"_blank\">Yrttimaa et al. 2019</a>,\n<a href=\"https://doi.org/10.1016/j.isprsjprs.2020.08.017\" rel=\"noopener noreferrer\" target=\"_blank\">2020</a>.</span>\n<span class=\"paragraph\">Note what is being compared: PCT uses crown segments as a <em>partition</em> step and\nthen classifies stem points within each segment, so this is one stage of his\npipeline against a complete alternative, not the whole toolbox.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    }
+  ]
+}

@@ -9,6 +9,7 @@ material from the organisers; regenerate derived products with the scripts here.
 
 ## Layout
 
+    docs/           background notes
     setup/          how CloudCompare + its plugins were built and wired on this machine
     csf/            CSF ground/off-ground split from the shell
     src/novatrees/  the Python pipeline (xarray-based)
