@@ -54,6 +54,7 @@ def _():
 
     import altair as alt
     import numpy as np
+    import plotly.graph_objects as go
     import pandas as pd
 
     from novatrees import CsfParams, csf_ground, normalize_heights, read_cloud, write_cloud
@@ -72,6 +73,7 @@ def _():
         alt,
         compare_with_cloudcompare,
         csf_ground,
+        go,
         normalize_heights,
         np,
         pd,
@@ -104,8 +106,18 @@ def _(mo):
 
         `cloth_resolution` is the grid spacing of the cloth — roughly the finest
         terrain detail it can follow. `rigidness` is the stiffness: 1 for steep slopes,
-        3 for flat ground. `class_threshold` is how close to the settled cloth a point
-        must be to count as ground.
+        3 for flat ground. `class_threshold` $h_{cc}$ is how close to the settled cloth a
+        point must be to count as ground:
+
+        $$c(\mathbf{p}) =
+          \begin{cases}
+            \text{ground}, & \lvert z_{\mathbf{p}} - z_{\text{cloth}}(\mathbf{p}) \rvert \le h_{cc} \\
+            \text{non-ground}, & \text{otherwise}
+          \end{cases}$$
+
+        The cloth itself settles by Verlet integration under gravity,
+        $\mathbf{X}(t + \Delta t) = 2\mathbf{X}(t) - \mathbf{X}(t - \Delta t) + \frac{\mathbf{G}}{m}\Delta t^{2}$.
+        See `02_methods_and_equations.py` for the full derivation.
         """
     )
     return
@@ -178,13 +190,57 @@ def _(alt, ground, mo, np, pd, raw):
 def _(mo):
     mo.md(
         r"""
+        ### The classification in 3D
+
+        Drag to rotate. Brown is ground, green is everything else — the semantic split
+        the rest of the pipeline is built on.
+        """
+    )
+    return
+
+
+@app.cell
+def _(go, ground, mo, np, raw):
+    _n = 60_000
+    _xyz = np.column_stack([raw.x.values, raw.y.values, raw.z.values])
+    _idx = np.arange(len(_xyz))[:: max(1, len(_xyz) // _n)][:_n]
+    _p, _g = _xyz[_idx], ground[_idx]
+
+    _fig = go.Figure()
+    for _mask, _name, _col in ((_g, "ground", "#8c6d31"), (~_g, "off-ground", "#54a24b")):
+        _fig.add_trace(
+            go.Scatter3d(
+                x=_p[_mask, 0], y=_p[_mask, 1], z=_p[_mask, 2],
+                mode="markers", name=_name,
+                marker=dict(size=1.2, color=_col, opacity=0.8),
+            )
+        )
+    _fig.update_layout(
+        height=600,
+        margin=dict(l=0, r=0, t=30, b=0),
+        scene=dict(aspectmode="data", xaxis_title="x (m)", yaxis_title="y (m)", zaxis_title="elevation (m)"),
+        title=f"CSF classification — {len(_idx):,} of {len(_xyz):,} points shown",
+        legend=dict(itemsizing="constant"),
+    )
+    mo.ui.plotly(_fig)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
         ## Height normalisation
 
-        A DTM from the ground points, subtracted from every Z. The per-cell statistic
-        matters more than it looks: taking the strict **minimum** is the textbook
-        choice but is biased low, because TLS noise leaves a few returns beneath the
-        real surface — and every tree then measures too tall. A low **quantile** is
-        more robust.
+        A DTM from the ground points, subtracted from every Z:
+
+        $$\mathrm{DTM}(i,j) = Q_{q}\big(\{\, z_{p} : p \in \mathcal{G},\ \kappa(p) = (i,j) \,\}\big),
+          \qquad h_{p} = z_{p} - \mathrm{DTM}\big(\kappa(p)\big)$$
+
+        The per-cell statistic $Q_q$ matters more than it looks. Taking the strict
+        **minimum** ($q = 0$) is the textbook choice but is biased low, because TLS noise
+        leaves a few returns beneath the real surface — and every tree then measures too
+        tall. A low **quantile** is more robust.
         """
     )
     return
@@ -227,7 +283,17 @@ def _(HNORM, mo, norm, np, read_cloud):
         Normalised heights span **{norm.z.min().item():.2f} to {norm.z.max().item():.2f} m**.
 
         The course ships its own `_hnorm` file with the points in identical order, so
-        this is a true point-to-point check:
+        this is a true point-to-point check. Over $n$ points, with $\\hat{{h}}_i$ ours and
+        $h_i$ theirs:
+
+        $$\\mathrm{{bias}} = \\frac{{1}}{{n}} \\sum_{{i=1}}^{{n}} (\\hat{{h}}_{{i}} - h_{{i}}),
+          \\qquad
+          \\mathrm{{RMSE}} = \\sqrt{{ \\frac{{1}}{{n}} \\sum_{{i=1}}^{{n}} (\\hat{{h}}_{{i}} - h_{{i}})^{{2}} }}
+          \\qquad
+          \\mathrm{{RMSE}}^{{2}} = \\mathrm{{bias}}^{{2}} + s^{{2}}$$
+
+        Read together, not separately: the third identity says a small RMSE can still be
+        pure systematic offset.
 
         | | |
         |---|---|

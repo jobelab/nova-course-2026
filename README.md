@@ -19,6 +19,7 @@ material from the organisers; regenerate derived products with the scripts here.
     uv sync
     uv run marimo edit notebooks/00_ground_filtering_csf.py        # raw -> ground -> normalised
     uv run marimo edit notebooks/01_tree_instance_segmentation.py  # trees, two methods compared
+    uv run marimo edit notebooks/02_methods_and_equations.py       # diagrams + the equations
 
 Or from the shell:
 
@@ -30,6 +31,28 @@ CloudCompare launches with `cloudcompare` (the wrapper in `setup/bin`, installed
 to `~/.local/bin`). It carries the CSF, PCL and Python plugins.
 
 ## The pipeline
+
+```mermaid
+graph LR
+    RAW["raw cloud"] --> CSF["CSF<br/>ground vs non-ground"]
+    CSF --> NORM["normalise<br/>h = z - DTM"]
+    NORM --> XS["cross-section<br/>stem detection"]
+    NORM --> GRAPH["kNN graph<br/>ground removed"]
+    XS --> SEEDS["stem seeds"]
+    SEEDS --> DIJ["multi-source<br/>Dijkstra"]
+    GRAPH --> DIJ
+    DIJ --> IDS["treeID per point"]
+
+    style CSF fill:#e8f0e0,stroke:#54a24b
+    style XS fill:#e8f0e0,stroke:#54a24b
+    style DIJ fill:#e6eef7,stroke:#4c78a8
+    style IDS fill:#e6eef7,stroke:#4c78a8
+```
+
+Green is semantic segmentation (*what kind of point is this?*), blue is instance
+segmentation (*which tree is it?*). The semantic steps exist to serve the instance
+step: ground classification makes the graph usable, stem detection supplies the seeds.
+
 
 Point clouds are carried as `xarray.Dataset` objects over a `point` dimension, so
 the per-point attributes a LAS file already has (`reflectance`, `treeid`, …) stay

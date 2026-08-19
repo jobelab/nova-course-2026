@@ -63,6 +63,7 @@ def _():
 
     import altair as alt
     import laspy
+    import plotly.graph_objects as go
     import numpy as np
     import pandas as pd
 
@@ -100,6 +101,7 @@ def _():
         detect_seeds,
         grow_instances,
         instance_scores,
+        go,
         laspy,
         normalize_heights,
         np,
@@ -384,11 +386,24 @@ def _(mo):
         ## Method B — 3D Dijkstra region growing
 
         A kNN graph over the voxel-downsampled above-ground points, edges weighted by
-        distance and refused beyond `max_edge`. Multi-source Dijkstra from the stem
-        seeds then labels every node with the seed it is geodesically nearest to.
+        distance and refused beyond $d_{\max}$ (`max_edge`):
 
-        `max_edge` is the parameter that matters: a graph allowed to leap wide gaps will
-        happily leap into a neighbouring crown.
+        $$w(u,v) =
+          \begin{cases}
+            \lVert \mathbf{p}_{u} - \mathbf{p}_{v} \rVert_{2},
+              & v \in \mathrm{kNN}_{k}(u) \ \wedge\ \lVert \mathbf{p}_{u} - \mathbf{p}_{v} \rVert_{2} \le d_{\max} \\
+            \infty, & \text{otherwise}
+          \end{cases}$$
+
+        Multi-source Dijkstra then gives each node the label of its geodesically nearest
+        seed — a **geodesic Voronoi partition**:
+
+        $$d_{g}(s, x) = \min_{\pi \in \Pi(s,x)} \sum_{(a,b) \in \pi} w(a,b),
+          \qquad \ell(x) = \arg\min_{s \in S} d_{g}(s, x)$$
+
+        $d_{\max}$ is the parameter that matters: a graph allowed to leap wide gaps will
+        happily leap into a neighbouring crown. Distance *through the tree*, rather than
+        straight-line, is what keeps a low branch with the trunk it hangs from.
         """
     )
     return
@@ -430,6 +445,90 @@ def _(GrowParams, grow_instances, ground_z, knn, max_edge, mo, run, seeds, voxel
 
 @app.cell
 def _(mo):
+    mo.md(
+        r"""
+        ## Look at it in 3D
+
+        Drag to rotate, scroll to zoom. Points are subsampled for the browser — the
+        full 15.6 M would not survive the trip — but the segmentation shown is the real
+        one, sampled uniformly.
+
+        Flip between the two methods and the reference to see *where* they disagree.
+        The give-away for method A is whole understory trees painted the colour of the
+        dominant above them; for method B it is a crown that reaches across into its
+        neighbour.
+        """
+    )
+    return
+
+
+@app.cell
+def _(mo):
+    which = mo.ui.dropdown(
+        {"B — cross-section + Dijkstra": "b", "A — CHM watershed": "a", "reference treeid": "ref"},
+        value="B — cross-section + Dijkstra",
+        label="colour by",
+    )
+    n_show = mo.ui.slider(
+        20_000, 200_000, value=60_000, step=20_000, label="points shown", show_value=True
+    )
+    hide_unlabelled = mo.ui.checkbox(value=True, label="hide unlabelled points")
+    mo.vstack([which, n_show, hide_unlabelled])
+    return hide_unlabelled, n_show, which
+
+
+@app.cell
+def _(go, hide_unlabelled, labels_a, labels_b, mo, n_show, np, reference, which, xyz):
+    _lab = {"a": labels_a + 1, "b": labels_b + 1, "ref": reference}[which.value]
+
+    _keep = np.ones(len(xyz), bool) if not hide_unlabelled.value else (_lab > 0)
+    _idx = np.flatnonzero(_keep)
+    if len(_idx) > n_show.value:
+        # Uniform stride, not random: keeps the sample reproducible between reruns.
+        _idx = _idx[:: max(1, len(_idx) // n_show.value)][: n_show.value]
+
+    _p, _l = xyz[_idx], _lab[_idx]
+    # Recolour ids to spread neighbouring trees across the palette; consecutive ids
+    # would otherwise land on near-identical colours.
+    _uniq = np.unique(_l)
+    _shuffled = np.zeros(int(_uniq.max()) + 1, int)
+    _shuffled[_uniq] = (np.arange(len(_uniq)) * 7919) % max(len(_uniq), 1)
+
+    _fig = go.Figure(
+        go.Scatter3d(
+            x=_p[:, 0],
+            y=_p[:, 1],
+            z=_p[:, 2],
+            mode="markers",
+            marker=dict(
+                size=1.2,
+                color=_shuffled[_l],
+                colorscale="Turbo",
+                showscale=False,
+                opacity=0.85,
+            ),
+            hovertemplate="tree %{customdata}<br>h %{z:.1f} m<extra></extra>",
+            customdata=_l,
+        )
+    )
+    _fig.update_layout(
+        height=620,
+        margin=dict(l=0, r=0, t=30, b=0),
+        scene=dict(
+            aspectmode="data",
+            xaxis_title="x (m)",
+            yaxis_title="y (m)",
+            zaxis_title="height (m)",
+        ),
+        title=f"{which.selected_key} — {len(_idx):,} of {int(_keep.sum()):,} points, "
+        f"{len(_uniq[_uniq > 0])} trees",
+    )
+    mo.ui.plotly(_fig)
+    return
+
+
+@app.cell
+def _(mo):
     mo.md(r"""## Scored against the reference labels""")
     return
 
@@ -457,10 +556,21 @@ def _(instance_scores, labels_a, labels_b, mo, pd, reference):
         [
             mo.ui.table(scores, selection=None),
             mo.md(
-                """
-                *matched* = predicted instances hitting a reference tree at IoU ≥ 0.5.
-                *over-seg* counts reference trees split across several predictions;
-                *under-seg* counts predictions swallowing several reference trees.
+                r"""
+                Instances are sets of points, so overlap is intersection over union:
+
+                $$\mathrm{IoU}(P_{i}, R_{j}) =
+                  \frac{\lvert P_{i} \cap R_{j} \rvert}{\lvert P_{i} \cup R_{j} \rvert},
+                  \qquad
+                  \mathrm{precision} = \frac{\mathrm{TP}}{\lvert \hat{\mathcal{T}} \rvert},
+                  \qquad
+                  \mathrm{recall} = \frac{\mathrm{TP}}{\lvert \mathcal{T} \rvert}$$
+
+                *matched* counts predictions hitting a reference tree at
+                $\mathrm{IoU} \ge 0.5$, paired greedily and one-to-one. *over-seg* counts
+                reference trees split across several predictions; *under-seg* counts
+                predictions swallowing several reference trees — the two failure modes
+                precision and recall hide.
                 """
             ),
         ]
