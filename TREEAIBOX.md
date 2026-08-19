@@ -90,3 +90,90 @@ or from the shell:
 Requires the TreeAIBox checkout at `/home/sites/organizations/slu/courses/TreeAIBox`
 and its virtualenv (torch, timm, numpy_indexed, numpy_groupies). See that repo's
 `SETUP-LINUX.md`.
+
+
+---
+
+# TreeisoNet models and their parameters
+
+## Models installed
+
+Both live in `~/.local/share/CloudCompare/TreeAIBox/models/`, which is where the
+plugin looks (`get_model_storage_dir()`), hardlinked to `models/` in this repo so
+they cost disk once:
+
+    treeisonet_tls_boreal_stemcls_esegformer3D_128_4cm(GPU3GB).pth    18 MB
+    treeisonet_tls_boreal_treeloc_esegformer3D_128_10cm(GPU3GB).pth   20 MB
+
+**Mind the filename.** The download URL strips the parentheses, the plugin's local
+lookup keeps them. A file saved under the stripped name downloads fine and is then
+invisible to the plugin. Verified from inside CloudCompare:
+
+    models present: 2 of 22
+      OK treeisonet_tls_boreal_stemcls_esegformer3D_128_4cm(GPU3GB)
+      OK treeisonet_tls_boreal_treeloc_esegformer3D_128_10cm(GPU3GB)
+
+## What is fixed by the model, and what you can tune
+
+The distinction matters: half the numbers in the UI change results, and the other
+half are baked into the trained weights.
+
+**Fixed — changing these requires retraining.** From the config JSON beside each
+model:
+
+| model | voxel resolution (m) | block (voxels) | decoder dim | SR ratios |
+| --- | --- | --- | ---: | --- |
+| stemcls TLS 4 cm | 0.04 / 0.04 / 0.04 | 128³ | 128 | 4, 4, 2, 1 |
+| stemcls TLS 10 cm | 0.10 / 0.10 / 0.10 | 128³ | 128 | 4, 4, 2, 1 |
+| treeloc TLS 10 cm | 0.10 / 0.10 / 0.10 | 128³ | 64 | 8, 4, 2, 1 |
+| treeloc TLS 8 cm | 0.08 / 0.08 / 0.08 | 128³ | 64 | 8, 4, 2, 1 |
+| crownoff TLS 15 cm | 0.15 / 0.15 / **0.30** | 128³ | 64 | 8, 4, 2, 1 |
+
+A 128³ block at 0.04 m spans 5.12 m; at 0.10 m it spans 12.8 m. That is the real
+meaning of the resolution choice — how much of the plot the network sees at once,
+against how fine a stem it can resolve. `treeLoc(custom_resolution=...)` will
+override it, but the weights were trained at the config value and accuracy degrades
+away from it.
+
+Note the crownoff model is **anisotropic**: 0.15 m horizontally, 0.30 m vertically.
+Crowns are wider than they are finely layered, so the vertical axis is coarser.
+
+**Tunable at inference** — these are the ones worth sweeping. Defaults from the
+plugin UI (`treeaibox_ui.html`) and the function signatures:
+
+| parameter | default | what it does |
+| --- | ---: | --- |
+| `cutoff_thresh` | 0.3 | fraction of tree height kept for stem-mode treeLoc |
+| `conf_thresh` | 0.3 | minimum confidence for a predicted tree top |
+| `nms_thresh` | 0.5 (UI) / 0.3 (fn) | non-maximum suppression between candidate tops |
+| `min_rad` | 0.2 m | smallest accepted tree radius in peak extraction |
+| `max_gap` | 0.3 m | largest gap bridged when linking peaks |
+| `min_res` | 0.06 m | decimation before shortest-path clustering |
+| `max_isolated_distance` | 0.3 m | beyond this a cluster is dropped as an outlier |
+
+The UI and the function disagree on `nms_thresh` (0.5 against 0.3); the UI value is
+what the plugin actually passes.
+
+## Reported accuracy
+
+The method paper is Xi et al. (2025), *A new unified framework for supervised 3D
+crown segmentation (TreeisoNet)*, ISPRS Open Journal of Photogrammetry and Remote
+Sensing —
+[S266739322500002X](https://www.sciencedirect.com/science/article/pii/S266739322500002X).
+
+Headline mIoU: **0.81 UAV, 0.76 TLS, 0.59 ALS**, described as competitive with
+ForAINet, Treeiso, Mask R-CNN and AMS3D.
+
+> Both ScienceDirect and ResearchGate returned 403 to automated fetching, so those
+> figures come from the abstract as surfaced in search, **not** from reading the
+> full text. The ablations — how much accuracy moves with voxel resolution, block
+> size or the confidence and NMS thresholds — are not reproduced here because I
+> could not read them. Fetch the PDF through the library if the tuning sensitivity
+> matters, and treat the table above as "what the code exposes", not "what the paper
+> recommends".
+
+## Practical note
+
+The two stages must be run in order and TLS stem-mode treeLoc must be fed **stem
+points only** — see the trap documented earlier. On this machine, CPU inference over
+the full 15.6 M-point plot took 164.6 s for stemcls and 4.4 s for treeloc.
