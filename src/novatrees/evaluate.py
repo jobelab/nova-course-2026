@@ -39,8 +39,17 @@ def instance_scores(pred: np.ndarray, ref: np.ndarray, iou_threshold: float = 0.
     0 means unassigned.
     """
     pu, ru, counts, n_common = _pair_counts(pred, ref)
+
+    # Every reference instance in the cloud, not just those a prediction happened to
+    # touch. `n_ref` below counts only the overlapping ones, which makes `recall`
+    # rise as coverage FALLS -- a method that labels less of the plot sees fewer
+    # reference trees and scores better. Use `recall_total` to compare methods whose
+    # coverage differs.
+    n_ref_total = int(len(np.unique(ref[ref > 0])))
+
     if counts.size == 0:
-        return {"n_pred": 0, "n_ref": 0, "matched": 0}
+        return {"n_pred": 0, "n_ref": 0, "n_ref_total": n_ref_total,
+                "matched": 0, "recall_total": 0.0}
 
     pred_sizes = np.bincount(pred[pred >= 0], minlength=pred.max() + 1)[pu]
     ref_sizes = np.array([(ref == r).sum() for r in ru], np.int64)
@@ -74,9 +83,11 @@ def instance_scores(pred: np.ndarray, ref: np.ndarray, iou_threshold: float = 0.
     return {
         "n_pred": int(len(pu)),
         "n_ref": int(len(ru)),
+        "n_ref_total": n_ref_total,
         "n_points_scored": int(n_common),
         "matched": matched,
-        "recall": matched / len(ru),
+        "recall": matched / len(ru),  # against reference trees actually overlapped
+        "recall_total": matched / max(n_ref_total, 1),  # against every reference tree
         "precision": matched / len(pu),
         "mean_iou_matched": float(ious[ious >= iou_threshold].mean()) if matched else 0.0,
         "mean_iou_all_pairs": float(ious.mean()) if len(ious) else 0.0,

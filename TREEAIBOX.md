@@ -225,3 +225,53 @@ the weights**, not the paper table, when driving these models.
 The two stages must be run in order and TLS stem-mode treeLoc must be fed **stem
 points only** — see the trap documented earlier. On this machine, CPU inference over
 the full 15.6 M-point plot took 164.6 s for stemcls and 4.4 s for treeloc.
+
+
+---
+
+# StemCls at 4 cm vs 10 cm, measured
+
+The paper names 4 cm as the optimum for stem classification and calls that module the
+most resolution-sensitive of the four. Both TLS models were run end to end on
+`crsot_mixed_stand_hnorm.laz` (15.6 M points, 41 reference trees), each feeding the
+same 10 cm treeloc and the same Dijkstra growing.
+
+| | 4 cm | 10 cm |
+| --- | ---: | ---: |
+| stemcls, CPU | 191.2 s | **46.6 s** |
+| stem points | 2,337,980 (15.0%) | 2,420,054 (15.5%) |
+| tree locations | 34 | 26 |
+| matched of 41 | **22** | 21 |
+| recall (all 41 refs) | **0.54** | 0.51 |
+| precision | 0.79 | **0.84** |
+| mean IoU | **0.805** | 0.789 |
+| under-segmented | 5 | **2** |
+| height RMSE | 0.950 m | 0.952 m |
+
+**The two classifications are nearly the same.** The stem masks agree at IoU 0.834,
+have near-identical height profiles, and both put 98.2% of their stem points on
+labelled reference trees. Whatever the 4 cm model resolves that the 10 cm one does
+not, it is not changing which points get called stem at this plot's density.
+
+**Downstream they are within noise of each other** — 22 matched trees against 21, mIoU
+0.805 against 0.789 — while 10 cm runs **four times faster**. On this evidence 10 cm
+is the better default for a TLS plot of this size, and 4 cm is worth the wait only if
+something later depends on fine stem detail.
+
+This does **not** contradict the paper. It measures StemCls by point-level mIoU
+against stem/non-stem reference labels; we have no such labels, so we measured the
+only thing we could — whether the resulting stem set produces better trees. Different
+question, and the paper's answer still stands on its own metric.
+
+## A metric artefact worth knowing about
+
+The first version of this comparison showed 10 cm with *better* recall (0.66 against
+0.58). That was an artefact. `instance_scores` was computing recall against the
+reference trees a prediction happened to overlap, and the 10 cm run covered less of
+the plot, so its denominator shrank from 38 to 32 — **coverage falling made recall
+rise**. Against all 41 reference trees the ranking reverses to 0.54 against 0.51.
+
+`instance_scores` now also returns `n_ref_total` and `recall_total`. Use
+`recall_total` whenever the methods being compared cover different amounts of the
+plot. The degenerate case makes the point: one perfectly segmented tree and nothing
+else scores `recall` 1.00 and `recall_total` 0.02.
