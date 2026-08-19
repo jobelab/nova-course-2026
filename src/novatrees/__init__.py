@@ -12,6 +12,14 @@ from .chm_watershed import ChmParams, chm_segment, rasterize_chm
 from .csf import CsfParams, compare_with_cloudcompare, csf_ground, normalize_heights
 from .dataset import as_dataset, attach, chm_dataarray, read_cloud, write_cloud, xyz
 from .evaluate import attribute_errors, confusion_pairs, instance_scores
+from .features import (
+    StemScoreParams,
+    eigen_features,
+    reflectance_bounds,
+    reflectance_index,
+    stem_prescreen,
+    stem_score,
+)
 from .extract import (
     FOLIAGE,
     GROUND,
@@ -22,6 +30,7 @@ from .extract import (
     tree_table,
 )
 from .io import read_xyz, write_labelled, write_seeds
+from .taper import TaperParams, TaperResult, slice_fits, taper_curve
 from .pipeline import (
     GrowParams,
     SeedParams,
@@ -32,6 +41,16 @@ from .pipeline import (
 )
 
 __all__ = [
+    "taper_curve",
+    "stem_score",
+    "stem_prescreen",
+    "slice_fits",
+    "reflectance_index",
+    "reflectance_bounds",
+    "eigen_features",
+    "TaperResult",
+    "TaperParams",
+    "StemScoreParams",
     "ChmParams",
     "CsfParams",
     "GrowParams",

@@ -10,6 +10,7 @@ from pathlib import Path
 import numpy as np
 
 from .extract import extract_trees, semantic_labels, tree_table
+from .features import StemScoreParams, stem_prescreen
 from .io import read_xyz, write_labelled, write_seeds
 from .pipeline import GrowParams, SeedParams, detect_seeds, grow_instances, match_reference
 
@@ -58,6 +59,25 @@ def main(argv: list[str] | None = None) -> int:
     )
     x.add_argument("--seeds-from", choices=["cross-section", "treeaibox"], default="cross-section")
 
+    w = ap.add_argument_group("weighted stem pre-screen (course demo phase 2)")
+    w.add_argument(
+        "--prescreen",
+        type=float,
+        default=None,
+        metavar="PCT",
+        help="keep this %% of the most stem-like points before clustering "
+        "(lower is tighter; omit to disable). Needs a reflectance field for the "
+        "reflectance term.",
+    )
+    w.add_argument("--normals-k", type=int, default=StemScoreParams.k)
+    w.add_argument("--w-vertical", type=float, default=StemScoreParams.w_vertical)
+    w.add_argument("--w-reflectance", type=float, default=StemScoreParams.w_reflectance)
+    w.add_argument("--band-lo", type=float, default=0.7, help="bottom of the feature band")
+    w.add_argument("--band-hi", type=float, default=2.0, help="top of the feature band")
+
+    tp = ap.add_argument_group("stem taper")
+    tp.add_argument("--taper", action="store_true", help="reconstruct a taper curve per tree")
+
     a = ap.parse_args(argv)
 
     seed_p = SeedParams(
@@ -94,7 +114,40 @@ def main(argv: list[str] | None = None) -> int:
 
         seeds, stem_mask, _timings = treeaibox_seeds(xyz)
     else:
-        seeds = detect_seeds(xyz, seed_p)
+        prescreen_mask = None
+        if a.prescreen is not None:
+            refl = None
+            try:
+                import laspy
+
+                f = laspy.read(a.input)
+                if "reflectance" in f.point_format.dimension_names:
+                    refl = np.asarray(f.reflectance)
+            except Exception:
+                pass
+            if refl is None:
+                print(
+                    "note: no reflectance field; screening on verticality alone",
+                    file=sys.stderr,
+                )
+            band = (xyz[:, 2] >= a.band_lo) & (xyz[:, 2] < a.band_hi)
+            sp = StemScoreParams(
+                k=a.normals_k,
+                w_vertical=a.w_vertical,
+                w_reflectance=a.w_reflectance if refl is not None else 0.0,
+                w_radial=0.0,  # no seeds yet, so the radial term cannot apply
+                prescreen_pct=a.prescreen,
+            )
+            keep = stem_prescreen(
+                xyz[band], reflectance=None if refl is None else refl[band], p=sp
+            )
+            prescreen_mask = np.zeros(len(xyz), bool)
+            prescreen_mask[np.flatnonzero(band)[keep]] = True
+            print(
+                f"pre-screen: kept {prescreen_mask.sum():,} of {int(band.sum()):,} "
+                f"band points ({a.prescreen:g}%)"
+            )
+        seeds = detect_seeds(xyz, seed_p, mask=prescreen_mask)
     print(f"stems detected: {len(seeds)}  ({time.time() - t:.1f}s)")
     if len(seeds) == 0:
         print("no stems found; nothing to grow", file=sys.stderr)
@@ -137,6 +190,33 @@ def main(argv: list[str] | None = None) -> int:
     print(f"\nwrote {n:,} points -> {cloud_out}")
     print(f"wrote {len(seeds)} seeds  -> {seeds_out}")
     print(f"wrote {len(table)} rows   -> {table_out}")
+
+    if a.taper:
+        from .taper import TaperParams, taper_curve
+
+        t = time.time()
+        rows = []
+        for k in range(len(seeds)):
+            sel = (res.labels == k) & (semantic == 1)
+            if sel.sum() < TaperParams.min_points:
+                continue
+            r = taper_curve(xyz[sel], TaperParams())
+            rows.append(
+                {
+                    "treeID": k + 1,
+                    "dbh_taper_m": r.dbh,
+                    "dbh_seed_m": float(seeds[k, 2]),
+                    "volume_m3": r.volume,
+                    "slices": r.stats.get("n_slices", 0),
+                    "accepted": r.stats.get("n_accepted", 0),
+                }
+            )
+        if rows:
+            import pandas as pd
+
+            taper_out = outdir / f"{stem}_taper.csv"
+            pd.DataFrame(rows).to_csv(taper_out, index=False)
+            print(f"wrote {len(rows)} taper curves -> {taper_out} ({time.time() - t:.1f}s)")
 
     if a.extract:
         t = time.time()
