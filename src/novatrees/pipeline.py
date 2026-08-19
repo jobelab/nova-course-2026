@@ -17,6 +17,33 @@ The method, in three moves:
    geodesically closest to — distance *through the canopy*, not straight-line,
    which is what keeps interlocking crowns apart.
 
+Where this fails, and where it does not
+---------------------------------------
+
+Big merged instances look like a growing problem and are almost always a
+*seeding* problem. Measured on the course plot: the largest predicted instance
+swallowed two reference trees nearly whole (99.5% and 99.7% of each). Ref 146 had
+a seed 0.02 m away; ref 141 had none within 1.95 m. Dijkstra cannot split a
+region between two trees when only one of them has a seed — there is nothing to
+split toward.
+
+Neither graph knob repairs it, and the sweeps are worth knowing so nobody repeats
+them:
+
+* `max_geodesic` truncates every tree at the same path length. Tightening it from
+  inf to 8 m shrank the largest instance from 3.37 M to 0.76 M points but left
+  69% of the cloud unlabelled, with mean IoU falling and height RMSE rising.
+* `max_edge` from 0.50 down to 0.15 barely moved the largest instance at all
+  (3.37 M to 3.35 M). The crowns are genuinely touching at short range, so no
+  edge-length threshold separates them.
+
+`max_edge = 0.25` is the default because it does modestly improve matching
+(recall 0.51 to 0.57, precision 0.67 to 0.70), not because it addresses merging.
+
+The real fix is a better seed set. `novatrees.treeaibox` supplies one: its trained
+detector found the stem our cross-section missed, 0.21 m from ref 141, which is
+exactly why its largest instance is 1.89 M points rather than 3.37 M.
+
 Heights are assumed **normalised** (Z above ground), as in `*_hnorm.laz`. For a
 raw cloud, run CSF first (see `csf/run-csf.sh`) and normalise, or pass
 `--ground-z` to suit.
@@ -62,7 +89,7 @@ class GrowParams:
     ground_z: float = 0.30  # drop everything below this (m above ground)
     voxel: float = 0.10  # graph node spacing (m)
     k: int = 9  # kNN per node, including self
-    max_edge: float = 0.50  # refuse to bridge gaps wider than this (m)
+    max_edge: float = 0.25  # refuse to bridge gaps wider than this (m)
     max_geodesic: float = np.inf  # optional cap on path length from a seed (m)
     seed_z: float = 1.30  # height at which seeds enter the graph (m)
 

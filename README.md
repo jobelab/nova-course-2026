@@ -73,6 +73,12 @@ arrays; xarray is the container, not the maths.
    the above-ground points; each point takes the label of its geodesically nearest
    seed.
 
+**Large merged instances are a seeding failure, not a growing failure.** The
+biggest predicted tree on this plot swallows two reference trees almost entirely,
+because only one of them had a seed. No graph parameter fixes that — `max_geodesic`
+just truncates every tree, and `max_edge` barely moves it because the crowns really
+do touch. Better seeds do fix it; see [`TREEAIBOX.md`](TREEAIBOX.md).
+
 **The ground must come off before step 4.** The forest floor is one continuous
 sheet of points touching the base of every stem, so with it in place the cheapest
 path from one tree's seed to another tree's crown runs straight through the
