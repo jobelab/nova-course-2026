@@ -154,23 +154,71 @@ plugin UI (`treeaibox_ui.html`) and the function signatures:
 The UI and the function disagree on `nms_thresh` (0.5 against 0.3); the UI value is
 what the plugin actually passes.
 
-## Reported accuracy
+## What the paper says about tuning
 
-The method paper is Xi et al. (2025), *A new unified framework for supervised 3D
-crown segmentation (TreeisoNet)*, ISPRS Open Journal of Photogrammetry and Remote
-Sensing —
+Xi, Z. & Degenhardt, D. (2025), *A new unified framework for supervised 3D crown
+segmentation (TreeisoNet) using deep neural networks across airborne, UAV-borne, and
+terrestrial laser scans*, ISPRS Open Journal of Photogrammetry and Remote Sensing —
 [S266739322500002X](https://www.sciencedirect.com/science/article/pii/S266739322500002X).
+Canadian Forest Service, Natural Resources Canada.
 
-Headline mIoU: **0.81 UAV, 0.76 TLS, 0.59 ALS**, described as competitive with
-ForAINet, Treeiso, Mask R-CNN and AMS3D.
+### Most hyperparameters do not matter. Two do.
 
-> Both ScienceDirect and ResearchGate returned 403 to automated fetching, so those
-> figures come from the abstract as surfaced in search, **not** from reading the
-> full text. The ablations — how much accuracy moves with voxel resolution, block
-> size or the confidence and NMS thresholds — are not reproduced here because I
-> could not read them. Fetch the PDF through the library if the tuning sensitivity
-> matters, and treat the table above as "what the code exposes", not "what the paper
-> recommends".
+> "Accuracy result from our test was insensitive to the choice of hyperparameters
+> except for some key parameters like **voxel resolution and decoder dimension**."
+
+Larger blocks, more depth, wider decoders or more channels all help accuracy, but the
+authors deliberately stopped short: the models are meant to be "sufficiently accurate
+… more lightweight and intervenable" rather than maximally tuned. So there is little
+to gain from fiddling with attention heads or SR ratios, and a lot to lose from using
+the wrong resolution.
+
+### Resolution has an optimum per module, and it is a bell curve
+
+Fig. 7 sweeps input point resolution for each module. Accuracy rises to a peak and
+falls away, with a **broad stable plateau** around the peak — which is what makes the
+models usable on data of varying quality. The optima:
+
+| module | optimal resolution | sensitivity |
+| --- | --- | --- |
+| **stem point classification** (StemCls) | **4 cm** | **most sensitive** — steepest accuracy fluctuations |
+| stem base detection (TreeBase / treeloc) | **10 cm** | moderate |
+| crown and stem segmentation (TreeOff2D, CrownOff3D) | **30 cm or greater** | most stable |
+
+> "Among these modules, the stem classification step is most sensitive to changes in
+> input resolution … The optimal accuracies for different modules were found at
+> distinct resolutions: 4 cm for stem point classification, 10 cm for stem base
+> detection, and 30 cm or greater for crown and stem segmentation."
+
+**The two models installed here are the paper's optima**: stemcls at 4 cm, treeloc at
+10 cm. There is a 10 cm stemcls model in the zoo as well; on this evidence it should
+be the second choice for TLS, not the first.
+
+### Reported accuracy
+
+Averages across the benchmark: **mIoU 0.77 for StemCls**, **F1 0.96 for TreeBase**,
+**mIoU 0.98 for TreeOff2D**, **mIoU 0.85 for CrownOff3D**. Per-sensor headline mIoU is
+0.81 UAV, 0.76 TLS, 0.59 ALS. StemCls held above 0.7 even on densely crowned,
+irregular plots.
+
+Two caveats the paper raises that bear on our plot. Crown detection at IoU > 0.5 is
+called "an arbitrary criterion that can be problematic with complex stem points" —
+the same threshold our `instance_scores` uses, so our numbers inherit that objection.
+And the plot with the worst accuracy (TUWIEN_2) is the one with "more **stem tilting**
+and crown overlap", which is exactly the failure mode we hit.
+
+### Transferability
+
+Cross-sensor use costs surprisingly little: CrownOff3D reaches mIoU 0.80 applying the
+**TLS model to UAV** data, and 0.84 applying the **UAV model to TLS**.
+
+### One discrepancy worth noting
+
+Table 4 in the paper lists StemCls at 112³ input voxels, SR ratios 4,2,2,1 and 128
+decoders. The config shipped with the released 4 cm TLS weights says 128³ and SR
+4,4,2,1. The table is captioned "Example TreeisoNet DL network settings", so the
+released models are not identical to the published example. **Trust the JSON beside
+the weights**, not the paper table, when driving these models.
 
 ## Practical note
 
