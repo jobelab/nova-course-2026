@@ -9,7 +9,7 @@ material from the organisers; regenerate derived products with the scripts here.
 
 ## Layout
 
-    docs/           methods + equations reference, background notes
+    docs/           course demo reference, methods + equations, background notes
     setup/          how CloudCompare + its plugins were built and wired on this machine
     csf/            CSF ground/off-ground split from the shell
     src/novatrees/  the Python pipeline (xarray-based)
@@ -98,6 +98,10 @@ ground, and labels bleed across the plot.
 TreeAIBox runs but this machine has no NVIDIA GPU, while every bundled model
 config is labelled for 3–12 GB of VRAM. Expect slow inference and test on a
 small clip first.
+
+The Day 3 demo instructions this pipeline reimplements are transcribed in
+[`docs/course-demo-workflow.md`](docs/course-demo-workflow.md), with a phase-by-phase
+comparison against what `novatrees` actually does.
 
 Full detail, including the two version traps that cost the most time, is in
 [`setup/cloudcompare-linux.md`](setup/cloudcompare-linux.md). Every formula the
