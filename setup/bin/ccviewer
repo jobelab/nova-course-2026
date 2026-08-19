@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# CloudCompare launcher -> qt6-qpcl build (PCL + CSF + PythonRuntime plugins).
+# Shadows the stale root-owned /usr/local/bin/cloudcompare, which points at
+# /opt/cloudcompare (no PCL) and sets none of the paths below.
+QT6WE=/home/sites/.local/opt/qt6we/root
+
+export QT_QPA_PLATFORM=${QT_QPA_PLATFORM:-xcb}
+export QT_XCB_GL_INTEGRATION=xcb_glx
+
+# PCL 1.15 lives outside the default loader path; QtWebEngine libs are
+# user-extracted .debs (needed by the TreeAIBox Python plugin GUI).
+export LD_LIBRARY_PATH=$QT6WE/usr/lib/x86_64-linux-gnu:/opt/pcl-qt6/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+export QTWEBENGINEPROCESS_PATH=$QT6WE/usr/lib/qt6/libexec/QtWebEngineProcess
+export QTWEBENGINE_RESOURCES_PATH=$QT6WE/usr/share/qt6/resources
+
+exec /opt/cloudcompare-qt6-qpcl/bin/ccViewer "$@"

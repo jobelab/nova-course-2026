@@ -1,0 +1,25 @@
+# Point clouds and rasters — regenerate or re-fetch, never commit (see global CLAUDE.md)
+*.laz
+*.las
+*.lax
+*.tif
+*.tiff
+
+# Course material under copyright, and bulk downloads
+*.pptx
+*.pdf
+*.zip
+*.exe
+
+# Windows / WSL interop cruft
+*:Zone.Identifier
+Thumbs.db
+
+# CSF and other derived products
+DEMO/
+out/
+
+# Python
+__pycache__/
+.venv/
+*.pyc
