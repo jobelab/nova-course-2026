@@ -11,7 +11,16 @@ see `novatrees.dataset`.
 from .chm_watershed import ChmParams, chm_segment, rasterize_chm
 from .csf import CsfParams, compare_with_cloudcompare, csf_ground, normalize_heights
 from .dataset import as_dataset, attach, chm_dataarray, read_cloud, write_cloud, xyz
-from .evaluate import confusion_pairs, instance_scores
+from .evaluate import attribute_errors, confusion_pairs, instance_scores
+from .extract import (
+    FOLIAGE,
+    GROUND,
+    STEM,
+    attach_labels,
+    extract_trees,
+    semantic_labels,
+    tree_table,
+)
 from .io import read_xyz, write_labelled, write_seeds
 from .pipeline import (
     GrowParams,
@@ -32,6 +41,14 @@ __all__ = [
     "chm_dataarray",
     "chm_segment",
     "compare_with_cloudcompare",
+    "FOLIAGE",
+    "GROUND",
+    "STEM",
+    "attach_labels",
+    "attribute_errors",
+    "extract_trees",
+    "semantic_labels",
+    "tree_table",
     "confusion_pairs",
     "csf_ground",
     "detect_seeds",

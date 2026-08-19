@@ -29,3 +29,6 @@ __pycache__/
 
 # CSF writes this next to the working directory
 cloth_nodes.txt
+
+# TreeAIBox model weights (~20 MB each, re-downloadable from the NRCan release page)
+models/

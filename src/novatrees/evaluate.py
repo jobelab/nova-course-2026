@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import numpy as np
 
-__all__ = ["instance_scores", "confusion_pairs"]
+__all__ = ["instance_scores", "confusion_pairs", "attribute_errors"]
 
 
 def _pair_counts(pred: np.ndarray, ref: np.ndarray):
@@ -90,3 +90,48 @@ def instance_scores(pred: np.ndarray, ref: np.ndarray, iou_threshold: float = 0.
 def confusion_pairs(scores: dict, top: int = 10) -> list[tuple[int, int, float]]:
     """The `top` best-matched (pred, ref, IoU) triples, for eyeballing."""
     return sorted(scores.get("pairs", []), key=lambda t: -t[2])[:top]
+
+
+def attribute_errors(
+    pred: np.ndarray, ref: np.ndarray, xyz: np.ndarray, pairs: list, iou_threshold: float = 0.5
+) -> dict:
+    """Bias and RMSE of per-tree attributes, over matched instances only.
+
+    Segmentation methods do not produce heights the way normalisation does, so
+    the comparable quantities are tree-level: how tall is each detected tree, and
+    where is it. Unmatched trees are excluded — an undetected tree has no height
+    error, it has a detection failure, and the two should not be averaged together.
+
+    `pairs` is the (pred_id, ref_id, iou) list from `instance_scores`.
+    """
+    dh, dxy, heights = [], [], []
+    for p_id, r_id, iou in pairs:
+        if iou < iou_threshold:
+            continue
+        pm, rm = pred == p_id, ref == r_id
+        if not pm.any() or not rm.any():
+            continue
+        hp, hr = xyz[pm, 2].max(), xyz[rm, 2].max()
+        dh.append(hp - hr)
+        heights.append(hr)
+        # Position at the base, where a stem actually is.
+        lo = xyz[rm, 2].min()
+        bp = xyz[pm & (xyz[:, 2] < lo + 2.0)]
+        br = xyz[rm & (xyz[:, 2] < lo + 2.0)]
+        if len(bp) and len(br):
+            dxy.append(float(np.linalg.norm(bp[:, :2].mean(0) - br[:, :2].mean(0))))
+
+    dh = np.asarray(dh)
+    dxy = np.asarray(dxy)
+    if len(dh) == 0:
+        return {"n_matched": 0}
+    return {
+        "n_matched": int(len(dh)),
+        "height_bias": float(dh.mean()),
+        "height_rmse": float(np.sqrt((dh**2).mean())),
+        "height_sd": float(dh.std()),
+        "height_ref_mean": float(np.mean(heights)),
+        "height_rel_rmse": float(np.sqrt((dh**2).mean()) / np.mean(heights)),
+        "xy_mean_error": float(dxy.mean()) if len(dxy) else float("nan"),
+        "xy_rmse": float(np.sqrt((dxy**2).mean())) if len(dxy) else float("nan"),
+    }

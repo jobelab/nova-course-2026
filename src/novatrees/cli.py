@@ -9,6 +9,7 @@ from pathlib import Path
 
 import numpy as np
 
+from .extract import extract_trees, semantic_labels, tree_table
 from .io import read_xyz, write_labelled, write_seeds
 from .pipeline import GrowParams, SeedParams, detect_seeds, grow_instances, match_reference
 
@@ -45,6 +46,18 @@ def main(argv: list[str] | None = None) -> int:
     d.add_argument("--max-geodesic", type=float, default=None, help="cap path length from a seed")
     d.add_argument("--drop-unlabelled", action="store_true")
 
+    x = ap.add_argument_group("per-tree extraction")
+    x.add_argument(
+        "--extract", action="store_true", help="write one LAZ per tree into <outdir>/individual"
+    )
+    x.add_argument("--min-tree-points", type=int, default=1000)
+    x.add_argument(
+        "--include-ground",
+        action="store_true",
+        help="append ground within each tree's footprint (misleading for volume)",
+    )
+    x.add_argument("--seeds-from", choices=["cross-section", "treeaibox"], default="cross-section")
+
     a = ap.parse_args(argv)
 
     seed_p = SeedParams(
@@ -75,7 +88,13 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     t = time.time()
-    seeds = detect_seeds(xyz, seed_p)
+    stem_mask = None
+    if a.seeds_from == "treeaibox":
+        from .treeaibox import treeaibox_seeds
+
+        seeds, stem_mask, _timings = treeaibox_seeds(xyz)
+    else:
+        seeds = detect_seeds(xyz, seed_p)
     print(f"stems detected: {len(seeds)}  ({time.time() - t:.1f}s)")
     if len(seeds) == 0:
         print("no stems found; nothing to grow", file=sys.stderr)
@@ -104,15 +123,38 @@ def main(argv: list[str] | None = None) -> int:
             f"median offset {m['median_offset']:.2f} m)"
         )
 
+    semantic = semantic_labels(xyz, res.labels, seeds, ground_z=a.ground_z)
+    table = tree_table(xyz, res.labels, seeds, semantic)
+
     outdir = Path(a.outdir)
     stem = Path(a.input).stem
     cloud_out = outdir / f"{stem}_treeid.laz"
     seeds_out = outdir / f"{stem}_stem_seeds.laz"
     n = write_labelled(a.input, cloud_out, res.labels, drop_unlabelled=a.drop_unlabelled)
     write_seeds(seeds_out, seeds, z=grow_p.seed_z, like=a.input)
+    table_out = outdir / f"{stem}_trees.csv"
+    table.to_csv(table_out, index=False)
     print(f"\nwrote {n:,} points -> {cloud_out}")
     print(f"wrote {len(seeds)} seeds  -> {seeds_out}")
-    print("\nIn CloudCompare: open both, colour the cloud by the 'treeID' scalar field.")
+    print(f"wrote {len(table)} rows   -> {table_out}")
+
+    if a.extract:
+        t = time.time()
+        paths = extract_trees(
+            xyz,
+            res.labels,
+            outdir / "individual",
+            source=a.input,
+            semantic=semantic,
+            min_points=a.min_tree_points,
+            include_ground=a.include_ground,
+        )
+        print(
+            f"wrote {len(paths)} per-tree files -> {outdir / 'individual'} "
+            f"({time.time() - t:.1f}s)"
+        )
+
+    print("\nIn CloudCompare: open the cloud and colour by 'treeID_dj'.")
     return 0
 
 
