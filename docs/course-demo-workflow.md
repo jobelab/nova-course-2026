@@ -127,13 +127,18 @@ than verticality alone, which is why the demo combines the two.
 
 Full-plot instance scores against the reference `treeid`, 41 trees:
 
-| slice filter | eps | seeds | matched | recall | precision | mean IoU |
+| slice filter | eps | seeds | matched | recall¹ | precision | mean IoU |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | none (our previous default) | 0.08 | 60 | 24 | 0.63 | 0.67 | 0.799 |
 | none | 0.04 | 80 | 27 | 0.71 | 0.59 | 0.804 |
 | verticality > 0.85 | 0.08 | 43 | 26 | 0.68 | 0.70 | 0.802 |
 | reflectance > −20 dB | 0.08 | 62 | 27 | 0.71 | 0.75 | 0.809 |
 | **verticality > 0.85 AND reflectance > −20 dB** | **0.08** | 45 | **28** | **0.74** | 0.72 | **0.812** |
+
+¹ These recalls are against the reference trees each run overlapped, which is how
+`instance_scores` reported it at the time. Against all 41 trees the pre-screened run
+scores **0.68** rather than 0.74. The comparison between rows still holds — they were
+computed the same way — but see the corrected table in the README for absolute figures.
 
 Shrinking `eps` to 0.04 reaches the same recall but costs precision (0.59), because
 it also fragments single stems. Filtering on shape and reflectance first gets there

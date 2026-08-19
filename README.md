@@ -119,15 +119,25 @@ tops → marker-controlled watershed.
 
 Scored against the reference `treeid` labels in the cloud (41 instances):
 
-| method | trees | matched | recall | precision | mean IoU | h RMSE |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| A  CHM watershed (PCT port) | 13 | 6 | 0.15 | 0.46 | 0.735 | 1.99 m |
-| B  cross-section + Dijkstra | 30 | 20 | 0.51 | 0.67 | 0.778 | 0.97 m |
-| C  TreeAIBox seeds + Dijkstra | 28 | 21 | **0.54** | **0.75** | **0.808** | **0.95 m** |
+| method | seeds | instances | matched of 41 | recall | precision | mean IoU | h RMSE | under-seg |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| A  CHM watershed (PCT port) | 13 | 13 | 6 | 0.15 | 0.46 | 0.735 | 1.99 m | 7 |
+| B  cross-section seeds | 38 | 32 | 24 | 0.59 | 0.75 | 0.790 | 0.87 m | 5 |
+| **B+ pre-screened (verticality + reflectance)** | 37 | 36 | **28** | **0.68** | 0.78 | **0.805** | **0.82 m** | **3** |
+| C  TreeAIBox learned seeds | 34 | 28 | 22 | 0.54 | **0.79** | 0.805 | 0.95 m | 5 |
+
+Recall is against **all 41** reference trees (`recall_total`), not only those a
+prediction happened to overlap — see `novatrees.evaluate` for why that distinction
+matters.
 
 Method C swaps our cross-section seeds for TreeAIBox's trained stem detector and keeps
-the growing identical, so it isolates the seeding. It wins on every measure; see
-[`TREEAIBOX.md`](TREEAIBOX.md). It costs under 3 minutes of CPU for the full plot.
+the growing identical, so it isolates the seeding; see [`TREEAIBOX.md`](TREEAIBOX.md).
+It costs under 3 minutes of CPU for the full plot and still gives the best precision.
+
+**B+ is the best overall**, and that reverses an earlier reading of these results. C
+beat B when B clustered the raw cross-section. Adding the course demo's verticality
+and reflectance pre-screen lifted B past it — 28 matched trees against 22, and a lower
+height RMSE. The learned detector did not get worse; the geometric route got better.
 
 The gap is not a tuning failure, and no CHM parameters close it. **23 of the 41
 trees are under 10 m** in a canopy reaching 22.8 m, median tree height 7.5 m — over
