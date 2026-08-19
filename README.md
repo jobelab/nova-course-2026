@@ -94,6 +94,7 @@ ground, and labels bleed across the plot.
 | qPCL / PCD I/O | loading, once `/opt/pcl-qt6/lib` is on the loader path |
 | PythonRuntime (`pycc`) | built and loading, one local patch |
 | TreeAIBox | installed, imports cleanly, **CPU-only** |
+| 3DFin / dendromatics | installed; auto-registers as a CloudCompare Python plugin |
 
 TreeAIBox runs but this machine has no NVIDIA GPU, while every bundled model
 config is labelled for 3–12 GB of VRAM. Expect slow inference and test on a
