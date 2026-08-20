@@ -1,0 +1,42 @@
+NOVA course 2026 — point cloud tooling
+Copyright (c) 2026 José M. Beltrán Abaunza
+
+Licensed under the Creative Commons Attribution 4.0 International License
+(CC BY 4.0). See LICENSE for the full legal code, or
+https://creativecommons.org/licenses/by/4.0/
+
+Suggested attribution when reusing this work:
+
+  Beltrán Abaunza, J. M. (2026). NOVA course 2026 — point cloud tooling.
+  https://github.com/jobelab/nova-course-2026 — CC BY 4.0
+
+--------------------------------------------------------------------------
+Third-party material
+--------------------------------------------------------------------------
+
+src/novatrees/chm_watershed.py is a Python port of the crown-detection stage
+of Point-Cloud-Tools (PCT):
+
+  Yrttimaa, T. (2021). Automatic Point Cloud Processing Tools to Characterize
+  Trees (Point-Cloud-Tools). Zenodo. https://doi.org/10.5281/zenodo.5779288
+  Licensed CC BY 4.0.
+
+  Methods described in:
+  Yrttimaa et al. (2019), https://doi.org/10.3390/rs11121423
+  Yrttimaa et al. (2020), https://doi.org/10.1016/j.isprsjprs.2020.08.017
+
+That file is a derivative work and remains under CC BY 4.0; this repository
+adopts the same licence so the terms stay compatible and the attribution
+above travels with it.
+
+The following are used as dependencies, not included or modified here, and
+are governed by their own licences:
+
+  TreeAIBox / TreeisoNet   Natural Resources Canada
+  3DFin, dendromatics      the 3DFin developers
+  CSF                      Zhang, Qi et al.
+  CloudCompare and CloudCompare-PythonRuntime
+  marimo, laspy, scikit-learn, scipy, matplotlib, xarray and others
+
+No course material, slides or point cloud data are distributed in this
+repository; those remain the property of their respective owners.

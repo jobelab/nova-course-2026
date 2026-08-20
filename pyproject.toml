@@ -3,6 +3,8 @@ name = "nova-course2026"
 version = "0.1.0"
 description = "NOVA 2026 point-cloud tooling: CSF ground filtering, cross-section stem seeds, 3D Dijkstra tree instance segmentation"
 requires-python = ">=3.12"
+license = "CC-BY-4.0"
+authors = [{ name = "José M. Beltrán Abaunza" }]
 dependencies = [
     "laspy[lazrs]>=2.7",
     "numpy>=2.0",

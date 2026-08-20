@@ -98,9 +98,23 @@ mine.
 
 ## Licence
 
-Not yet chosen — **treat this as all rights reserved until one is added**. Note that
-`src/novatrees/chm_watershed.py` is a derivative of CC BY 4.0 material, so whatever
-licence is adopted must remain compatible with that and preserve the attribution above.
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+
+**Creative Commons Attribution 4.0 International (CC BY 4.0)** — see [`LICENSE`](LICENSE)
+for the full legal code and [`NOTICE`](NOTICE) for attribution details.
+
+You may share and adapt this work, including commercially, provided you give
+appropriate credit, link to the licence, and indicate if changes were made.
+
+    Beltrán Abaunza, J. M. (2026). NOVA course 2026 — point cloud tooling.
+    https://github.com/jobelab/nova-course-2026 — CC BY 4.0
+
+CC BY 4.0 is chosen deliberately rather than a permissive software licence:
+`src/novatrees/chm_watershed.py` is a derivative of Yrttimaa's Point-Cloud-Tools,
+itself CC BY 4.0, so matching it keeps the terms compatible and carries the upstream
+attribution forward. Note that CC licences are written for creative works rather than
+software — if this ever outgrows being course notes, GPL-3.0 would be the closest
+software licence that stays compatible with the CC BY obligation.
 
 ## Layout
 

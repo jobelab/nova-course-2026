@@ -21,7 +21,8 @@ Ported from the MATLAB steps:
     convhull per label, area >= minCrownArea
 
 Original tools by Dr. Tuomas Yrttimaa, University of Eastern Finland, released
-CC BY 4.0. Cite Yrttimaa (2021), https://doi.org/10.5281/zenodo.5779288, and the
+CC BY 4.0. This file is a derivative work and is distributed under the same
+licence; see NOTICE at the repository root. Cite Yrttimaa (2021), https://doi.org/10.5281/zenodo.5779288, and the
 methods papers https://doi.org/10.3390/rs11121423 and
 https://doi.org/10.1016/j.isprsjprs.2020.08.017.
 
