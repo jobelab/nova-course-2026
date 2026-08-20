@@ -139,7 +139,8 @@ stem-profile figure above.
 Median DBH 0.300 m, median height 25.2 m.
 
 **All four runs say the same thing**, which is the part that makes it believable.
-Two sensors, two detectors, medians:
+Two sensors, two detectors, medians (and it holds on a second stand as well, see
+[Day 3](../day03/README.md#the-second-plot-for-the-taper-work)):
 
 | run | trees | strict | cover | f | relaxed | cover | f | model | f | model usable |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |

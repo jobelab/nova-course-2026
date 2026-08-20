@@ -47,6 +47,13 @@ Why there are three volume columns rather than one. The middle panel is the argu
 the form factor of a measured volume rises with how much of the stem was reconstructed
 and only reaches the boreal band as cover approaches one.
 
+![two plots compared](docs/figures/two_plot_taper_comparison.png)
+
+The same reconstruction on a second stand, including on reference-labelled stems so
+our own segmentation is out of the way. Cover and form factor behave identically across
+two stands, three sensors and stems from 8 m to 25 m. The fitted taper, though, is a
+dominant-tree tool: usable on 26 of 38 stems at 25 m and on none of 16 at 8 m.
+
 More figures, and the numbers behind them, are in the day READMEs:
 [Day 3](notebooks/day03/README.md) and [Day 4](notebooks/day04/README.md). What the
 whole exercise taught, rule by rule with the mistake behind each one, is collected in

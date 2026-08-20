@@ -104,10 +104,10 @@ seriousness:
    trees from one plot makes correlated errors, so the second is nearer the truth.
 2. The response is itself partly modelled, and swapping the ground sensor moves it by
    a quarter.
-3. **The helicopter is missing two thirds of the stems.** 187 stems per hectare from
-   the air against roughly 600 from the ground. The per-hectare figure is a total over
-   dominant trees, not over the forest, and that is a detection problem rather than a
-   regression problem.
+3. **Only 187 stems per hectare are being counted**, against roughly 540 in the ground
+   plot, so the per-hectare figure is a total over dominant trees rather than over the
+   forest. This looked like an airborne detection limit and was mostly our own crown
+   delineation; the correction is two sections below.
 
 ## Stop naming the tree, and count instead
 
@@ -210,7 +210,7 @@ not one tree.
 the dominant-stem model already captures 94 per cent of the volume standing under
 them, and the ratio correction that mattered so much above becomes almost unnecessary.
 
-So the claim earlier on this page, that the helicopter misses two thirds of the stems,
+So the reading earlier on this page, that most of the stand is invisible from the air,
 was **wrong as stated**. The helicopter was fine; our crown delineation was merging
 neighbours. That is worth more than the volume number: the failure looked like a
 sensor limitation and was a software one, and only running someone else's

@@ -116,6 +116,42 @@ cloth 0.2 m, threshold 0.3 m, relief:
 Ground spans only ~1.03 m across the plot. Tree instance segmentation from our own
 CSF normalisation finds **40–41 stems**, against 41 reference instances.
 
+## The second plot for the taper work
+
+This stand is the independent check on everything Day 4 concluded about stem
+reconstruction. It is a different stand, a different scanner and a different size
+class, and it has something Plot 167 does not: **41 reference tree instances**, so the
+taper can be measured without our own segmentation in the way.
+
+![two plots compared](../../docs/figures/two_plot_taper_comparison.png)
+
+| set | n | height | DBH | cover strict | cover relaxed | f strict | f relaxed | f model | models usable |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Plot 167 MLS | 38 | 25.2 m | 0.300 | 0.30 | 0.75 | 0.24 | 0.44 | 0.49 | 26/38 |
+| Plot 167 TLS | 42 | 23.8 m | 0.285 | 0.35 | 0.73 | 0.27 | 0.46 | 0.51 | 30/42 |
+| Mixed stand, detected | 23 | 12.8 m | 0.185 | 0.42 | 0.74 | 0.34 | 0.48 | 0.52 | 7/23 |
+| **Mixed stand, reference labels** | 16 | 8.3 m | 0.097 | 0.39 | 0.65 | 0.40 | 0.56 | - | **0/16** |
+
+**The coverage artefact transfers, and it is not our segmentation.** The strict
+settings cover 0.30 to 0.42 of tree height on every set including the reference-labelled
+one, and relaxing them reaches 0.65 to 0.75 everywhere. Two stands, three sensors, and
+stems from 8 m to 25 m all behave the same way.
+
+**Form factor against cover is one curve.** The middle panel puts all four sets on the
+same rising relationship, which is the strongest evidence available that a low form
+factor measures how much stem was reconstructed rather than anything about the tree.
+
+**The fitted taper does not transfer to small trees.** This is the new limitation, and
+it is sharp: 26 of 38 usable on 25 m stems, 7 of 23 on 13 m ones, and **0 of 16** on
+the 8 m reference stems. The refusals are not marginal. Predicted tip diameters come
+back at 10^9 to 10^12 times the last measured diameter, because a four-coefficient
+Kozak form on a short, thin, partly-covered stem is under-determined.
+
+So the modelled whole-stem volume is a **dominant-tree** quantity. That is coherent
+with how it is used, since the airborne sensor only sees dominant trees anyway, but it
+means the model column cannot be used to value a suppressed understorey, and the
+measured columns are the only ones that work across the whole size range.
+
 ## Findings worth carrying forward
 
 **Height normalisation is sensitive to the per-cell DTM statistic.** The textbook

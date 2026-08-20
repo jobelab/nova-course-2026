@@ -920,12 +920,14 @@ def _(mo):
     4. **Better ground truth.** The response here is itself partly modelled, and
        swapping MLS for TLS moved the total by a quarter. That number is the floor on
        what any regression fitted here can achieve.
-    5. **The trees the ALS missed.** Only 53 crowns survive filtering over 0.283 ha,
-       roughly 187 stems per hectare, while the ground sensors found 38 to 48 stems in
-       a plot an eighth of that area, near 600 per hectare. **The helicopter is not
-       seeing most of the stand**, so the per-hectare total above is a total over
-       dominant trees, not over the forest. That is the largest single caveat on this
-       page and it is a detection problem, not a regression problem.
+    5. **The trees the ALS missed, and whose fault that is.** With our own watershed
+       crowns only 53 survive filtering over 0.283 ha, near 187 stems per hectare
+       against roughly 540 in the ground plot. That looks like a hard limit of looking
+       down at a layered canopy. It mostly is not: with `pcf`'s Dalponte crowns the
+       same cloud yields 97 crowns and accounts for 63 per cent of the ground stems
+       rather than 34. **Check your own delineation before concluding that the sensor
+       cannot see.** What remains after that is a real detection limit, and it is still
+       the largest caveat on this page.
     """)
     return
 

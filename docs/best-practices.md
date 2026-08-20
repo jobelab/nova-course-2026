@@ -156,6 +156,20 @@ cylinder running to the treetop, which looks plausible on a plot and carries a l
 invented volume. One stem did exactly that, at 0.16 m diameter from 18.6 m to 23.6 m,
 with a form factor of 0.60 where its neighbours held 0.44 to 0.48.
 
+**Test a reconstruction on a second stand before believing it.** The coverage artefact
+was found on Plot 167 and could have been a property of that stand or of our
+segmentation. Repeating it on the Day 3 mixed stand, on **reference-labelled** stems so
+our segmentation was out of the way, gave the same answer: strict cover 0.30 to 0.42
+across two stands, three sensors and stems from 8 m to 25 m, rising to 0.65 to 0.75
+relaxed. Form factor against cover is a single curve through all four sets.
+
+**A fitted taper is a dominant-tree tool.** The Kozak model survives on 26 of 38
+stems at 25 m, 7 of 23 at 13 m, and **0 of 16** at 8 m. The failures are not marginal:
+predicted tip diameters come back 10^9 to 10^12 times the last measured diameter,
+because four coefficients on a short, thin, partly-covered stem are under-determined.
+The measured columns work across the whole size range; the modelled one does not, so
+it cannot be used to value a suppressed understorey.
+
 **Refuse rather than repair, and accept the coverage loss.** Only 26 of 38 trees get a
 model volume once the closure test is applied, and 11 of 23 on the learned run. Fewer
 trees, defensible numbers. The refusal also *raised* agreement with the ALS, from
@@ -174,8 +188,9 @@ has to declare which it used.
 top of one tree, and every other stem under it is a tree the sensor could not see.
 Nearest-neighbour matching calls those unmatched; crown ownership calls them
 suppressed, which is what they are. On this plot 13 of 38 stems own a crown and 22 are
-suppressed, so **the helicopter sees 34 per cent of the stems**. That number belongs
-beside every per-hectare total.
+suppressed. On this plot that gave 34 per cent of stems accounted for with our own
+crowns and **63 per cent with `pcf`'s**, so the rule and the segmentation have to be
+read together. Whichever it is, that number belongs beside every per-hectare total.
 
 **Guard the dominance rule against its own failure mode.** "Tallest stem inside the
 footprint" gave a 25 m crown to a 6.1 m sapling, because the real owner was never
