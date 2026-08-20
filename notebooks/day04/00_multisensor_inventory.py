@@ -258,7 +258,9 @@ def _(mo):
 def _(ALS, MLS, TLS, mo, np, pd, runs, sem_det, sem_run, sem_thick):
     mo.stop(not sem_run.value, mo.md("*Press the button to classify.*"))
 
-    from novatrees import semantic_labels
+    # Aliased private: the volume cell below already owns the public name, and marimo
+    # allows one owning cell per name.
+    from novatrees import semantic_labels as _classify
 
     _PRESET = {"ALS": ALS, "MLS": MLS, "TLS": TLS}
     semantics = {}
@@ -274,7 +276,7 @@ def _(ALS, MLS, TLS, mo, np, pd, runs, sem_det, sem_run, sem_thick):
             # them would invent a class the data cannot support.
             _s = np.where(_p[:, 2] <= _gz, 0, 2).astype(np.int8)
         else:
-            _s = semantic_labels(_p, _r.labels, _r.seeds, ground_z=_gz)
+            _s = _classify(_p, _r.labels, _r.seeds, ground_z=_gz)
 
         # Keep only what the figure needs: a slab through the plot centre, plus the
         # stem points in plan view. Holding three full clouds again would not fit.

@@ -721,8 +721,9 @@ def _(mo):
 def _(mo, np, sem_slab, semantic, xyz):
     mo.stop(semantic is None, mo.md("*Run region growing first.*"))
 
-    import matplotlib
-    matplotlib.use("Agg")
+    # Private alias: the overview cell above owns the public `matplotlib` name.
+    import matplotlib as _mpl
+    _mpl.use("Agg")
     import matplotlib.pyplot as _splt
 
     _COL = {0: "#8d8d8d", 1: "#b03030", 2: "#3f7d3f"}
