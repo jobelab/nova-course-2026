@@ -89,23 +89,43 @@ class StemTrackParams:
     max_growth: float = 1.0  # a stem never widens upward by more than this ratio
     start_z: float = 1.30  # breast height: where the seed is trusted
 
+    # Occlusion handling. A stem does not end because 40 cm of it was hidden behind
+    # a neighbour, so a starved band is a gap to step over, not a stop signal. Only
+    # `max_gap_bands` in a row ends the track.
+    max_gap_bands: int = 2
+    # A circle fitted to a narrow arc is a guess. Below this fraction of the
+    # circumference the centre is still used but the radius is carried forward,
+    # because the radius is what a partial arc gets wrong.
+    min_occupancy: float = 0.45
+
 
 def track_stem_axis(points: np.ndarray, seed: np.ndarray, p: StemTrackParams = StemTrackParams()):
     """Follow one stem from breast height outward. Returns (axis, stem mask).
 
-    `axis` is (n_bands, 4): z, x, y, radius. The mask is over `points`.
+    `axis` is (n_bands, 5): z, x, y, radius, sector occupancy. The mask is over
+    `points`.
 
     Tracking runs upward and downward separately from breast height, where the
     cross-section seed is most trustworthy. Each band searches near the *previous*
     centre, so the axis can lean; `max_shift` bounds how fast, which keeps a branch
-    from stealing the track. Growing wider going up is rejected outright - stems
-    taper - and that single rule removes most of what the radial mask got wrong.
+    from stealing the track. Growing wider going up is rejected outright, since
+    stems taper, and that single rule removes most of what a fixed-radius cylinder
+    got wrong.
+
+    Two concessions to real scans. A band with too few points is a **gap**, not the
+    end of the stem: occlusion by a neighbour or dense understory routinely hides
+    half a metre. The track steps over up to `max_gap_bands` of them. And a band
+    whose visible arc is narrower than `min_occupancy` keeps its centre but carries
+    the previous radius forward, because a partial arc biases the radius long before
+    it biases the centre.
     """
+    from .stemgeom import sector_occupancy
+
     import circle_fit
 
     mask = np.zeros(len(points), bool)
     if len(points) == 0:
-        return np.empty((0, 4)), mask
+        return np.empty((0, 5)), mask
 
     z = points[:, 2]
     axis_rows = []
@@ -114,9 +134,12 @@ def track_stem_axis(points: np.ndarray, seed: np.ndarray, p: StemTrackParams = S
         cx, cy = float(seed[0]), float(seed[1])
         r = max(float(seed[2]) / 2.0, p.min_radius)
         zc = p.start_z + (p.step if direction > 0 else 0.0)
+        gaps = 0
 
         while z.min() - p.band <= zc <= z.max() + p.band:
             in_band = np.abs(z - zc) <= p.band / 2
+            fitted = False
+
             if in_band.sum() >= p.min_points:
                 win = max(r * p.search_expand, p.search_min)
                 near = in_band & (np.hypot(points[:, 0] - cx, points[:, 1] - cy) <= win)
@@ -128,26 +151,34 @@ def track_stem_axis(points: np.ndarray, seed: np.ndarray, p: StemTrackParams = S
                         nx, ny, nr = q[:, 0].mean(), q[:, 1].mean(), r
 
                     shift = float(np.hypot(nx - cx, ny - cy))
-                    if shift > p.max_shift:  # too fast to be a stem; keep the old centre
-                        nx, ny = cx + (nx - cx) * p.max_shift / shift, cy + (ny - cy) * p.max_shift / shift
-                    if not (p.min_radius <= nr <= p.max_radius):
-                        nr = r
-                    if direction > 0:
-                        nr = min(nr, r * p.max_growth)  # a stem tapers going up
+                    if shift > p.max_shift:  # too fast to be a stem; rein it in
+                        nx = cx + (nx - cx) * p.max_shift / shift
+                        ny = cy + (ny - cy) * p.max_shift / shift
 
-                    r = p.radius_smooth * r + (1 - p.radius_smooth) * nr
+                    occ = sector_occupancy(q, nx, ny)
+                    if occ >= p.min_occupancy:
+                        if not (p.min_radius <= nr <= p.max_radius):
+                            nr = r
+                        if direction > 0:
+                            nr = min(nr, r * p.max_growth)
+                        r = p.radius_smooth * r + (1 - p.radius_smooth) * nr
+                    # else: keep the previous radius, the arc is too narrow to trust
+
                     cx, cy = float(nx), float(ny)
-
                     keep = in_band & (np.hypot(points[:, 0] - cx, points[:, 1] - cy) <= r + p.slack)
                     mask |= keep
-                    axis_rows.append((zc, cx, cy, r))
-                elif direction > 0:
-                    break  # ran out of stem going up: this is the crown base
-            elif direction > 0 and zc > p.start_z + p.band:
-                break
+                    axis_rows.append((zc, cx, cy, r, occ))
+                    fitted = True
+
+            if not fitted:
+                gaps += 1
+                if gaps > p.max_gap_bands and direction > 0:
+                    break  # genuinely out of stem: this is the crown base
+            else:
+                gaps = 0
             zc += direction * p.step
 
-    axis = np.array(sorted(axis_rows)) if axis_rows else np.empty((0, 4))
+    axis = np.array(sorted(axis_rows)) if axis_rows else np.empty((0, 5))
     return axis, mask
 
 

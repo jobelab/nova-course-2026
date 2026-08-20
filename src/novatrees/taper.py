@@ -75,6 +75,13 @@ class TaperParams:
     model: str = "none"  # fit an analytic taper function: see MODELS
     poly_degree: int = 4
 
+    # Per-slice quality. Occupancy is the fraction of the circumference with points
+    # behind it; a circle fitted to a narrow arc is a guess. Axis ratio is how far
+    # the slice is from round, and is a flag only: on this plot it is dominated by
+    # stem ovality, not by lean, so it cannot measure tilt (see novatrees.stemgeom).
+    min_occupancy: float = 0.0  # 0 disables; 0.5 is a reasonable filter
+    min_axis_ratio: float = 0.0  # 0 disables; 0.6 rejects badly non-round slices
+
 
 @dataclass
 class TaperResult:
@@ -125,13 +132,18 @@ def slice_fits(points, p: TaperParams = TaperParams()):
     """Fit one circle per horizontal slice. Returns a DataFrame of every attempt."""
     import pandas as pd
 
+    from .stemgeom import axis_ratio, sector_occupancy
+
     P = _xyz(points)
     if p.align_axis and len(P) >= 3:
         P, _c, _R, _tilt = align_to_axis(P)
     rng = np.random.default_rng(p.seed)
     rows = []
     if len(P) < p.min_points:
-        return pd.DataFrame(columns=["z", "x", "y", "r", "d", "sigma", "n", "inliers", "ok", "why"])
+        return pd.DataFrame(
+            columns=["z", "x", "y", "r", "d", "sigma", "n", "inliers",
+                     "occupancy", "axis_ratio", "ok", "why"]
+        )
 
     z0, z1 = P[:, 2].min(), P[:, 2].max()
     last_ok = None
@@ -143,9 +155,15 @@ def slice_fits(points, p: TaperParams = TaperParams()):
         if fit is None:
             continue
         xc, yc, r, sigma, n_in = fit
+        occ = sector_occupancy(sl[:, :2], xc, yc)
+        ratio = axis_ratio(sl[:, :2])
 
         ok, why = True, ""
-        if last_ok is not None:
+        if p.min_occupancy > 0 and occ < p.min_occupancy:
+            ok, why = False, "arc too narrow"
+        elif p.min_axis_ratio > 0 and np.isfinite(ratio) and ratio < p.min_axis_ratio:
+            ok, why = False, "not round"
+        elif last_ok is not None:
             if abs(r - last_ok[2]) > p.radius_tolerance:
                 ok, why = False, "radius jump"
             elif np.hypot(xc - last_ok[0], yc - last_ok[1]) > p.centre_tolerance:
@@ -153,7 +171,8 @@ def slice_fits(points, p: TaperParams = TaperParams()):
 
         rows.append(
             dict(z=float(zc), x=xc, y=yc, r=r, d=2 * r, sigma=sigma,
-                 n=len(sl), inliers=n_in, ok=ok, why=why)
+                 n=len(sl), inliers=n_in, occupancy=occ, axis_ratio=ratio,
+                 ok=ok, why=why)
         )
         if ok:
             last_ok = (xc, yc, r)

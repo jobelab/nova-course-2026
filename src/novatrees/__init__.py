@@ -28,6 +28,8 @@ from .features import (
     stem_score,
 )
 from .extract import (
+    StemTrackParams,
+    track_stem_axis,
     FOLIAGE,
     GROUND,
     STEM,
@@ -37,6 +39,7 @@ from .extract import (
     tree_table,
 )
 from .io import read_xyz, write_labelled, write_seeds
+from .stemgeom import ForkParams, axis_ratio, find_forks, sector_occupancy
 from .taper import TaperParams, TaperResult, slice_fits, taper_curve
 from .pipeline import (
     GrowParams,
@@ -48,6 +51,12 @@ from .pipeline import (
 )
 
 __all__ = [
+    "track_stem_axis",
+    "StemTrackParams",
+    "sector_occupancy",
+    "find_forks",
+    "axis_ratio",
+    "ForkParams",
     "taper_curve",
     "stem_score",
     "stem_prescreen",
