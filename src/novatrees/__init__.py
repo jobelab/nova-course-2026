@@ -43,6 +43,9 @@ from .glossary import lookup as glossary_lookup
 from .glossary import table as glossary_table
 from .inventory import (
     drop_fragments,
+    average_occupancy,
+    crown_occupancy,
+    match_by_crown,
     PlotGeometry,
     als_metrics,
     flag_edge_trees,
@@ -79,6 +82,9 @@ __all__ = [
     "DenoiseParams",
     "join_sensors",
     "drop_fragments",
+    "match_by_crown",
+    "crown_occupancy",
+    "average_occupancy",
     "match_positions",
     "als_metrics",
     "tree_metrics",

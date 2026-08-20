@@ -231,6 +231,7 @@ what the library does.
 | --- | --- | --- |
 | **[Day 3](notebooks/day03/README.md)** | close-range sensing on one TLS plot: ground filtering, tree instance segmentation, stem taper | `notebooks/day03/` |
 | **[Day 4](notebooks/day04/README.md)** | ALS, MLS and TLS over plot 167, joined into one inventory table | `notebooks/day04/` |
+| **[Day 5](notebooks/day05/README.md)** | fitting the volume model and upscaling it across the ALS footprint, and why twelve trees cannot support it | `notebooks/day05/` |
 
 Shared across days: [`notebooks/02_methods_and_equations.py`](notebooks/02_methods_and_equations.py)
 and [`docs/methods-and-equations.md`](docs/methods-and-equations.md), the same content
@@ -330,6 +331,7 @@ ground, and labels bleed across the plot.
 | `presets` | per-sensor parameters for TLS, MLS and ALS |
 | `workflow` | `run_sensor`: the whole sequence for one cloud in one call |
 | `treeaibox` | the learned alternative, driving TreeAIBox models on CPU |
+| `upscale` | allometric volume models, leave-one-out validation, plot totals |
 | `pcf_bridge` | runs the earlier course package `pcf` side by side, where it is available |
 | `dfin_bridge` | runs 3DFin / dendromatics as a third detection method, scored the same way |
 | `glossary` | the acronym table in `docs/glossary.yaml`, loadable in a notebook |

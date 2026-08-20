@@ -168,6 +168,64 @@ has to declare which it used.
 
 ---
 
+## Matching air to ground, and upscaling
+
+**Ask which tree owns the crown, not which stem is nearest.** An airborne crown is the
+top of one tree, and every other stem under it is a tree the sensor could not see.
+Nearest-neighbour matching calls those unmatched; crown ownership calls them
+suppressed, which is what they are. On this plot 13 of 38 stems own a crown and 22 are
+suppressed, so **the helicopter sees 34 per cent of the stems**. That number belongs
+beside every per-hectare total.
+
+**Guard the dominance rule against its own failure mode.** "Tallest stem inside the
+footprint" gave a 25 m crown to a 6.1 m sapling, because the real owner was never
+detected from the ground. Requiring the stem and the crown to agree on height fixes
+it, and the result was stable across a 2 to 6 m tolerance.
+
+**A better matching rule can produce a worse-looking model, and usually means the old
+one was flattered.** Nearest neighbour gave R2 cv +0.557 and a height exponent of 4.06;
+crown ownership gave -0.116 and 1.52. A stem is roughly a cone, so 1.52 is plausible
+and 4.06 is a small sample letting one variable absorb everything. Matching within a
+fixed radius quietly selects isolated upright trees, which is an easier sample rather
+than a better one.
+
+**Cross-validate, and put the null model in the table.** At n = 12 an in-sample R2 is
+meaningless. Several candidates here lose to predicting the mean, including crown area
+alone, whose cross-validated R2 is negative. A negative cross-validated R2 is
+information, not a bug.
+
+**Correct the back-transform.** A log-log fit predicts the conditional median, so
+exponentiating and summing biases every total low. Apply the Baskerville factor and
+report it rather than applying it silently.
+
+**Report sampling and model uncertainty separately.** Summing n trees each with a
+cross-validated error grows as `sqrt(n) * rmse` if the errors are independent and as
+`n * rmse` if they are not. On this plot those are 3 per cent and 22 per cent of the
+total, and a model fitted on twelve trees from one plot makes correlated errors.
+
+**When you cannot name the tree, count the trees.** Assigning a crown to one stem
+discards every other stem under it, 22 of 38 on this plot. Modelling the volume
+*under* a crown instead of the volume *of* its dominant stem keeps them, and it is the
+right target for upscaling: summing a dominant-stem model reproduces the airborne
+undercount by construction. Counting also needs less than naming, since a stem has
+only to be detected rather than detected, segmented and ranked correctly.
+
+**Make the crown partition exclusive before summing anything.** Crowns overlap, so a
+stem falls inside several footprints and the naive count went from 38 real stems to
+54. Give each stem to the nearest apex.
+
+**When the per-unit relationship will not fit, use a ratio estimator, not a worse
+model.** Neither volume-under-crown nor stems-per-crown could be predicted from crown
+geometry on fourteen crowns; the stem count lost to the mean under every model. The
+measured ratio of sums, 1.60 with a bootstrap interval of 1.30 to 1.92, corrected the
+stand total from 203 to 323 m3/ha and the stem density from 187 to 461 per hectare,
+against roughly 540 per hectare in the ground plot.
+
+**Check that no prediction sits outside the training range.** A power law fitted over a
+narrow range and applied outside it is the classic route to a confident wrong number.
+
+---
+
 ## Comparing methods
 
 **Do not trust the first result.** Every substantive finding here reversed at least

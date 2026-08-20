@@ -45,6 +45,9 @@ __all__ = [
     "match_positions",
     "join_sensors",
     "drop_fragments",
+    "match_by_crown",
+    "crown_occupancy",
+    "average_occupancy",
 ]
 
 
@@ -124,8 +127,6 @@ def als_metrics(cloud, labels: np.ndarray, ground_z: float = 0.50, crown_frac: f
     located where it is tallest, which is what an ALS-based inventory actually
     measures and what a terrestrial stem base has to be matched against.
     """
-    import pandas as pd
-
     df = tree_metrics(cloud, labels, ground_z=ground_z, crown_frac=crown_frac)
     if df.empty:
         return df
@@ -294,3 +295,262 @@ def drop_fragments(df, min_points: int = 5000, min_height: float = 5.0,
         if col in out:
             out = out[out[col] >= lo]
     return out.copy()
+
+
+def match_by_crown(ground_df, air_df, rank: str = "height_m",
+                   crown_area_col: str = "crown_area_m2", scale: float = 1.0,
+                   max_height_diff: float | None = 4.0,
+                   air_height_col: str = "h_max", suffixes=("_ground", "_air")):
+    """Give each airborne crown to the dominant stem beneath it.
+
+    Nearest-neighbour matching asks *which stem is closest to this apex*, which is the
+    wrong question. An airborne crown is the top of **one** tree, the one that reached
+    the light there, and every other stem under that crown is a tree the helicopter
+    could not see. Those are not matching failures; they are omissions, and they are
+    the physical reason an airborne inventory undercounts a layered stand.
+
+    So: take each crown's footprint, collect every ground stem standing inside it, and
+    give the crown to the dominant one, ranked by `rank` (tree height by default,
+    which is the closest available stand-in for "the one that reached the light").
+    The rest are recorded as **suppressed**, with the crown they sit under.
+
+    The footprint is a circle of radius `sqrt(area / pi) * scale` about the apex,
+    because the ALS table stores crown area and apex rather than a polygon. That is a
+    real approximation: a crown is not round and its apex is not its centre, so
+    `scale` is provided to widen or narrow it, and the counts below should be read as
+    sensitive to it.
+
+    `max_height_diff` guards the rule against its own failure mode. "Tallest stem
+    inside the footprint" gives the crown to whatever is there, even when that is a
+    6 m sapling standing under a 25 m canopy whose real owner was never detected from
+    the ground. A crown and its stem should agree on height to within roughly the
+    matched height RMSE, so a stem further than this from the crown's own `h_max` does
+    not own it, and the crown is left empty instead.
+
+    Returns the joined frame, with `.attrs` carrying:
+
+    - `n_suppressed`: stems under a crown that lost to a taller neighbour
+    - `n_ground_outside`: stems under no crown at all, which is a **detection** failure
+      by the airborne method rather than an occlusion one
+    - `n_air_empty`: crowns with no stem beneath them, either outside the ground
+      coverage or a segmentation artefact
+    - `suppressed`: the frame of losing stems, so omission can be studied rather than
+      silently dropped
+    """
+    import numpy as np
+    import pandas as pd
+
+    g = ground_df.reset_index(drop=True)
+    a = air_df.reset_index(drop=True)
+    if not len(g) or not len(a):
+        out = pd.DataFrame()
+        out.attrs.update(n_ground=len(g), n_air=len(a), n_matched=0)
+        return out
+
+    radius = np.sqrt(np.asarray(a[crown_area_col], float) / np.pi) * scale
+    gx, gy = g.x.to_numpy(float), g.y.to_numpy(float)
+    ranker = (g[rank].to_numpy(float) if rank in g
+              else np.zeros(len(g)))  # no ranking column: first stem wins
+
+    owner = {}          # air index -> ground index
+    under = {}          # air index -> [ground indices]
+    for j in range(len(a)):
+        d = np.hypot(gx - float(a.x[j]), gy - float(a.y[j]))
+        inside = np.flatnonzero(d <= radius[j])
+        if not len(inside):
+            continue
+        under[j] = inside.tolist()
+        # Dominant stem: tallest inside the footprint. Ties go to the closer one.
+        order = inside[np.lexsort((d[inside], -ranker[inside]))]
+        if max_height_diff is not None and air_height_col in a and rank in g:
+            # The owner has to be a plausible owner. Walk down from the tallest and
+            # take the first stem whose height matches the crown's.
+            h_air = float(a[air_height_col][j])
+            order = [k for k in order
+                     if abs(float(g[rank][k]) - h_air) <= max_height_diff]
+        if not len(order):
+            continue
+        owner[j] = int(order[0])
+
+    # One stem cannot own two crowns. Where it does, keep the crown whose apex is
+    # nearer, and free the other to its next-tallest stem.
+    taken: dict[int, int] = {}
+    for j, gi in sorted(owner.items()):
+        if gi not in taken:
+            taken[gi] = j
+            continue
+        rival = taken[gi]
+        d_new = np.hypot(gx[gi] - float(a.x[j]), gy[gi] - float(a.y[j]))
+        d_old = np.hypot(gx[gi] - float(a.x[rival]), gy[gi] - float(a.y[rival]))
+        loser = j if d_new >= d_old else rival
+        if d_new < d_old:
+            taken[gi] = j
+        others = [k for k in under[loser] if k not in taken.values() and k != gi]
+        owner[loser] = (others[np.argmax(ranker[others])] if others else -1)
+
+    pairs = [(gi, j) for j, gi in owner.items() if gi >= 0]
+    if not pairs:
+        out = pd.DataFrame()
+        out.attrs.update(n_ground=len(g), n_air=len(a), n_matched=0)
+        return out
+
+    gi = [p[0] for p in pairs]
+    ai = [p[1] for p in pairs]
+    dist = [float(np.hypot(gx[p[0]] - float(a.x[p[1]]), gy[p[0]] - float(a.y[p[1]])))
+            for p in pairs]
+    out = pd.concat(
+        [g.iloc[gi].reset_index(drop=True).add_suffix(suffixes[0]),
+         a.iloc[ai].reset_index(drop=True).add_suffix(suffixes[1]),
+         pd.Series(dist, name="distance")], axis=1)
+
+    matched_ground = set(gi)
+    covered = {k for v in under.values() for k in v}
+    suppressed_idx = sorted(covered - matched_ground)
+    sup = g.iloc[suppressed_idx].copy()
+    if len(sup):
+        sup["under_air_tree"] = [
+            int(a.treeID[j]) if "treeID" in a else j
+            for k in suppressed_idx
+            for j in [next(jj for jj, v in under.items() if k in v)]
+        ]
+
+    out.attrs.update(
+        n_ground=len(g), n_air=len(a), n_matched=len(out),
+        n_suppressed=len(suppressed_idx),
+        n_ground_outside=int(len(g) - len(covered)),
+        n_air_empty=int(len(a) - len(under)),
+        median_offset=float(np.median(dist)),
+        crown_scale=scale, rank=rank, max_height_diff=max_height_diff,
+        suppressed=sup,
+    )
+    return out
+
+
+def crown_occupancy(ground, air, crown_area_col: str = "crown_area_m2",
+                    scale: float = 1.0, volume_col: str = "vol_model_relaxed_m3",
+                    height_col: str = "height_m", exclusive: bool = True):
+    """How many stems stand under each airborne crown, and what they add up to.
+
+    A refinement of `match_by_crown` that stops trying to name the tree. Assigning a
+    crown to one stem throws away every other stem beneath it, and on this plot that
+    is 22 of 38. **Counting them instead keeps them.**
+
+    The unit of analysis becomes the crown, not the tree, and the quantity to model
+    becomes the volume *under* a crown rather than the volume *of* the dominant stem.
+    That is the better target for upscaling, because summing it over every airborne
+    crown recovers the suppressed trees too, whereas summing a dominant-stem model
+    reproduces the airborne undercount by construction.
+
+    It also sidesteps the hardest part of the matching problem. Deciding *which* stem
+    owns a crown needs the stem to be detected, correctly segmented and correctly
+    ranked; deciding *how many* stems are under it needs only that they were detected.
+
+    One row per crown, with:
+
+    - `n_stems`, and `stem_volume_sum`, the quantity worth modelling
+    - `stem_volume_dominant` and `dominant_height_m`, for comparison with the
+      one-crown-one-tree view
+    - `suppressed_volume_share`: how much of the volume under this crown belongs to
+      trees the airborne sensor cannot see. Where that is large, a dominant-stem model
+      is missing most of the wood.
+
+    Crowns with no stem beneath them keep `n_stems = 0` and are returned, because they
+    are the crowns standing outside the ground coverage and dropping them silently
+    would bias any per-hectare figure upward.
+
+    **`exclusive` matters more than it looks.** Crowns overlap, so a stem can fall
+    inside several footprints, and counting it in each one inflates the total: on this
+    plot the naive count reached 54 stems from a set of 38. With `exclusive`, every
+    stem is given to the single crown whose apex is nearest, which makes the crowns a
+    partition and the sums addable. Turn it off only to ask a per-crown question that
+    does not get summed.
+    """
+    import numpy as np
+    import pandas as pd
+
+    g = ground.reset_index(drop=True)
+    a = air.reset_index(drop=True)
+    radius = np.sqrt(np.asarray(a[crown_area_col], float) / np.pi) * scale
+    gx, gy = g.x.to_numpy(float), g.y.to_numpy(float)
+    vol = (g[volume_col].to_numpy(float) if volume_col in g
+           else np.full(len(g), np.nan))
+    hgt = (g[height_col].to_numpy(float) if height_col in g
+           else np.full(len(g), np.nan))
+
+    # Which stems fall inside which crowns, before any tie is broken.
+    contains = [
+        np.flatnonzero(np.hypot(gx - float(a.x[j]), gy - float(a.y[j])) <= radius[j])
+        for j in range(len(a))
+    ]
+    if exclusive:
+        # One stem, one crown: the nearest apex among the crowns that contain it.
+        owner = {}
+        for j, inside in enumerate(contains):
+            for k in inside:
+                d = float(np.hypot(gx[k] - float(a.x[j]), gy[k] - float(a.y[j])))
+                if k not in owner or d < owner[k][1]:
+                    owner[k] = (j, d)
+        contains = [
+            np.array([k for k, (jj, _) in owner.items() if jj == j], dtype=int)
+            for j in range(len(a))
+        ]
+
+    rows = []
+    for j in range(len(a)):
+        inside = contains[j]
+        v = vol[inside]
+        h = hgt[inside]
+        finite = np.isfinite(v)
+        dom = inside[np.argmax(np.where(np.isfinite(h), h, -np.inf))] if len(inside) else None
+        v_sum = float(np.nansum(v)) if finite.any() else float("nan")
+        v_dom = float(vol[dom]) if dom is not None and np.isfinite(vol[dom]) else float("nan")
+        rows.append({
+            "treeID_air": int(a.treeID[j]) if "treeID" in a else j,
+            "n_stems": int(len(inside)),
+            "n_stems_with_volume": int(finite.sum()),
+            "stem_volume_sum": v_sum,
+            "stem_volume_dominant": v_dom,
+            "dominant_height_m": float(hgt[dom]) if dom is not None else float("nan"),
+            "crown_radius_m": float(radius[j]),
+            "suppressed_volume_share": (
+                1 - v_dom / v_sum if np.isfinite(v_dom) and np.isfinite(v_sum) and v_sum > 0
+                else float("nan")
+            ),
+        })
+    out = pd.DataFrame(rows)
+    air_cols = a.add_suffix("_air") if "treeID_air" not in a else a
+    out = out.merge(air_cols, on="treeID_air", how="left")
+    out.attrs.update(
+        n_air=len(a), n_ground=len(g), scale=scale, exclusive=exclusive,
+        n_crowns_occupied=int((out.n_stems > 0).sum()),
+        n_stems_covered=int(out.n_stems.sum()),
+        stems_per_occupied_crown=float(out.loc[out.n_stems > 0, "n_stems"].mean())
+        if (out.n_stems > 0).any() else float("nan"),
+    )
+    return out
+
+
+def average_occupancy(tables: dict, on: str = "treeID_air"):
+    """Average two or more sensors' crown occupancy tables, crown by crown.
+
+    TLS and MLS see the same stems and disagree about how many they resolved. Neither
+    is truth, so the mean of their counts is a better estimate than either, and the
+    spread between them is the honest uncertainty on it. Both are returned:
+    `n_stems` is the mean, `n_stems_spread` the range.
+    """
+    import pandas as pd
+
+    keys = list(tables)
+    merged = None
+    for k in keys:
+        t = tables[k][[on, "n_stems", "stem_volume_sum", "stem_volume_dominant"]]
+        t = t.rename(columns={c: f"{c}_{k}" for c in t.columns if c != on})
+        merged = t if merged is None else merged.merge(t, on=on, how="outer")
+
+    for col in ("n_stems", "stem_volume_sum", "stem_volume_dominant"):
+        cols = [f"{col}_{k}" for k in keys]
+        merged[col] = merged[cols].mean(axis=1)
+        merged[f"{col}_spread"] = merged[cols].max(axis=1) - merged[cols].min(axis=1)
+    base = tables[keys[0]].drop(
+        columns=["n_stems", "stem_volume_sum", "stem_volume_dominant"], errors="ignore")
+    return merged.merge(base, on=on, how="left")
