@@ -709,6 +709,81 @@ def _(labels_b, mo, seeds, semantic_labels, tree_table, xyz):
     return semantic, trees
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    sem_slab = mo.ui.slider(0.5, 6.0, value=2.0, step=0.5,
+                            label="cross-section thickness (m)", show_value=True)
+    sem_slab
+    return (sem_slab,)
+
+
+@app.cell
+def _(mo, np, sem_slab, semantic, xyz):
+    mo.stop(semantic is None, mo.md("*Run region growing first.*"))
+
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as _splt
+
+    _COL = {0: "#8d8d8d", 1: "#b03030", 2: "#3f7d3f"}
+    _NAME = {0: "ground", 1: "stem", 2: "foliage"}
+    _c = xyz[:, :2].mean(axis=0)
+    _slab = np.abs(xyz[:, 1] - _c[1]) <= sem_slab.value / 2
+    _idx = np.flatnonzero(_slab)
+    if len(_idx) > 90_000:
+        _idx = np.random.default_rng(0).choice(_idx, 90_000, replace=False)
+
+    _f, (_a, _b) = _splt.subplots(1, 2, figsize=(12.5, 5.2),
+                                  gridspec_kw={"width_ratios": [1.6, 1]})
+    for _k in (0, 2, 1):  # stem drawn last so it is not buried under foliage
+        _m = semantic[_idx] == _k
+        if not _m.any():
+            continue
+        _a.scatter(xyz[_idx][_m, 0] - _c[0], xyz[_idx][_m, 2], s=0.15,
+                   c=_COL[_k], label=_NAME[_k], linewidths=0)
+    _a.set_xlabel("x from plot centre (m)"); _a.set_ylabel("height above ground (m)")
+    _a.set_title(f"semantic classes, {sem_slab.value:.1f} m cross-section")
+    _a.set_aspect("equal"); _a.set_ylim(-1, 24)
+    _lg = _a.legend(loc="upper right", fontsize=8)
+    for _h in _lg.legend_handles:
+        _h.set_sizes([18])
+
+    _st = np.flatnonzero(semantic == 1)
+    if len(_st) > 70_000:
+        _st = np.random.default_rng(1).choice(_st, 70_000, replace=False)
+    _b.scatter(xyz[_st][:, 0] - _c[0], xyz[_st][:, 1] - _c[1], s=0.4,
+               c=_COL[1], linewidths=0)
+    _b.set_aspect("equal")
+    _b.set_xlabel("x from plot centre (m)"); _b.set_ylabel("y from plot centre (m)")
+    _b.set_title(f"stem class from above, {int((semantic == 1).sum()):,} points")
+    _f.tight_layout()
+
+    mo.vstack([
+        _f,
+        mo.md(
+            f"""
+            **{int((semantic == 0).sum()):,} ground, {int((semantic == 1).sum()):,} stem,
+            {int((semantic == 2).sum()):,} foliage.**
+
+            The stem class is a small share of any cloud and the only one a tape measure
+            would care about. Left, each red column is a stem standing in its own
+            foliage; right, the same points seen from above, one cluster per tree, which
+            is what makes them countable.
+
+            **The elongated smears in the plan view are leaning stems, not errors.** The
+            tracker follows a stem's own axis rather than assuming it vertical, so a tree
+            leaning a few degrees over twenty metres traces a streak when its whole
+            length is flattened onto the ground. A round blob is a plumb tree; a streak
+            is a leaning one, and its direction is the direction of lean.
+
+            Compare this with the Day 4 ALS panel, where the stem class is empty. A
+            helicopter never records the bark, so no amount of processing recovers it.
+            """
+        ),
+    ])
+    return
+
+
 @app.cell
 def _(mo):
     min_pts = mo.ui.slider(
@@ -1469,6 +1544,59 @@ def _(
 
     _fg.tight_layout()
     _fg
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+
+    ## Results as measured
+
+    Scored against the 41 reference instances in the `treeid` field of the cloud.
+    Recorded from the run of 2026-08-19 so the numbers are here without a full pass.
+
+    ### Detection, four methods on the same cloud
+
+    | method | seeds | instances | matched of 41 | recall | precision | mean IoU | h RMSE | under-seg |
+    | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+    | A  CHM watershed (PCT port) | 13 | 13 | 6 | 0.15 | 0.46 | 0.735 | 1.99 m | 7 |
+    | B  cross-section seeds | 38 | 32 | 24 | 0.59 | 0.75 | 0.790 | 0.87 m | 5 |
+    | **B+ pre-screened (verticality + reflectance)** | 37 | 36 | **28** | **0.68** | 0.78 | **0.805** | **0.82 m** | **3** |
+    | C  TreeAIBox learned seeds | 34 | 28 | 22 | 0.54 | **0.79** | 0.805 | 0.95 m | 5 |
+
+    Recall is against **all 41** reference trees, not only those a prediction happened
+    to overlap. That denominator matters: scored the other way, covering less of the
+    plot raises the score, and it reversed this ranking once already.
+
+    **B+ wins, and the learned detector did not get worse.** C beat B while B clustered
+    the raw cross-section; adding the demo's verticality and reflectance pre-screen
+    lifted B past it, 28 matched against 22. The geometric route improved.
+
+    **A cannot be tuned into contention.** 23 of the 41 trees stand under 10 m in a
+    22.8 m canopy, and a CHM keeps only the highest return per cell, so over half this
+    stand leaves no trace in it. Cross-section seeding looks at breast height, where a
+    suppressed stem is as visible as a dominant one.
+
+    ### Height normalisation, against the course's own `_hnorm` file
+
+    | per-cell DTM statistic | bias | RMSE |
+    | --- | ---: | ---: |
+    | minimum (the textbook choice) | +0.264 m | 0.275 m |
+    | **quantile 0.25** | **-0.002 m** | **0.068 m** |
+    | `pcf` TIN through ground returns | -0.066 m | 0.154 m |
+
+    The minimum is dragged down by sub-surface noise, and 96 per cent of its RMSE is
+    bias rather than scatter.
+
+    ### Taper
+
+    Reconstruction spans 16 to 44 per cent of tree height at these thresholds, so the
+    volume above is a **partial** stem volume and its form factor sits near 0.25
+    against the 0.45 to 0.50 a boreal conifer holds. Day 4 reports three volumes per
+    tree instead of one and closes the gap with a fitted taper.
+    """)
     return
 
 

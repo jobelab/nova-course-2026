@@ -79,8 +79,12 @@ def _():
     from pathlib import Path
 
     import altair as alt
+    import matplotlib
     import numpy as np
     import pandas as pd
+
+    matplotlib.use("Agg")  # server-rendered PNG: see the note on plotly in the README
+    import matplotlib.pyplot as plt
 
     from novatrees import (
         ALS,
@@ -110,6 +114,7 @@ def _():
         match_positions,
         np,
         pd,
+        plt,
         run_sensor,
         taper_curve,
     )
@@ -209,6 +214,196 @@ def _(mo, pd, runs):
             sensors should roughly agree, since they see the same stems. Where ALS reports
             many more, it is fragmenting crowns rather than finding trees the ground
             missed: a helicopter cannot see a stem the ground sensor stood next to.
+            """
+        ),
+    ])
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Semantic segmentation: what each sensor is able to label
+
+    Instance segmentation asks *which tree is this point*. Semantic segmentation asks
+    *what kind of thing is it*, here ground, stem or foliage. The two are independent,
+    and the second one is where the three sensors stop being interchangeable.
+
+    A ground-based scanner sees bark directly, so stem is a class it can assign from
+    the data. A helicopter does not: under a closed canopy almost nothing of the stem
+    is ever hit, so **ALS has no stem class to give**, and the panels below show that
+    rather than argue it. Everything ALS knows about a stem it infers from the crown
+    above it, which is exactly why the Day 4 objective needs both platforms.
+
+    The stem class here comes from `novatrees.extract.semantic_labels` with
+    `method="tracked"`: each stem is followed band by band from breast height, its
+    centre and radius refitted as it goes, so lean and mild sweep stay inside the class
+    and the stem ends where the returns stop rather than at a fixed height.
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    sem_det = mo.ui.dropdown(["heuristic", "learned"], value="heuristic",
+                             label="detector to classify")
+    sem_thick = mo.ui.slider(0.5, 6.0, value=2.0, step=0.5,
+                             label="cross-section thickness (m)", show_value=True)
+    sem_run = mo.ui.run_button(label="Classify ground, stem and foliage")
+    mo.vstack([sem_det, sem_thick, sem_run])
+    return sem_det, sem_run, sem_thick
+
+
+@app.cell
+def _(ALS, MLS, TLS, mo, np, pd, runs, sem_det, sem_run, sem_thick):
+    mo.stop(not sem_run.value, mo.md("*Press the button to classify.*"))
+
+    from novatrees import semantic_labels
+
+    _PRESET = {"ALS": ALS, "MLS": MLS, "TLS": TLS}
+    semantics = {}
+    for _name in ("ALS", "MLS", "TLS"):
+        _r = runs.get((_name, sem_det.value))
+        if _r is None or isinstance(_r, Exception):
+            continue
+        _p = np.column_stack([_r.cloud.x.values, _r.cloud.y.values, _r.cloud.z.values])
+        _gz = _PRESET[_name].grow.ground_z
+        if _name == "ALS":
+            # Two classes only, and the missing third one is the point. Seeds here are
+            # canopy maxima with a placeholder diameter, so running the stem tracker on
+            # them would invent a class the data cannot support.
+            _s = np.where(_p[:, 2] <= _gz, 0, 2).astype(np.int8)
+        else:
+            _s = semantic_labels(_p, _r.labels, _r.seeds, ground_z=_gz)
+
+        # Keep only what the figure needs: a slab through the plot centre, plus the
+        # stem points in plan view. Holding three full clouds again would not fit.
+        # The slab is cut to 15 m either side for every sensor, the ground plots'
+        # radius, so the three cross-sections cover the same ground and can be read
+        # against each other. The ALS footprint is twice that; the plan view keeps it.
+        _cx, _cy, _rad = _r.plot.x, _r.plot.y, _r.plot.radius
+        _half = 15.0
+        _slab = (np.abs(_p[:, 1] - _cy) <= sem_thick.value / 2) & \
+                (np.abs(_p[:, 0] - _cx) <= _half)
+        _idx = np.flatnonzero(_slab)
+        if len(_idx) > 80_000:
+            _idx = np.random.default_rng(0).choice(_idx, 80_000, replace=False)
+        _stem = np.flatnonzero(_s == 1)
+        if len(_stem) > 60_000:
+            _stem = np.random.default_rng(1).choice(_stem, 60_000, replace=False)
+
+        semantics[_name] = {
+            "slab_xz": np.column_stack([_p[_idx, 0] - _cx, _p[_idx, 2]]),
+            "slab_class": _s[_idx],
+            "stem_xy": _p[_stem][:, :2] - np.array([_cx, _cy]),
+            # What the sensor offers instead of a stem position. For ALS these are
+            # canopy apices from the watershed, which is a different thing measured
+            # in a different place, and the figure says so.
+            "seed_xy": (_r.seeds[:, :2] - np.array([_cx, _cy])) if len(_r.seeds) else None,
+            "counts": {_c: int((_s == _c).sum()) for _c in (0, 1, 2)},
+            "n": int(len(_s)),
+            "radius": _rad,
+            "half": _half,
+        }
+
+    _tab = pd.DataFrame([
+        {"sensor": _k, "points": f"{_v['n']:,}",
+         "ground %": round(100 * _v["counts"][0] / _v["n"], 1),
+         "stem %": round(100 * _v["counts"][1] / _v["n"], 2),
+         "foliage %": round(100 * _v["counts"][2] / _v["n"], 1)}
+        for _k, _v in semantics.items()
+    ])
+    mo.vstack([
+        mo.ui.table(_tab, selection=None),
+        mo.md(
+            "The stem column is the one to read. It is a small share of any cloud, "
+            "a few per cent at best, and it is **zero by construction for ALS**: "
+            "the helicopter records no bark to classify."
+        ),
+    ])
+    return (semantics,)
+
+
+@app.cell
+def _(mo, plt, semantics):
+    mo.stop(not semantics, mo.md("*Classify first.*"))
+
+    _COL = {0: "#8d8d8d", 1: "#b03030", 2: "#3f7d3f"}
+    _NAME = {0: "ground", 1: "stem", 2: "foliage"}
+    _order = [_k for _k in ("ALS", "MLS", "TLS") if _k in semantics]
+
+    _fig, _ax = plt.subplots(2, len(_order), figsize=(4.6 * len(_order), 8.6),
+                             gridspec_kw={"height_ratios": [1.35, 1]})
+    if len(_order) == 1:
+        _ax = _ax.reshape(2, 1)
+
+    for _j, _name in enumerate(_order):
+        _d = semantics[_name]
+        _a = _ax[0, _j]
+        for _c in (0, 2, 1):  # stem last so it is not buried
+            _m = _d["slab_class"] == _c
+            if not _m.any():
+                continue
+            _a.scatter(_d["slab_xz"][_m, 0], _d["slab_xz"][_m, 1], s=0.12,
+                       c=_COL[_c], label=_NAME[_c], linewidths=0)
+        _a.set_title(f"{_name}: cross-section through the plot centre", fontsize=10)
+        _a.set_xlabel("x from plot centre (m)")
+        _a.set_ylabel("height above ground (m)" if _j == 0 else "")
+        _a.set_xlim(-_d["half"], _d["half"])
+        _a.set_ylim(-1, 32)
+        _a.set_aspect("equal")
+        _leg = _a.legend(loc="upper right", fontsize=8, markerscale=28, framealpha=0.9)
+        for _h in _leg.legend_handles:
+            _h.set_sizes([18])
+
+        _b = _ax[1, _j]
+        if len(_d["stem_xy"]):
+            _b.scatter(_d["stem_xy"][:, 0], _d["stem_xy"][:, 1], s=0.4,
+                       c=_COL[1], linewidths=0)
+            _b.set_title(f"{_name}: stem class from above, "
+                         f"{_d['counts'][1]:,} points", fontsize=10)
+        else:
+            # No bark to classify, so show what the sensor offers instead. These are
+            # canopy apices: a position for a tree, measured 20 m above the stem.
+            if _d["seed_xy"] is not None:
+                _b.scatter(_d["seed_xy"][:, 0], _d["seed_xy"][:, 1], s=26,
+                           facecolors="none", edgecolors="#3f7d3f", linewidths=0.9,
+                           label="canopy apex")
+                _b.legend(loc="upper right", fontsize=8)
+            _b.set_title(f"{_name}: no stem class, "
+                         f"{0 if _d['seed_xy'] is None else len(_d['seed_xy'])} "
+                         "canopy apices instead", fontsize=10)
+        _b.add_artist(plt.Circle((0, 0), _d["radius"], fill=False, ls="--",
+                                 lw=0.8, color="#606060"))
+        _lim = _d["radius"] * 1.1
+        _b.set_xlim(-_lim, _lim); _b.set_ylim(-_lim, _lim)
+        _b.set_aspect("equal")
+        _b.set_xlabel("x from plot centre (m)")
+        _b.set_ylabel("y from plot centre (m)" if _j == 0 else "")
+
+    _fig.tight_layout()
+    mo.vstack([
+        _fig,
+        mo.md(
+            """
+            **Top row, the cross-section**, all three cut to the same 30 m of ground so
+            they can be read against each other. Ground grey, stem dark red, foliage
+            green. The ALS panel is a canopy with a floor and nothing in between: its
+            returns stop at the crown surface, and the empty band under it is the volume
+            no airborne sensor can measure. The MLS and TLS panels are the reverse,
+            dense from the ground up, with stems standing out as continuous vertical
+            bands.
+
+            **Bottom row, the stem class from above.** Each red cluster is one stem,
+            and counting them is essentially what step 4 did. The ALS panel has no red
+            in it at all; the green rings are canopy apices, which are positions for
+            trees measured twenty metres above the stem they stand on. That difference
+            is the median 0.5 m offset in step 6, and on a leaning tree it is metres.
+
+            The dashed circle is the plot boundary. Stems on it are cut by the cookie
+            cutter and flagged as edge trees. The ALS circle is twice the radius: it is
+            the coverage the ground sensors do not have, and the reason to want a model
+            that carries stem volume outward from these plots.
             """
         ),
     ])
@@ -677,6 +872,88 @@ def _(OUTDIR, do_export, joined, mo, runs, volumes):
         _written.append(_p.name)
     mo.md(f"Wrote **{len(_written)}** files to `{OUTDIR}`:\n\n"
           + "\n".join(f"- `{n}`" for n in _written))
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+
+    ## Results as measured
+
+    A full pass takes about ninety minutes on this machine, most of it the learned
+    detector on CPU, so the numbers from the run of **2026-08-20** are recorded here.
+    Run the notebook to reproduce them; read them to know what to expect.
+
+    ### Detection, 8 M points per cloud
+
+    | sensor | detector | trees | on edge | time |
+    | --- | --- | ---: | ---: | ---: |
+    | ALS | heuristic | 92 | 15 | 22 s |
+    | MLS | heuristic | 38 | 7 | 50 s |
+    | TLS | heuristic | 48 | 9 | 66 s |
+    | MLS | learned | 39 | 7 | 1,324 s |
+    | TLS | learned | 35 | 8 | 4,894 s |
+
+    ALS reports 92 objects because a watershed fragments crowns, not because a
+    helicopter found trees the ground missed. Twenty-six are debris and are removed by
+    `drop_fragments` before matching.
+
+    ### Stem volume, medians per run
+
+    | run | trees | strict | cover | f | relaxed | cover | f | model | f | model usable |
+    | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+    | MLS heuristic | 38 | 0.407 | 0.30 | 0.24 | 0.772 | 0.75 | 0.44 | 0.884 | **0.50** | 38/38 |
+    | TLS heuristic | 42 | 0.308 | 0.35 | 0.27 | 0.643 | 0.73 | 0.46 | 0.743 | **0.53** | 39/42 |
+    | MLS learned | 23 | 0.139 | 0.17 | 0.18 | 0.522 | 0.74 | 0.47 | 0.706 | 0.60 | 20/23 |
+    | TLS learned | 23 | 0.176 | 0.27 | 0.22 | 0.532 | 0.70 | 0.45 | 0.669 | **0.53** | 21/23 |
+
+    Volumes in m3. **The strict column varies threefold across runs and the form
+    factor does not.** That is the signature of a coverage artefact: the runs are
+    measuring different amounts of stem, not different trees. Relaxing the thresholds
+    collapses the spread to 0.44 to 0.47, and the model column to 0.50 to 0.53, where
+    a boreal conifer belongs.
+
+    MLS learned at 0.60 is the exception and reads as one: lowest cover of the four
+    before relaxation at 0.17, so it extrapolates furthest, and 3 of its 23 trees were
+    refused outright.
+
+    ### Matching to ALS
+
+    | run | matched | median offset | height RMSE against ALS |
+    | --- | ---: | ---: | ---: |
+    | MLS heuristic | 12 | 0.53 m | **1.31 m** |
+    | TLS heuristic | 12 | 0.59 m | 6.34 m |
+    | MLS learned | 7 | 0.57 m | 1.51 m |
+    | TLS learned | 8 | 2.34 m | 2.41 m |
+
+    TLS matches as many trees as MLS and then disagrees with the air about their height
+    by 6.34 m. That is occlusion: a tripod resolves the lower stem and loses the crown
+    top behind everything in front of it. MLS, walking, sees the same crown from
+    several sides. **Density is not coverage**, and TLS has four times the density here.
+
+    ### The objective, twelve matched trees
+
+    | ALS metric | strict | relaxed | model |
+    | --- | ---: | ---: | ---: |
+    | h_max | +0.590 | +0.751 | **+0.791** |
+    | h_p99 | +0.495 | +0.675 | **+0.722** |
+    | crown volume | +0.680 | +0.725 | +0.716 |
+    | crown area | +0.625 | +0.650 | +0.634 |
+
+    Correlation with ground-derived stem volume, one column per variant. Nothing in the
+    taper reconstruction knows about the ALS, so this is an independent test of which
+    column is closest to the truth, and against the height metrics the ordering is
+    unambiguous: a helicopter measures the top of the tree, so a volume including the
+    upper stem should track it better than one stopping a third of the way up. It does.
+
+    Against crown metrics the three are indistinguishable, which is also expected.
+    Crown size answers to competition and growing space, not to the length of stem
+    underneath.
+
+    Form factors of these twelve trees: 0.436 to 0.526, median 0.49.
+    """)
     return
 
 

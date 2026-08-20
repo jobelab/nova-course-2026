@@ -23,7 +23,15 @@ per tree rather than one.
 ## Notebook
 
 [`00_multisensor_inventory.py`](00_multisensor_inventory.py) runs all six steps, with
-both the heuristic and the learned detector.
+both the heuristic and the learned detector. It also carries the measured results as a
+static section at the end, so the numbers are readable without a ninety-minute pass.
+
+**Semantic segmentation, side by side.** Between steps 4 and 5 the notebook classifies
+every point as ground, stem or foliage and draws the three sensors against each other:
+a cross-section over the same 30 m of ground, and the stem class from above. The ALS
+panel has no stem class in it, because a helicopter never records bark, and what it
+offers instead is a canopy apex twenty metres above the stem. That single figure is the
+argument for the whole exercise.
 
 ## Data
 

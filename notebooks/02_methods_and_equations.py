@@ -18,8 +18,7 @@ app = marimo.App(width="medium")
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ## Glossary
 
     Every acronym used across this repository, with what it means **here** rather than
@@ -29,8 +28,7 @@ def _(mo):
         from novatrees.glossary import load, table, lookup
         lookup("CHM")
         table(group="metrics")
-    """
-    )
+    """)
     return
 
 
@@ -43,7 +41,7 @@ def _(mo):
     )
     glossary_search = mo.ui.text(placeholder="filter, e.g. canopy", label="search")
     mo.vstack([glossary_group, glossary_search])
-    return glossary_group, glossary_search, groups, table
+    return glossary_group, glossary_search, table
 
 
 @app.cell

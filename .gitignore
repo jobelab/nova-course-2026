@@ -33,8 +33,10 @@ cloth_nodes.txt
 # TreeAIBox model weights (~20 MB each, re-downloadable from the NRCan release page)
 models/
 
-# marimo session cache - cell outputs, regenerated on run
-notebooks/__marimo__/
+# marimo session cache - cell outputs, regenerated on run. The pattern has to be
+# recursive: marimo writes one of these next to every notebook, so a path anchored
+# at notebooks/ misses notebooks/day04/__marimo__/ and the outputs get committed.
+**/__marimo__/
 
 # Conversation exports. These land in the working tree and can run to hundreds of
 # kilobytes of transcript; nothing here belongs in a public repository.
