@@ -941,9 +941,9 @@ def _(mo):
     | **stems the ALS accounts for** | **34 %** | **63 %** |
 
     **Our crowns are about three times too large**, each swallowing two or three stems,
-    and everything downstream inherits it. In Day 5 the fitted height exponent moves
-    from 1.48 to 2.21, which is what a cone predicts, and the volume expansion ratio
-    falls from 1.60 to 1.06.
+    and everything downstream inherits it. In the upscaling appendix the fitted height
+    exponent moves from 1.48 to 2.21, which is what a cone predicts, and the volume
+    expansion ratio falls from 1.60 to 1.06.
 
     The lesson is not about `pcf`. It is that a result which looks like a sensor
     limitation, *the helicopter cannot see the understorey*, was mostly a software one,

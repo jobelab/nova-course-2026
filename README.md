@@ -261,8 +261,7 @@ what the library does.
 | day | subject | notebooks |
 | --- | --- | --- |
 | **[Day 3](notebooks/day03/README.md)** | close-range sensing on one TLS plot: ground filtering, tree instance segmentation, stem taper | `notebooks/day03/` |
-| **[Day 4](notebooks/day04/README.md)** | ALS, MLS and TLS over plot 167, joined into one inventory table | `notebooks/day04/` |
-| **[Day 5](notebooks/day05/README.md)** | fitting the volume model and upscaling it across the ALS footprint, and why twelve trees cannot support it | `notebooks/day05/` |
+| **[Day 4](notebooks/day04/README.md)** | ALS, MLS and TLS over plot 167, joined into one inventory table, plus an appendix taking the extra step of upscaling it | `notebooks/day04/` |
 
 Shared across days: [`notebooks/02_methods_and_equations.py`](notebooks/02_methods_and_equations.py)
 and [`docs/methods-and-equations.md`](docs/methods-and-equations.md), the same content

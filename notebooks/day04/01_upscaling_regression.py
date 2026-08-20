@@ -1,10 +1,13 @@
 """Upscaling stem volume from twelve trees to the whole ALS footprint.
 
-Day 4 stopped at a table: stem volume from the ground beside metrics from the air.
-This is the step after it. Fit V = f(ALS metrics) where both exist, then apply it to
-every ALS tree, including the ones no ground sensor ever reached.
+An extra step taken after the Day 4 exercise, not part of it. The exercise ends at a
+table: stem volume from the ground beside metrics from the air. This asks what that
+table is for. Fit V = f(ALS metrics) where both exist, then apply it to every ALS tree,
+including the ones no ground sensor ever reached.
 
-Run:  uv run marimo edit notebooks/day05/00_upscaling_regression.py --watch
+Whether any of this is where the course goes next is unknown at the time of writing.
+
+Run:  uv run marimo edit notebooks/day04/01_upscaling_regression.py --watch
 
 SPDX-License-Identifier: GPL-3.0-or-later
 Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University
@@ -27,6 +30,9 @@ def _():
 def _(mo):
     mo.md(r"""
     # From twelve trees to a hectare
+
+    *An extra step taken after the Day 4 exercise finished, not part of the exercise
+    itself. The exercise ends at the joined table; this asks what that table is for.*
 
     The ALS covers a 30 m radius. The ground sensors cover 15 m, and inside that
     circle only **twelve trees** were matched to an airborne crown. Everything below
@@ -74,7 +80,7 @@ def _():
 
     REPO = Path(__file__).resolve().parents[2]
     DAY4 = REPO / "out" / "day04"
-    OUTDIR = REPO / "out" / "day05"
+    OUTDIR = REPO / "out" / "day04" / "upscaling"
     return (
         DAY4,
         DEFAULT_SPECS,
