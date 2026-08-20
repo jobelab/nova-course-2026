@@ -1,0 +1,355 @@
+# NOVA course 2026 - point cloud tooling
+# Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# Every acronym and shorthand used in this repository, with what it means *here*
+# rather than in general. Load it with novatrees.glossary.load(), or render it in a
+# notebook with novatrees.glossary.table().
+#
+# Each entry: term -> {name, group, note}. `note` says why it matters in this work,
+# not just what the letters stand for.
+
+meta:
+  title: Glossary
+  updated: 2026-08-20
+  source: docs/glossary.yaml
+
+terms:
+
+  # ---------------------------------------------------------------- platforms --
+  LiDAR:
+    name: Light Detection and Ranging
+    group: platforms
+    note: >-
+      Ranging by timing reflected laser pulses. Everything in this repository starts
+      as a LiDAR point cloud.
+  ALS:
+    name: Airborne Laser Scanning
+    group: platforms
+    note: >-
+      Scanning from an aircraft, here a helicopter at about 3,000 points per square
+      metre. Looks down, so it sees the top of the crown first and cannot see a stem
+      under closed canopy. This is why the ALS path uses canopy maxima for seeds
+      rather than stem cross-sections.
+  TLS:
+    name: Terrestrial Laser Scanning
+    group: platforms
+    note: >-
+      Ground-based scanning from a fixed tripod, typically several positions
+      registered together. Densest of the three here at about 323,000 points per
+      square metre. Sees stems richly, canopy poorly. Occlusion behind stems is its
+      characteristic error.
+  MLS:
+    name: Mobile Laser Scanning
+    group: platforms
+    note: >-
+      Ground-based scanning while moving, so the trajectory has to be solved as well
+      as the ranges. Sees stems, with fewer returns each than TLS and some
+      registration drift. About 68,000 points per square metre here.
+  UAV:
+    name: Unmanned Aerial Vehicle
+    group: platforms
+    note: >-
+      Drone-borne scanning. Not used in this repository, but TreeAIBox ships
+      UAV-trained models and the TreeisoNet paper reports UAV accuracies, so the
+      term appears in comparisons.
+  AOI:
+    name: Area Of Interest
+    group: platforms
+    note: The plot being processed. Here plot 167, a circular plot.
+
+  # ------------------------------------------------------------ data products --
+  DTM:
+    name: Digital Terrain Model
+    group: products
+    note: >-
+      A raster of ground height. Subtracting it from every point is what removes the
+      terrain, and the per-cell statistic used to build it matters more than it
+      looks: the textbook minimum is biased low by sub-surface noise.
+  DSM:
+    name: Digital Surface Model
+    group: products
+    note: A raster of the topmost surface, terrain plus whatever stands on it.
+  CHM:
+    name: Canopy Height Model
+    group: products
+    note: >-
+      DSM minus DTM: a raster of vegetation height, one value per cell, taken as the
+      maximum return in that cell. That maximum is exactly why a CHM cannot see a
+      suppressed tree standing under a taller one.
+  LAS:
+    name: LASer file format
+    group: products
+    note: The standard binary point cloud format. Carries per-point extra fields.
+  LAZ:
+    name: compressed LAS
+    group: products
+    note: >-
+      Losslessly compressed LAS. All the clouds here are LAZ; the Day 4 TLS plot is
+      2.2 GB compressed and 290 million points.
+  CRS:
+    name: Coordinate Reference System
+    group: products
+    note: >-
+      How coordinates map to the earth. Relevant here because the Day 4 TLS is not
+      georeferenced in Z, so only normalised height is comparable across sensors.
+  SWEREF99TM:
+    name: Swedish reference frame, transverse Mercator
+    group: products
+    note: The national projected CRS used by the Swedish course data.
+
+  # --------------------------------------------------------------- algorithms --
+  CSF:
+    name: Cloth Simulation Filter
+    group: algorithms
+    note: >-
+      Ground classification by dropping a simulated cloth onto the inverted cloud.
+      One intuitive parameter, cloth stiffness, instead of a stack of morphological
+      thresholds. Zhang et al. 2016.
+  PMF:
+    name: Progressive Morphological Filter
+    group: algorithms
+    note: The older ground-filtering family CSF largely replaced.
+  TIN:
+    name: Triangulated Irregular Network
+    group: algorithms
+    note: >-
+      Interpolating a surface by triangulating known points. An alternative way to
+      build a DTM from ground returns, used by the earlier course pipeline.
+  DBSCAN:
+    name: Density-Based Spatial Clustering of Applications with Noise
+    group: algorithms
+    note: >-
+      Clusters by density, needing a neighbourhood size rather than a cluster count.
+      That property is essential here: the number of trees is what we are trying to
+      discover.
+  PCA:
+    name: Principal Component Analysis
+    group: algorithms
+    note: >-
+      Used on a local neighbourhood to get a surface normal, from which verticality
+      follows. Also used, less successfully, to estimate stem lean.
+  RANSAC:
+    name: RANdom SAmple Consensus
+    group: algorithms
+    note: >-
+      Fit by repeatedly sampling a minimal set and keeping the model with most
+      inliers. Used for circles in taper slices, because a least-squares fit is
+      dragged off the stem by branch stubs and returns arriving through gaps.
+  kNN:
+    name: k Nearest Neighbours
+    group: algorithms
+    note: >-
+      The k closest points. Used for local PCA, for the graph the region growing
+      walks, and for the statistical noise filter.
+  NMS:
+    name: Non-Maximum Suppression
+    group: algorithms
+    note: >-
+      Keeping only the strongest of several overlapping detections. Used in
+      TreeAIBox's peak extraction to turn a confidence field into tree locations.
+  SOR:
+    name: Statistical Outlier Removal
+    group: algorithms
+    note: >-
+      Reject points whose mean distance to their k neighbours is far above the
+      cloud-wide average. Good on isolated returns, poor on mist, which is diffuse
+      rather than isolated.
+  ROR:
+    name: Radius Outlier Removal
+    group: algorithms
+    note: >-
+      Reject points with too few neighbours inside a fixed radius. Blunter than SOR
+      but better on mist, if the radius exceeds the droplet spacing.
+  QSM:
+    name: Quantitative Structure Model
+    group: algorithms
+    note: >-
+      A reconstruction of a tree as fitted cylinders, giving volume and branch
+      architecture. TreeAIBox includes a QSM module; the taper reconstruction here is
+      a simpler stack of circles up the stem only.
+  SAR:
+    name: Synthetic Aperture Radar
+    group: algorithms
+    note: >-
+      Synthesising a large antenna by moving a small one. Appears in the note on why
+      radio frequencies cannot produce point clouds at forestry resolution.
+  p2r:
+    name: points to raster
+    group: algorithms
+    note: >-
+      Building a CHM by assigning each point to a cell directly, rather than
+      interpolating a surface first.
+
+  # ------------------------------------------------------------------ metrics --
+  DBH:
+    name: Diameter at Breast Height
+    group: metrics
+    note: >-
+      Stem diameter at 1.3 m above ground, the standard forestry measurement and the
+      reason the cross-section slice sits where it does.
+  RMSE:
+    name: Root Mean Square Error
+    group: metrics
+    note: >-
+      Square root of the mean squared difference. Read it with bias, since
+      RMSE^2 = bias^2 + variance and a small RMSE can be almost entirely systematic.
+  IoU:
+    name: Intersection over Union
+    group: metrics
+    note: >-
+      Overlap between two sets of points, used to decide whether a predicted tree
+      and a reference tree are the same tree. The 0.5 threshold is conventional and,
+      as the TreeisoNet paper notes, somewhat arbitrary.
+  mIoU:
+    name: mean Intersection over Union
+    group: metrics
+    note: IoU averaged over classes or instances. The headline metric in the TreeisoNet paper.
+  MSE:
+    name: Mean Squared Error
+    group: metrics
+    note: Loss function used by the TreeisoNet offset-regression models.
+  ECTS:
+    name: European Credit Transfer and Accumulation System
+    group: metrics
+    note: Course credit. This course is listed as 3 ECTS by NOVA and 4.5 Hp by SLU.
+
+  # ----------------------------------------------------------------- software --
+  CC:
+    name: CloudCompare
+    group: software
+    note: >-
+      The open-source point cloud application the course demo runs in. Built from
+      source here with the CSF, PCL and Python plugins.
+  PCT:
+    name: Point-Cloud-Tools
+    group: software
+    note: >-
+      Tuomas Yrttimaa's MATLAB toolbox for characterising trees from TLS, and the
+      thing PCT_demo.exe is compiled from. Its crown-detection stage is ported here
+      as novatrees.chm_watershed.
+  PCL:
+    name: Point Cloud Library
+    group: software
+    note: The C++ library behind CloudCompare's qPCL plugin.
+  TreeAIBox:
+    name: TreeAIBox
+    group: software
+    note: >-
+      NRCan's CloudCompare Python plugin bundling deep learning models for forest
+      point clouds. Driven directly here rather than through the GUI.
+  TreeisoNet:
+    name: TreeisoNet
+    group: software
+    note: >-
+      The four-stage network suite inside TreeAIBox: stem classification, tree
+      location, tree offset and crown offset. Xi and Degenhardt 2025.
+  SegFormer:
+    name: Segmentation Transformer
+    group: software
+    note: >-
+      The transformer architecture TreeisoNet adapts to 3D voxel blocks for
+      point-level classification.
+  3DFin:
+    name: 3D Forest inventory
+    group: software
+    note: >-
+      Third-party forest inventory software with a CloudCompare plugin, built on the
+      dendromatics library. Its section-by-section axis tracking handles leaning
+      stems better than a single principal axis does.
+  lidR:
+    name: lidR
+    group: software
+    note: >-
+      The R package for airborne LiDAR forestry. The earlier course exercises used
+      it; the pcf package reimplements the parts needed here in Python.
+  pcf:
+    name: point cloud forestry
+    group: software
+    note: >-
+      The Python package from the earlier course sessions, carrying ground
+      classification, TIN normalisation, tree location and the Dalponte and Silva
+      crown algorithms.
+  marimo:
+    name: marimo
+    group: software
+    note: >-
+      The reactive Python notebook format used here. Notebooks are plain .py files,
+      so they diff and review like code.
+  GPU:
+    name: Graphics Processing Unit
+    group: software
+    note: >-
+      Absent on this machine, which is why every deep learning model here runs on
+      CPU and why the ALS detection head, at 1.6 ms per point, is impractical.
+  VRAM:
+    name: Video RAM
+    group: software
+    note: >-
+      GPU memory. TreeAIBox model names carry a VRAM figure, such as GPU3GB, which
+      describes the model's requirement rather than a hard limit.
+
+  # ------------------------------------------------------------- institutions --
+  NOVA:
+    name: Nordic Forestry, Veterinary and Agricultural University Network
+    group: institutions
+    note: The university cooperation that runs this PhD course.
+  SLU:
+    name: Sveriges lantbruksuniversitet
+    group: institutions
+    note: Swedish University of Agricultural Sciences, the course organiser.
+  NMBU:
+    name: Norges miljo- og biovitenskapelige universitet
+    group: institutions
+    note: Norwegian University of Life Sciences, a NOVA member.
+  LBHI:
+    name: Landbunadarhaskoli Islands
+    group: institutions
+    note: Agricultural University of Iceland, a NOVA member.
+  UEF:
+    name: Ita-Suomen Yliopisto
+    group: institutions
+    note: >-
+      University of Eastern Finland, School of Forest Sciences, a NOVA member and
+      where Point-Cloud-Tools comes from.
+  UH:
+    name: Helsingin yliopisto
+    group: institutions
+    note: >-
+      University of Helsinki, a NOVA member through both its veterinary and its
+      agriculture and forestry faculties.
+  NRCan:
+    name: Natural Resources Canada
+    group: institutions
+    note: The department behind TreeAIBox and TreeisoNet.
+  EQF:
+    name: European Qualifications Framework
+    group: institutions
+    note: Level 8 is doctoral, which is this course's level.
+
+  # ------------------------------------------------ licensing and identifiers --
+  GPL:
+    name: GNU General Public License
+    group: licensing
+    note: >-
+      This repository is GPL-3.0-or-later. Chosen because it is software, and to stay
+      compatible with the CC BY 4.0 material one module derives from.
+  CC BY:
+    name: Creative Commons Attribution
+    group: licensing
+    note: >-
+      The licence on Yrttimaa's Point-Cloud-Tools. Section 3(a) permits distributing
+      adapted material under other terms provided attribution is kept, which is what
+      allows the GPL port here.
+  SPDX:
+    name: Software Package Data Exchange
+    group: licensing
+    note: The standard short licence identifier carried in every source file here.
+  ORCID:
+    name: Open Researcher and Contributor ID
+    group: licensing
+    note: A persistent author identifier, carried in CITATION.cff.
+  DOI:
+    name: Digital Object Identifier
+    group: licensing
+    note: A persistent handle for a paper, dataset or software release.

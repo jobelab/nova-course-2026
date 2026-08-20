@@ -39,6 +39,8 @@ from .extract import (
     semantic_labels,
     tree_table,
 )
+from .glossary import lookup as glossary_lookup
+from .glossary import table as glossary_table
 from .inventory import (
     PlotGeometry,
     als_metrics,
@@ -63,6 +65,8 @@ from .pipeline import (
 )
 
 __all__ = [
+    "glossary_table",
+    "glossary_lookup",
     "run_sensor",
     "SensorRun",
     "denoise_statistical",

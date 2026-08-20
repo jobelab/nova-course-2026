@@ -16,6 +16,54 @@ __generated_with = "0.24.0"
 app = marimo.App(width="medium")
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+    ## Glossary
+
+    Every acronym used across this repository, with what it means **here** rather than
+    in general. The source is [`docs/glossary.yaml`](../docs/glossary.yaml), so it is
+    one file to keep correct rather than definitions scattered through prose.
+
+        from novatrees.glossary import load, table, lookup
+        lookup("CHM")
+        table(group="metrics")
+    """
+    )
+    return
+
+
+@app.cell
+def _(mo):
+    from novatrees.glossary import groups, table
+
+    glossary_group = mo.ui.dropdown(
+        ["all"] + groups(), value="all", label="section"
+    )
+    glossary_search = mo.ui.text(placeholder="filter, e.g. canopy", label="search")
+    mo.vstack([glossary_group, glossary_search])
+    return glossary_group, glossary_search, groups, table
+
+
+@app.cell
+def _(glossary_group, glossary_search, mo, table):
+    _df = table(group=None if glossary_group.value == "all" else glossary_group.value)
+    _q = glossary_search.value.strip().lower()
+    if _q:
+        _hit = (
+            _df["term"].str.lower().str.contains(_q)
+            | _df["stands for"].str.lower().str.contains(_q)
+            | _df["what it means here"].str.lower().str.contains(_q)
+        )
+        _df = _df[_hit]
+    mo.vstack([
+        mo.ui.table(_df, selection=None, page_size=15),
+        mo.md(f"**{len(_df)}** terms shown."),
+    ])
+    return
+
+
 @app.cell
 def _():
     import marimo as mo
