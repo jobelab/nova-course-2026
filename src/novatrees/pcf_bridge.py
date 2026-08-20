@@ -33,6 +33,7 @@ absent, so nothing else in the package depends on it.
 from __future__ import annotations
 
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -46,6 +47,8 @@ __all__ = [
     "ground_and_normalise",
     "locate_and_segment",
     "compare_normalisation",
+    "PcfParams",
+    "als_segment",
 ]
 
 # Where the sibling repository usually sits. Add your own path if it moves.
@@ -176,3 +179,95 @@ def compare_normalisation(path, reference_path=None, quantile: float = 0.25,
             out[f"{label}_bias"] = float(e.mean())
             out[f"{label}_rmse"] = float(np.sqrt((e**2).mean()))
     return out
+
+
+@dataclass
+class PcfParams:
+    """Parameters for the `pcf` airborne chain, used as an ALS detector here.
+
+    Defaults are the ones measured best on the Day 4 ALS: 0.5 m CHM cells and a 3 m
+    local-maximum window. `ws` is the parameter that decides how many trees you get,
+    and there is no value that is right for every stand.
+    """
+
+    res: float = 0.5  # CHM cell size
+    ws: float = 3.0  # local-maximum window, metres
+    hmin: float = 3.0  # ignore maxima below this height
+    subcircle: float = 0.2  # spread each return over a small disc before rasterising
+    method: str = "dalponte2016"  # or "silva2016", "watershed"
+    th_seed: float = 0.45
+    th_cr: float = 0.55
+    max_cr: float = 10.0
+
+
+def _cloud_from_xyz(xyz: np.ndarray):
+    """A `pcf.Cloud` from an array we have already normalised ourselves.
+
+    Deliberately not `pcf`'s own reader. Holding ground classification and height
+    normalisation fixed is what makes the comparison a comparison of *segmentation*
+    rather than of four differences at once.
+    """
+    from pcf.cloud import Cloud
+
+    P = np.asarray(xyz, float)
+    return Cloud(x=P[:, 0].copy(), y=P[:, 1].copy(), z=P[:, 2].copy(),
+                 classification=np.full(len(P), 1, np.uint8), intensity=None)
+
+
+def als_segment(xyz, p: PcfParams | None = None, verbose: bool = False):
+    """Segment an ALS cloud the `pcf` way. Returns (labels, seeds, crowns, stats).
+
+    The chain is CHM, variable-window tree tops, then Dalponte 2016 crowns, and the
+    crowns come back as a raster of ids, so every point takes the id of the cell it
+    falls in. That is the actual airborne result rather than our 3D region growing
+    seeded from someone else's tops.
+
+    `labels` is 0-based with -1 unassigned, matching everything else here, so it
+    scores through `novatrees.evaluate` and `novatrees.inventory` unchanged.
+    """
+    if not available():
+        raise ImportError("pcf is not importable; see PCF_CANDIDATES")
+    from pcf import raster as pr
+    from pcf import segment as ps
+
+    p = p or PcfParams()
+    P = np.asarray(_xyz(xyz), float)
+    cloud = _cloud_from_xyz(P)
+
+    chm = pr.rasterize_canopy(cloud, res=p.res, algorithm="p2r", subcircle=p.subcircle)
+    ttops = ps.locate_trees(chm, ws=p.ws, hmin=p.hmin)
+    if not len(ttops):
+        return np.full(len(P), -1, np.int32), np.empty((0, 3)), None, {"n_tops": 0}
+
+    if p.method == "watershed":
+        seg = ps.watershed(chm, ttops, th_tree=p.hmin)
+    else:
+        seg = getattr(ps, p.method)(chm, ttops, th_tree=p.hmin, th_seed=p.th_seed,
+                                    th_cr=p.th_cr, max_cr=p.max_cr)
+
+    # Raster ids to per-point labels. Row 0 is the northernmost row, so the row index
+    # counts down from ymax; getting that backwards mirrors the plot silently.
+    xmin, _, _, ymax = seg.extent
+    col = np.floor((P[:, 0] - xmin) / seg.res).astype(int)
+    row = np.floor((ymax - P[:, 1]) / seg.res).astype(int)
+    nrow, ncol = seg.array.shape
+    inside = (col >= 0) & (col < ncol) & (row >= 0) & (row < nrow)
+
+    labels = np.full(len(P), -1, np.int32)
+    ids = np.full(len(P), np.nan)
+    ids[inside] = seg.array[row[inside], col[inside]]
+    valid = np.isfinite(ids) & (ids > 0)
+    # Crown ids are 1-based and not necessarily contiguous; compact them to 0-based.
+    uniq, compact = np.unique(ids[valid], return_inverse=True)
+    labels[valid] = compact.astype(np.int32)
+
+    tx = ttops.geometry.x.to_numpy()
+    ty = ttops.geometry.y.to_numpy()
+    seeds = np.c_[tx, ty, np.full(len(tx), 0.25)]  # placeholder diameter, as for CHM
+    if verbose:
+        print(f"[pcf] {len(ttops)} tops -> {len(uniq)} crowns, "
+              f"{int(valid.sum()):,} points assigned")
+    return labels, seeds, ps.polygonize(seg), {
+        "n_tops": int(len(ttops)), "n_crowns": int(len(uniq)),
+        "n_assigned": int(valid.sum()), "method": p.method,
+    }

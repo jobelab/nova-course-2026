@@ -291,7 +291,16 @@ arrays; xarray is the container, not the maths.
    DBH, heights and volume by integration. `volume_variants` returns **three** volumes
    per tree, not one, for the reason below.
 7. **Per-tree metrics and cross-sensor matching** (`novatrees.inventory`) - the Day 4
-   objective, joining ground-derived volume to airborne metrics.
+   objective, joining ground-derived volume to airborne metrics. Crowns are matched to
+   the dominant stem beneath them, or occupied stems are counted rather than named.
+8. **Upscaling** (`novatrees.upscale`) - the allometric model, cross-validated, applied
+   to every airborne crown.
+
+**On ALS, use `detector="pcf"`.** Our CHM watershed produces crowns about three times
+too large on this plot, each holding two or three stems. `pcf`'s Dalponte crowns take
+the share of ground stems the ALS accounts for from 34 to 63 per cent and the fitted
+height exponent from 1.48 to 2.21, which is what a cone predicts. That one change
+moves every number downstream of it.
 
 **A taper integral is not a stem volume.** Its limits are the first and last
 *accepted* slice, and returns thin with height until slices stop passing the minimum
@@ -332,7 +341,7 @@ ground, and labels bleed across the plot.
 | `workflow` | `run_sensor`: the whole sequence for one cloud in one call |
 | `treeaibox` | the learned alternative, driving TreeAIBox models on CPU |
 | `upscale` | allometric volume models, leave-one-out validation, plot totals |
-| `pcf_bridge` | runs the earlier course package `pcf` side by side, where it is available |
+| `pcf_bridge` | runs the earlier course package `pcf` side by side, and its Dalponte crowns as the ALS detector |
 | `dfin_bridge` | runs 3DFin / dendromatics as a third detection method, scored the same way |
 | `glossary` | the acronym table in `docs/glossary.yaml`, loadable in a notebook |
 | `io` | LAS/LAZ writing, used by the per-tree extractor and the CLI |

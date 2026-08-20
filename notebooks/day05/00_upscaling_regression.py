@@ -107,10 +107,31 @@ def _(mo):
 
 
 @app.cell
-def _(DAY4, drop_fragments, mo, np, pd):
-    _als = DAY4 / "trees_ALS_heuristic.csv"
+def _(mo):
+    als_detector = mo.ui.dropdown(
+        {"pcf, dalponte2016 crowns": "pcf", "ours, CHM watershed": "heuristic"},
+        value="pcf, dalponte2016 crowns", label="ALS segmentation to upscale from",
+    )
+    mo.vstack([
+        als_detector,
+        mo.md(
+            """*Not a cosmetic choice. Our watershed crowns are about three times too
+            large on this plot, each holding two or three stems, and everything
+            downstream inherits it: the fitted height exponent, the expansion ratio and
+            the stand total all move. Run it both ways.*"""
+        ),
+    ])
+    return (als_detector,)
+
+
+@app.cell
+def _(DAY4, als_detector, drop_fragments, mo, np, pd):
+    _als = DAY4 / f"trees_ALS_{als_detector.value}.csv"
     _vols = {_s: DAY4 / f"volumes_{_s}_heuristic.csv" for _s in ("MLS", "TLS")}
-    mo.stop(not (_als.exists() and _vols["MLS"].exists()),
+    mo.stop(not _als.exists(),
+            mo.md(f"*`{_als.name}` is missing. Run Day 4, and for the pcf crowns run "
+                  f"`run_sensor(..., detector=\"pcf\")` on the ALS cloud.*"))
+    mo.stop(not _vols["MLS"].exists(),
             mo.md(f"*Run the Day 4 notebook first: `{_vols['MLS']}` is missing.*"))
 
     # Per-sensor stem volumes, unjoined: the matching happens below, so that the rule

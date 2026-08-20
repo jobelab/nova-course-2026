@@ -538,8 +538,6 @@ def average_occupancy(tables: dict, on: str = "treeID_air"):
     spread between them is the honest uncertainty on it. Both are returned:
     `n_stems` is the mean, `n_stems_spread` the range.
     """
-    import pandas as pd
-
     keys = list(tables)
     merged = None
     for k in keys:

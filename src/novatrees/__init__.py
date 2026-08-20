@@ -54,9 +54,9 @@ from .inventory import (
     match_positions,
     tree_metrics,
 )
-from .dfin_bridge import available as dfin_available
+from .dfin_bridge import available as dfin_available  # noqa: F401
 from .io import read_xyz, write_labelled, write_seeds
-from .pcf_bridge import available as pcf_available
+from .pcf_bridge import available as pcf_available  # noqa: F401
 from .presets import ALS, MLS, PRESETS, TLS, SensorPreset, preset_for
 from .workflow import SensorRun, run_sensor
 from .stemgeom import ForkParams, axis_ratio, find_forks, sector_occupancy

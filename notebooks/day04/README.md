@@ -338,10 +338,24 @@ stand that made a CHM fail on Day 3 is here: over half the stems are suppressed,
 a helicopter records the crown that shades them, not the tree. No airborne method
 recovers a tree that left no return.
 
-The honest reading is that `pcf` should carry the ALS crown step and `novatrees`
-should carry normalisation on the ground clouds and everything below breast height.
-Folding `dalponte2016` into the ALS path of `run_sensor` is the obvious next change
-and is not done yet.
+**This is now wired in.** `run_sensor(..., detector="pcf")` runs `pcf`'s chain on our
+normalised heights, so only the segmentation differs, and its crown raster becomes the
+per-point labels directly. Measured against the ground stems:
+
+| | ours, watershed | `pcf`, dalponte2016 |
+| --- | ---: | ---: |
+| crowns inside the 15 m ground plot | 13 | **25** |
+| median crown area | 84.1 m2 | **29.8 m2** |
+| stems per occupied crown | 2.64 | **1.31** |
+| stems the ALS accounts for | 34 % | **63 %** |
+
+Our crowns were roughly three times too large, each swallowing two or three stems.
+Everything downstream inherited that: the fitted height exponent moved from 1.48 to
+2.21, which is what a cone predicts, and the volume expansion ratio fell from 1.60 to
+1.06. See [`../day05/README.md`](../day05/README.md).
+
+The division of labour is therefore `pcf` for the ALS crown step and `novatrees` for
+normalisation on the ground clouds and everything below breast height.
 
 ## On the learned detector
 

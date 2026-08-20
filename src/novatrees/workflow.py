@@ -129,6 +129,14 @@ def run_sensor(
                             treeloc=p.dl_treeloc, stem_stage=p.dl_stem_stage),
             verbose=verbose,
         )
+    elif detector == "pcf":
+        # The earlier course package's airborne chain, run on our normalised heights
+        # so that what differs is the segmentation and nothing else. Its crowns come
+        # back as a raster of ids, so region growing is skipped entirely: these are
+        # the labels.
+        from .pcf_bridge import als_segment
+
+        pcf_labels, seeds, _crowns, _pstats = als_segment(norm_xyz, p.pcf, verbose=verbose)
     elif p.seed_method == "chm":
         res = chm_segment(norm_xyz, p.chm)
         tops = res["tops"]
@@ -153,7 +161,9 @@ def run_sensor(
     log(f"[{p.name}/{detector}] {len(seeds)} seeds in {t['detect']:.1f}s")
 
     t0 = time.time()
-    if len(seeds):
+    if detector == "pcf":
+        labels = pcf_labels  # already one label per point, from the crown raster
+    elif len(seeds):
         result = grow_instances(norm_xyz, seeds, p.grow)
         labels = result.labels
     else:

@@ -236,10 +236,26 @@ reversed. The volume was wrong for a day.
 prediction happened to overlap makes *less coverage raise the score*. A method that
 labels a third of the plot looks excellent. Use every reference instance in the cloud.
 
+**Before blaming the sensor, check your own segmentation.** The Day 4 ALS appeared to
+miss two thirds of the stems, which reads as a physical limit of looking down at a
+layered canopy. Segmenting the same cloud with `pcf`'s Dalponte crowns instead of our
+watershed took it from 34 to 63 per cent, cut the median crown from 84 to 30 square
+metres, and moved the fitted height exponent from 1.48 to 2.21, which is what a cone
+predicts. Our crowns were merging two or three neighbours each. **The failure looked
+like a sensor limitation and was a software one**, and only running someone else's
+implementation on the same data separated them.
+
+**A wrong crown size propagates all the way to the stand total.** With crowns three
+times too large, the dominant-stem model captured 63 per cent of the volume standing
+under them and needed a 1.60 expansion ratio; with correctly sized crowns it captures
+94 per cent and the ratio is 1.06. Every correction downstream was compensating for
+one upstream mistake.
+
 **Run the other implementation rather than reasoning about it.** `pcf` beats us on ALS
-crowns, 25 trees against 20 inside the plot with crowns the right size; we beat `pcf`
-on dense-TLS normalisation, bias -0.002 m against -0.066 m. Neither was predictable
-from reading the methods.
+crowns, 25 trees against 13 inside the plot with crowns a third the size; we beat
+`pcf` on dense-TLS normalisation, bias -0.002 m against -0.066 m. Neither was
+predictable from reading the methods, and the ALS one was worth a full re-run of
+everything downstream of it.
 
 **Do not retune someone else's software until it agrees with yours.** 3DFin runs here
 at its shipped defaults, with one cluster-size floor lowered because 1000 starves on a

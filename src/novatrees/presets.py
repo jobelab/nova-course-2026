@@ -40,6 +40,7 @@ from .csf import CsfParams
 from .denoise import DenoiseParams
 from .features import StemScoreParams
 from .pipeline import GrowParams, SeedParams
+from .pcf_bridge import PcfParams
 from .taper import TaperParams
 
 __all__ = ["SensorPreset", "TLS", "MLS", "ALS", "PRESETS", "preset_for"]
@@ -60,6 +61,9 @@ class SensorPreset:
     # sensors so that the strict column means the same thing everywhere. Pass this
     # instead when the question is what one sensor can do at its best.
     taper: TaperParams
+    # The airborne alternative, used when detector="pcf". Only the ALS preset has a
+    # reason to change it, and only ws is worth changing without measuring.
+    pcf: PcfParams = field(default_factory=PcfParams)
     denoise: DenoiseParams = field(default_factory=DenoiseParams)
     # TreeAIBox weights for the learned detector, and whether that model set has a
     # stem-classification stage before tree location.

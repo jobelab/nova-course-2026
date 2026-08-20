@@ -29,10 +29,11 @@ records the rest as suppressed. On the MLS stems against the filtered ALS crowns
 | under no crown at all | 3 |
 | crowns with no stem beneath | 38 |
 
-**The helicopter sees 34 per cent of the stems standing in this plot.** The other 22
-are under a crown belonging to something taller. No regression fixes that: those trees
-left no return in the canopy surface. The 38 empty crowns are mostly legitimate, since
-the ALS covers a 30 m radius and the ground sensors only 15 m.
+The helicopter appears to see 34 per cent of the stems standing in this plot. **That
+number turned out to be mostly our own fault**, and the correction is further down: it
+is 63 per cent once the ALS is segmented with `pcf`'s Dalponte crowns instead of our
+watershed. Read this section as the method, and the ALS detector comparison below as
+the result.
 
 Two details the rule needs, both found by running it:
 
@@ -177,6 +178,60 @@ The interval covers the ratio only. It excludes the regression error, the sensor
 disagreement, and the assumption that crowns outside the ground coverage are layered
 like the ones inside it. That last one is the shakiest thing here: the ratio was
 measured on 13 crowns near the plot centre and applied to 53.
+
+## The ALS segmentation was the problem, not the sensor
+
+Everything above ran on our own CHM watershed crowns. Repeating it with `pcf`'s
+variable-window tops and Dalponte 2016 crowns, on the same normalised heights so that
+only the segmentation differs:
+
+| | ours, watershed | `pcf`, dalponte2016 |
+| --- | ---: | ---: |
+| objects found | 92 | 118 |
+| after fragment filtering | 53 | 97 |
+| crowns inside the 15 m ground plot | 13 | **25** |
+| median crown area | 84.1 m2 | **29.8 m2** |
+| stems per occupied crown | 2.64 | **1.31** |
+| **stems the ALS accounts for** | **34 %** | **63 %** |
+| training trees for the regression | 11 | **21** |
+| R2 cv | -0.174 | **+0.378** |
+| RMSE cv | 30.7 % | **20.8 %** |
+| fitted height exponent | 1.48 | **2.21** |
+| expansion ratio R | 1.60 | **1.06** |
+
+Every line improves, and two of them matter more than the rest.
+
+**The height exponent lands at 2.21**, which is what a cone predicts once crown size
+is accounted for. Our crowns were three times too large, each swallowing two or three
+stems, so the dominant-stem relationship was being fitted through a quantity that was
+not one tree.
+
+**The expansion ratio falls to 1.06.** With crowns that hold roughly one stem each,
+the dominant-stem model already captures 94 per cent of the volume standing under
+them, and the ratio correction that mattered so much above becomes almost unnecessary.
+
+So the claim earlier on this page, that the helicopter misses two thirds of the stems,
+was **wrong as stated**. The helicopter was fine; our crown delineation was merging
+neighbours. That is worth more than the volume number: the failure looked like a
+sensor limitation and was a software one, and only running someone else's
+implementation on the same data separated them.
+
+## The result, corrected
+
+| | ours, watershed | `pcf`, dalponte2016 |
+| --- | ---: | ---: |
+| dominant-stem total | 187 m3/ha | 359 m3/ha |
+| corrected by R | 298 m3/ha | **381 m3/ha** |
+| stems per hectare | 461 | **450** |
+
+The two routes to stem density now agree, 461 against 450, from segmentations that
+disagreed by a factor of two on how many crowns exist. The ground plot holds 38 stems
+in 0.071 ha, near 540 per hectare, so both remain a little low, which is what a canopy
+that still hides the smallest trees should do.
+
+At 450 stems per hectare and 381 m3/ha the mean tree is 0.85 m3, and a 25 m stem of
+0.30 m DBH at a form factor of 0.5 is 0.88 m3. That the two agree is a check, not a
+proof, and the volume figure still rests on 21 trees.
 
 ## What would make it a model
 
