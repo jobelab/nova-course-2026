@@ -159,11 +159,14 @@ travels with any redistribution. Both are recorded in [`NOTICE`](NOTICE).
 
 ## Layout
 
-    docs/           course demo reference, methods + equations, background notes
-    setup/          how CloudCompare + its plugins were built and wired on this machine
-    csf/            CSF ground/off-ground split from the shell
-    src/novatrees/  the Python pipeline (xarray-based)
-    notebooks/      marimo notebooks
+    src/novatrees/     the Python library, see the module table below
+    notebooks/         02_methods_and_equations.py, shared across days
+    notebooks/day03/   ground filtering, tree instance segmentation
+    notebooks/day04/   ALS + MLS + TLS to one joined inventory table
+    docs/              methods and equations, 3DFin, RF sensing
+    docs/day03/        the Day 3 demo transcribed
+    setup/             how CloudCompare and its plugins were built here
+    csf/               CSF ground split from the shell
 
 ## Quick start
 
@@ -210,6 +213,10 @@ the per-point attributes a LAS file already has (`reflectance`, `treeid`, …) s
 named and aligned. The numeric kernels - scipy, scikit-learn, CSF - still take raw
 arrays; xarray is the container, not the maths.
 
+0. **Noise filtering** (`novatrees.denoise`) - statistical or radius outlier removal.
+   Four things get called noise and they need different treatment: isolated returns,
+   mixed pixels forming a halo that biases every circle fit outward, mist that is
+   diffuse rather than isolated, and registration ghosts that no filter reaches.
 1. **Ground filtering** (`novatrees.csf`) - CSF via the authors' Python bindings,
    ~1 s on 15 M points. The CloudCompare plugin runs the same algorithm and is
    available for cross-checking.
@@ -223,6 +230,14 @@ arrays; xarray is the container, not the maths.
 4. **3D Dijkstra region growing** - multi-source shortest path over a kNN graph of
    the above-ground points; each point takes the label of its geodesically nearest
    seed.
+5. **Stem and foliage split** (`novatrees.extract`) - the stem axis is tracked band by
+   band rather than assumed vertical, so lean and mild sweep are followed and the stem
+   ends where the measurements stop.
+6. **Taper and stem volume** (`novatrees.taper`) - RANSAC circles per slice, consistency
+   filtering, then a smoother or an analytic form (Kozak, polynomial, spline), giving
+   DBH, heights and volume by integration.
+7. **Per-tree metrics and cross-sensor matching** (`novatrees.inventory`) - the Day 4
+   objective, joining ground-derived volume to airborne metrics.
 
 **Large merged instances are a seeding failure, not a growing failure.** The
 biggest predicted tree on this plot swallows two reference trees almost entirely,
@@ -234,6 +249,43 @@ do touch. Better seeds do fix it; see [`TREEAIBOX.md`](TREEAIBOX.md).
 sheet of points touching the base of every stem, so with it in place the cheapest
 path from one tree's seed to another tree's crown runs straight through the
 ground, and labels bleed across the plot.
+
+## The library
+
+| module | what it does |
+| --- | --- |
+| `dataset` | LAS/LAZ into `xarray.Dataset`, decimating in chunks so a 290 M point cloud is openable |
+| `denoise` | statistical and radius outlier removal |
+| `csf` | Cloth Simulation Filter ground classification and height normalisation |
+| `features` | verticality from local PCA, the demo's reflectance transform, the weighted stem score |
+| `pipeline` | cross-section stem seeds, 3D Dijkstra region growing |
+| `chm_watershed` | the top-down alternative, ported from Yrttimaa's PCT |
+| `extract` | semantic classes, stem-axis tracking, one file per tree |
+| `stemgeom` | sector occupancy, ellipse fitting, fork detection |
+| `taper` | RANSAC slice fits, taper models, stem volume |
+| `evaluate` | instance scoring, IoU matching, attribute errors |
+| `inventory` | per-tree metrics, circular plot geometry, cross-sensor matching and join |
+| `presets` | per-sensor parameters for TLS, MLS and ALS |
+| `workflow` | `run_sensor`: the whole sequence for one cloud in one call |
+| `treeaibox` | the learned alternative, driving TreeAIBox models on CPU |
+
+## Day 4: three sensors over one plot
+
+`notebooks/day04/` works ALS, MLS and TLS over plot 167, ending in a table with
+ground-derived stem volume beside airborne metrics. The exercise stops at the table;
+the regression that would upscale volume from ALS is separate work.
+
+What makes it more than a repeat of Day 3:
+
+- **The method has to change with the sensor.** ALS switches to CHM watershed because
+  a helicopter cannot see a stem under closed canopy. On the Day 3 TLS plot the
+  ranking was the reverse. Neither method is better in general.
+- **The TLS is not georeferenced in Z**, so normalised height is the only datum the
+  three clouds share.
+- **All three are circular cookie cuts**, so edge trees are measured from a fraction
+  of themselves. They are flagged, not corrected.
+- **Two ground sensors let the result be checked**, which is worth more than either
+  one's internal fit statistics.
 
 ## State of the tooling, 2026-08-20
 
@@ -248,15 +300,17 @@ into `~/.local/share/CCCorp/CloudCompare/plugins` rather than `/opt`.
 | PythonRuntime (`pycc`) | working | one local patch, see `setup/patches/` |
 | TreeAIBox / TreeisoNet | working, **CPU-only** | TLS boreal stemcls + treeloc weights installed |
 | 3DFin / dendromatics | installed | auto-registers as a CloudCompare Python plugin |
-| `novatrees` | 42 exports across 12 modules | CSF, features, pipeline, taper, extract, evaluate |
-| notebooks | 3, marimo `0.24.0` | ground filtering · segmentation · methods reference |
+| `novatrees` | 67 exports across 16 modules | see the module table above |
+| notebooks | 4, marimo `0.24.0` | day03 x2, day04 x1, plus the shared methods reference |
+| Day 4 data | ALS 11.2 M, MLS 61.0 M, TLS 290.3 M | circular cookie cuts, common centre |
 
 ### What the pipeline does now
 
-Ground filtering (CSF) → height normalisation → **weighted stem pre-screen**
-(verticality + reflectance) → cross-section seeds → 3D Dijkstra region growing →
-per-tree extraction → **RANSAC stem taper**. Every stage is scored against the
-reference `treeid` labels in the course cloud.
+Noise filtering → ground filtering (CSF) → height normalisation → **weighted stem
+pre-screen** (verticality + reflectance) → cross-section seeds → 3D Dijkstra region
+growing → stem-axis tracking → per-tree extraction → **RANSAC stem taper and volume**
+→ cross-sensor matching. Every stage is scored against the reference `treeid` labels
+where the course cloud provides them.
 
 Best result on `crsot_mixed_stand_hnorm.laz` (15.6 M points, 41 reference trees):
 **28 trees matched, recall 0.68, precision 0.78, mean IoU 0.805, height RMSE 0.82 m**.
@@ -280,6 +334,14 @@ section instead, which is the better answer - see [`docs/3dfin.md`](docs/3dfin.m
 reference trees whole because only one had a seed, and no graph parameter fixes that.
 Better seeds do.
 
+**The ellipse cannot measure lean.** The geometry is right, but at the lean angles
+here the signal is about 50 times below the ovality of a real stem, so `axis_ratio`
+ships as a per-slice quality flag only. Lean comes from the tracked centreline.
+
+**Fork detection needs four tests, not one.** Counting components per band marks
+every tree as forked. Persistence, vertical extent, lean and relative radius together
+bring it to 3 of 12 large trees, which is believable for this stand.
+
 **3D visualisation is server-rendered.** plotly's 3D scatter never rendered in the
 browser here and the cause was never found, so the notebooks use matplotlib PNGs with
 azimuth/elevation sliders. Less interactive, but it cannot fail downstream of the
@@ -290,7 +352,7 @@ kernel - and at 60 k points a raster is 1.8 MB against pydeck's 17.7 MB for 80 k
 | document | covers |
 | --- | --- |
 | [`docs/methods-and-equations.md`](docs/methods-and-equations.md) | every formula with its measured numbers - bias, RMSE, IoU, CSF, Dijkstra |
-| [`docs/course-demo-workflow.md`](docs/course-demo-workflow.md) | the Day 3 demo transcribed, phase by phase against this implementation |
+| [`docs/day03/course-demo-workflow.md`](docs/day03/course-demo-workflow.md) | the Day 3 demo transcribed, phase by phase against this implementation |
 | [`TREEAIBOX.md`](TREEAIBOX.md) | driving the TreeisoNet models, and what the paper says about tuning |
 | [`docs/3dfin.md`](docs/3dfin.md) | 3DFin as a third method, and why it handles tilt better |
 | [`setup/cloudcompare-linux.md`](setup/cloudcompare-linux.md) | how the plugins were built, and the two version traps |

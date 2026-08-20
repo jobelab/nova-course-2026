@@ -87,7 +87,7 @@ No RANSAC parameters are specified; the document says to experiment.
 
 The document points to **TreeAIBox**, "a CloudCompare Python plugin for a suite of
 LiDAR processing modules targeting forest and tree analysis". Installed here - see
-[`../TREEAIBOX.md`](../TREEAIBOX.md).
+[`TREEAIBOX.md`](../../TREEAIBOX.md).
 
 ---
 
@@ -103,10 +103,10 @@ read - **3D Dijkstra region growing from stem seeds** - and differs as follows.
 | 1 ground | CSF, cloth **1.000** | CSF, cloth **0.20** | ours is finer; both use threshold 0.30 |
 | 1 normalise | distance to CSF **cloth mesh** | **DTM quantile 0.25** per 0.5 m cell | different route; ours validated at bias −0.002 m, RMSE 0.068 m vs the supplied `_hnorm` |
 | 2 slice | **1.2–1.4 m** | 1.15–1.45 m | effectively the same slab |
-| 2 filter | **verticality + reflectance** | *(was: none)* | **the significant gap - see below** |
+| 2 filter | **verticality + reflectance** | `novatrees.features`, weighted and pre-screened | adopted after this doc was written; see below for what it was worth |
 | 3 cluster | connected components + manual review | DBSCAN + circle fit + vertical continuity | ours is automatic, no manual step |
 | 4 grow | PCT_demo Dijkstra | multi-source Dijkstra on a kNN graph | same method, independently arrived at |
-| 5 taper | RANSAC cylinders | *(not implemented)* | open |
+| 5 taper | RANSAC cylinders | RANSAC circles per slice, `novatrees.taper` | implemented after this doc was written; adds Kozak / polynomial / spline fits and stem volume |
 
 ### The verticality + reflectance filter is worth adopting
 

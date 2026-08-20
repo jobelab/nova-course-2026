@@ -156,8 +156,12 @@ $$\Big\lvert \{\, p \in S^{-} : \lVert (x_p, y_p) - (x_c, y_c) \rVert \le r + \d
 
 This single test is what rejects understory clutter.
 
-**Measured:** 38 stems, median DBH 0.315 m, 29 of 36 reference seed positions hit,
-median offset 0.09 m.
+**Measured, without the pre-screen:** 38 stems, median DBH 0.315 m, 29 of 36 reference
+seed positions hit, median offset 0.09 m.
+
+**Measured, with the verticality and reflectance pre-screen** (see section 9): 37
+stems, **33 of 36** hit, median offset **0.03 m**. Same slice, same clustering; the
+difference is which points reach the clustering step.
 
 ---
 
@@ -192,7 +196,8 @@ the tree, so a branch stays with the trunk it is attached to.
 
 Computed for all seeds in one multi-source pass, $O(\lvert E \rvert \log \lvert V \rvert)$.
 
-**Measured:** 353,301 nodes, 2,824,273 edges, 98.9 % of nodes reached, 8 s.
+**Measured:** 353,301 nodes, 2.8 M edges at `max_edge` 0.50, 98.9 % of nodes reached,
+8 s. The default is now 0.25, which trades a few edges for better matching.
 
 ---
 
@@ -270,6 +275,95 @@ suppressed tree beneath a taller neighbour contributes to no cell's maximum, so 
 is absent from $\tilde{C}$, absent from $T$, and unrecoverable downstream. On this
 plot **23 of 41 reference trees are under 10 m** in a 22.8 m canopy, median tree
 height 7.5 m. Over half the stand is invisible before a parameter is chosen.
+
+---
+
+## 9. Added after the first pass
+
+These were not in the original write-up. Each earned its place by measurement, and
+the measurement is given so the claim can be checked.
+
+### Noise filtering
+
+Statistical outlier removal compares each point's mean distance to its $k$ nearest
+neighbours against the cloud-wide distribution:
+
+$$\bar{d}_i = \frac{1}{k}\sum_{j \in \mathrm{kNN}(i)} \lVert \mathbf{p}_i - \mathbf{p}_j \rVert,
+\qquad \text{reject if } \bar{d}_i > \mu_{\bar d} + n_\sigma\, \sigma_{\bar d}$$
+
+Four things get called noise and only three are reachable this way. Isolated returns
+go easily. **Mixed pixels** form a halo just outside the bark, where a beam clipping
+a stem edge returns a distance averaged with whatever lies behind, and a circle
+fitted through the halo reports DBH too large. **Mist** is diffuse rather than
+isolated, so the k-nearest test finds each droplet well-connected and keeps it; a
+radius filter or the reflectance screen works instead. **Registration ghosts** need
+better registration, not filtering.
+
+### Weighted stem score
+
+Each feature is scaled to 0-1 on its 1st to 99th percentiles, then weighted:
+
+$$S(\mathbf{p}) = \frac{w_v\,\tilde{v} + w_r\,(1 - \tilde{\rho}) + w_d\,(1 - \tilde{r})}{w_v + w_r + w_d}$$
+
+for verticality $\tilde v = 1 - \lvert n_z \rvert$, transformed reflectance
+$\tilde\rho$ (low means bark) and radial distance $\tilde r$ to the nearest stem
+axis. The pre-screen keeps the top $p$ per cent by $S$.
+
+**Measured on the full plot:** recall 0.63 to 0.77 and precision 0.67 to 0.87
+against reference seed positions. Reflectance carries most of it, separating bark
+from foliage by about 9 dB.
+
+### Stem taper and volume
+
+Circles are fitted per slice by RANSAC, filtered against the last accepted slice,
+then smoothed or fitted with an analytic form. Volume follows by integration:
+
+$$V = \int_{z_0}^{z_1} \pi \left( \frac{d(z)}{2} \right)^{2} dz$$
+
+The Kozak form keeps a power of $X$ whose exponent varies with relative height:
+
+$$d(h) = D \cdot X^{\,b_1 z^2 + b_2 \ln(z + 0.001) + b_3 \sqrt{z} + b_4 e^{z}},
+\qquad X = \frac{1 - \sqrt{z}}{1 - \sqrt{p}}, \quad z = h/H, \quad p = 1.3/H$$
+
+reduced to four coefficients, because the published nine-coefficient version is
+fitted across a population rather than one stem.
+
+### Sector occupancy, and what the ellipse cannot do
+
+Occupancy is the fraction of the circumference with points behind it. A circle
+fitted to a narrow arc is a guess; the same fit on a wide arc is a measurement.
+Median coverage on the Day 3 plot is 91 per cent.
+
+A cylinder leaning $\theta$ cuts a horizontal plane in an ellipse of axis ratio
+$\cos\theta$, so lean looks recoverable from the cross-section. **It is not, at
+these angles.** Median lean here is 4.4 degrees, predicting an axis ratio of 0.997,
+while stems are 5 to 15 per cent out of round from ovality and bark alone. The
+signal sits roughly 50 times under the noise, and correlation with PCA-derived lean
+came out at 0.25 with a properly constrained fit. Axis ratio ships as a quality
+flag; lean comes from the tracked centreline.
+
+### Fork detection
+
+A chain of components counts as a second stem only if it persists, runs vertically,
+and holds its thickness:
+
+$$n \ge n_{\min} \quad\wedge\quad \Delta z \ge 2\,\mathrm{m} \quad\wedge\quad
+\arctan\!\left(\frac{\lVert \Delta xy \rVert}{\Delta z}\right) \le 25^\circ
+\quad\wedge\quad r \ge 0.35\, r_{\text{main}}$$
+
+All four are needed. Counting components alone marked 32 of 32 trees as forked;
+adding persistence alone still marked 12 of 12. With all four it is 3 of 12.
+
+### Instance recall, and a denominator that misleads
+
+$$\mathrm{recall} = \frac{\mathrm{TP}}{\lvert \mathcal{T}_{\text{overlapped}} \rvert}
+\qquad\text{versus}\qquad
+\mathrm{recall}_{\text{total}} = \frac{\mathrm{TP}}{\lvert \mathcal{T}_{\text{all}} \rvert}$$
+
+The first counts only reference trees some prediction touched, so **covering less of
+the plot raises it**. One perfectly segmented tree and nothing else scores 1.00 on
+the first and 0.02 on the second. Use `recall_total` whenever the methods being
+compared cover different amounts of ground.
 
 ---
 
