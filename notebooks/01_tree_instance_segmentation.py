@@ -35,16 +35,16 @@ def _(mo):
 
     Same cloud, two philosophies.
 
-    **A — CHM watershed (top-down).** Rasterise the canopy, smooth it, find the
+    **A - CHM watershed (top-down).** Rasterise the canopy, smooth it, find the
     local maxima, let watershed basins grow down from those tree tops. This is a
     port of the crown-detection stage of Tuomas Yrttimaa's *Point-Cloud-Tools*
-    (PCT) — the MATLAB toolbox behind `PCT_demo_installer.exe` in the course
+    (PCT) - the MATLAB toolbox behind `PCT_demo_installer.exe` in the course
     material.
 
-    **B — cross-section seeds + 3D Dijkstra (bottom-up).** Slice the cloud at
+    **B - cross-section seeds + 3D Dijkstra (bottom-up).** Slice the cloud at
     breast height, cluster the slice, fit circles, keep what looks like a stem.
     Those centres become seeds. Then every point is assigned to whichever seed is
-    closest *through the point cloud* — geodesic distance along a nearest-neighbour
+    closest *through the point cloud* - geodesic distance along a nearest-neighbour
     graph, not straight-line distance.
 
     Both are scored against the per-point `treeid` field already in the cloud.
@@ -52,7 +52,7 @@ def _(mo):
     > **Remove the ground first.** This is not housekeeping. The graph in method B
     > walks between neighbouring points, and the forest floor is one continuous
     > sheet touching the base of every stem. Leave it in and the cheapest path from
-    > one tree's seed to another tree's crown runs straight through the ground —
+    > one tree's seed to another tree's crown runs straight through the ground -
     > labels bleed across the whole plot.
     """)
     return
@@ -114,7 +114,7 @@ def _():
 def _(CLOUD, mo, np, read_cloud):
     mo.stop(
         not CLOUD.exists(),
-        mo.md(f"**Missing cloud.** Expected `{CLOUD}` — re-fetch the course data."),
+        mo.md(f"**Missing cloud.** Expected `{CLOUD}` - re-fetch the course data."),
     )
 
     ds = read_cloud(CLOUD)
@@ -124,14 +124,14 @@ def _(CLOUD, mo, np, read_cloud):
     n_ref = len(np.unique(reference[reference > 0]))
     mo.md(
         f"""
-        **{CLOUD.name}** — {len(xyz):,} points, Z from {xyz[:, 2].min():.2f} to
+        **{CLOUD.name}** - {len(xyz):,} points, Z from {xyz[:, 2].min():.2f} to
         {xyz[:, 2].max():.2f} m (height-normalised), extent
         {np.ptp(xyz[:, 0]):.1f} x {np.ptp(xyz[:, 1]):.1f} m.
         Reference labelling: **{n_ref} tree instances**,
         {(reference == 0).sum():,} points left unassigned.
 
         Carried as an `xarray.Dataset` over a `point` dimension, so every per-point
-        attribute the file already had — `{"`, `".join(str(v) for v in ds.data_vars)}` —
+        attribute the file already had - `{"`, `".join(str(v) for v in ds.data_vars)}` -
         stays named and aligned:
         """
     )
@@ -163,7 +163,7 @@ def _(alt, np, pd, reference, xyz):
             y=alt.Y("count()", title="trees"),
             tooltip=["count()"],
         )
-        .properties(height=200, title="Reference tree heights — most of the stand is suppressed")
+        .properties(height=200, title="Reference tree heights - most of the stand is suppressed")
     )
     _chart
     return (tree_heights,)
@@ -180,7 +180,7 @@ def _(mo, np, tree_heights, xyz):
 
         A canopy height model records the *highest* return per cell, so a suppressed tree
         under a taller neighbour leaves no trace in it at all. Method A cannot find those
-        trees no matter how it is tuned — not a bug in the port, a property of working
+        trees no matter how it is tuned - not a bug in the port, a property of working
         from a raster of the canopy surface. Method B looks for stems at breast height,
         where a suppressed tree is just as visible as a dominant one.
         """
@@ -241,7 +241,7 @@ def _(alt, ground_z, mo, np, pd, xyz):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Method A — CHM watershed (PCT port)
+    ## Method A - CHM watershed (PCT port)
 
     `pc2dem(max)` → gaussian(σ=1) → local-maxima tree tops → marker-controlled
     watershed → drop crowns below `min_crown_area`. Defaults are PCT's own
@@ -311,10 +311,10 @@ def _(alt, mo, result_a):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Method B — cross-section seeds
+    ## Method B - cross-section seeds
 
     Slice at breast height, cluster in 2D, fit a circle per cluster, and keep only
-    clusters that are stem-shaped *and* vertically continuous — points must also
+    clusters that are stem-shaped *and* vertically continuous - points must also
     exist in a slab above and a slab below. That continuity check is what rejects
     understory clutter and low branches.
     """)
@@ -364,7 +364,7 @@ def _(alt, mo, np, pd, seed_params, seeds, xyz):
         [
             _base + _mark,
             mo.md(
-                f"**{len(seeds)} stems** — DBH median "
+                f"**{len(seeds)} stems** - DBH median "
                 f"{np.median(seeds[:, 2]) if len(seeds) else float('nan'):.3f} m, "
                 f"range {seeds[:, 2].min() if len(seeds) else 0:.3f}–"
                 f"{seeds[:, 2].max() if len(seeds) else 0:.3f} m."
@@ -377,7 +377,7 @@ def _(alt, mo, np, pd, seed_params, seeds, xyz):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Method B — 3D Dijkstra region growing
+    ## Method B - 3D Dijkstra region growing
 
     A kNN graph over the voxel-downsampled above-ground points, edges weighted by
     distance and refused beyond $d_{\max}$ (`max_edge`):
@@ -390,7 +390,7 @@ def _(mo):
       \end{cases}$$
 
     Multi-source Dijkstra then gives each node the label of its geodesically nearest
-    seed — a **geodesic Voronoi partition**:
+    seed - a **geodesic Voronoi partition**:
 
     $$d_{g}(s, x) = \min_{\pi \in \Pi(s,x)} \sum_{(a,b) \in \pi} w(a,b),
       \qquad \ell(x) = \arg\min_{s \in S} d_{g}(s, x)$$
@@ -433,7 +433,7 @@ def _(
         _out = mo.md("*Set the parameters above, then press **Run region growing**.*")
     elif len(seeds) == 0:
         labels_b = None
-        _out = mo.md("**No seeds detected** — loosen the detection parameters.")
+        _out = mo.md("**No seeds detected** - loosen the detection parameters.")
     else:
         _res = grow_instances(
             xyz,
@@ -460,8 +460,8 @@ def _(mo):
     mo.md(r"""
     ## Look at it in 3D
 
-    Drag to rotate, scroll to zoom. Points are subsampled for the browser — the
-    full 15.6 M would not survive the trip — but the segmentation shown is the real
+    Drag to rotate, scroll to zoom. Points are subsampled for the browser - the
+    full 15.6 M would not survive the trip - but the segmentation shown is the real
     one, sampled uniformly.
 
     Flip between the two methods and the reference to see *where* they disagree.
@@ -475,8 +475,8 @@ def _(mo):
 @app.cell
 def _(mo):
     which = mo.ui.dropdown(
-        {"B — cross-section + Dijkstra": "b", "A — CHM watershed": "a", "reference treeid": "ref"},
-        value="B — cross-section + Dijkstra",
+        {"B - cross-section + Dijkstra": "b", "A - CHM watershed": "a", "reference treeid": "ref"},
+        value="B - cross-section + Dijkstra",
         label="colour by",
     )
     n_show = mo.ui.slider(
@@ -537,7 +537,7 @@ def _(
     _ax.view_init(elev=elev.value, azim=azim.value)
     _ax.set_box_aspect((np.ptp(_px), np.ptp(_py), np.ptp(_pz)))
     _ax.set_xlabel("x (m)"); _ax.set_ylabel("y (m)"); _ax.set_zlabel("height (m)")
-    _ax.set_title(f"{_key.upper()} — {len(_idx):,} points, {len(_uniq[_uniq > 0])} trees")
+    _ax.set_title(f"{_key.upper()} - {len(_idx):,} points, {len(_uniq[_uniq > 0])} trees")
 
     _ax2 = _fig3d.add_subplot(1, 2, 2)
     _ax2.scatter(_px, _py, s=0.4, c=_c, linewidths=0)
@@ -598,7 +598,7 @@ def _(instance_scores, labels_a, labels_b, mo, pd, reference):
                 *matched* counts predictions hitting a reference tree at
                 $\mathrm{IoU} \ge 0.5$, paired greedily and one-to-one. *over-seg* counts
                 reference trees split across several predictions; *under-seg* counts
-                predictions swallowing several reference trees — the two failure modes
+                predictions swallowing several reference trees - the two failure modes
                 precision and recall hide.
                 """
             ),
@@ -618,8 +618,8 @@ def _(mo):
     | | |
     |---|---|
     | 0 | ground |
-    | 1 | stem — within the fitted radius of the tree's own vertical axis |
-    | 2 | foliage — everything else belonging to the tree |
+    | 1 | stem - within the fitted radius of the tree's own vertical axis |
+    | 2 | foliage - everything else belonging to the tree |
 
     Together those two labellings are a **panoptic** result: a class for every
     point, and an instance id for every point that belongs to a countable object.
@@ -635,7 +635,7 @@ def _(mo):
 def _(labels_b, mo, seeds, semantic_labels, tree_table, xyz):
     if labels_b is None:
         semantic, trees = None, None
-        _tbl = mo.md("*Run region growing first — the per-tree table needs its labels.*")
+        _tbl = mo.md("*Run region growing first - the per-tree table needs its labels.*")
     else:
         semantic = semantic_labels(xyz, labels_b, seeds, ground_z=0.30)
         trees = tree_table(xyz, labels_b, seeds, semantic)
@@ -682,7 +682,7 @@ def _(
 ):
     mo.stop(
         semantic is None,
-        mo.md("*Run region growing first — extraction needs the tree labels.*"),
+        mo.md("*Run region growing first - extraction needs the tree labels.*"),
     )
     mo.stop(not do_extract.value, mo.md("*Press to write per-tree files.*"))
 
@@ -699,7 +699,7 @@ def _(
         f"""
         Wrote **{len(_paths)} trees** to `{OUTDIR / "individual"}`.
 
-        LAS classification codes are set on the way out — 2 ground, 5 stem, 4 foliage —
+        LAS classification codes are set on the way out - 2 ground, 5 stem, 4 foliage -
         so each file opens in CloudCompare already split by class.
 
         ```
@@ -736,7 +736,7 @@ def _(mo):
 def _(CLOUD, OUTDIR, export, labels_a, labels_b, laspy, mo, np, seeds):
     mo.stop(
         labels_b is None,
-        mo.md("*Run region growing first — the export writes both methods.*"),
+        mo.md("*Run region growing first - the export writes both methods.*"),
     )
     mo.stop(not export.value, mo.md("*Press the button to write the files.*"))
 
@@ -775,7 +775,7 @@ def _(mo):
     ### Credit
 
     Method A ports the crown-detection stage of **Point-Cloud-Tools** by
-    Dr. Tuomas Yrttimaa (University of Eastern Finland), CC BY 4.0 —
+    Dr. Tuomas Yrttimaa (University of Eastern Finland), CC BY 4.0 -
     [zenodo.5779288](https://doi.org/10.5281/zenodo.5779288),
     [Yrttimaa et al. 2019](https://doi.org/10.3390/rs11121423),
     [2020](https://doi.org/10.1016/j.isprsjprs.2020.08.017).
@@ -796,7 +796,7 @@ def _(mo):
     tree's stem, so the views are comparable between trees regardless of where in the
     plot it stands.
 
-    Colours are the semantic classes the pipeline assigns — **stem** inside the fitted
+    Colours are the semantic classes the pipeline assigns - **stem** inside the fitted
     radius of the vertical axis, **foliage** everywhere else on the tree. This is the
     quickest way to see whether an instance is one clean tree or two merged ones: a
     merged instance shows two stems.
@@ -807,7 +807,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo, trees):
     _opts = {
-        f"tree {int(r.treeID):3d}  —  {r.height_m:5.1f} m,  DBH {r.dbh_m:.2f} m,  {int(r.points):,} pts": int(r.treeID)
+        f"tree {int(r.treeID):3d}  -  {r.height_m:5.1f} m,  DBH {r.dbh_m:.2f} m,  {int(r.points):,} pts": int(r.treeID)
         for r in trees.sort_values("height_m", ascending=False).itertuples()
     }
     tree_pick = mo.ui.dropdown(_opts, value=list(_opts)[0], label="tree")
@@ -836,7 +836,7 @@ def _(labels_b, mo, np, pd, semantic, tree_max_pts, tree_pick, trees, xyz):
     tree_pts["r"] = np.hypot(tree_pts.x, tree_pts.y)
     tree_info = _row
     mo.md(
-        f"**Tree {int(_row.treeID)}** — {_row.points:,} points "
+        f"**Tree {int(_row.treeID)}** - {_row.points:,} points "
         f"({int(_row.stem_points):,} stem, {int(_row.foliage_points):,} foliage), "
         f"height **{_row.height_m:.1f} m**, DBH **{_row.dbh_m:.3f} m**. "
         f"Showing {len(tree_pts):,}."
@@ -858,7 +858,7 @@ def _(azim, elev, np, tree_info, tree_pts):
     _a1.view_init(elev=elev.value, azim=azim.value)
     _a1.set_box_aspect((np.ptp(tree_pts.x), np.ptp(tree_pts.y), np.ptp(tree_pts.z)))
     _a1.set_xlabel("x (m)"); _a1.set_ylabel("y (m)"); _a1.set_zlabel("height (m)")
-    _a1.set_title(f"tree {int(tree_info.treeID)} — {tree_info.height_m:.1f} m")
+    _a1.set_title(f"tree {int(tree_info.treeID)} - {tree_info.height_m:.1f} m")
 
     # Radius from the stem axis against height. A clean tree tapers from a tight stem
     # at the base; a merged instance shows two vertical bands.
@@ -888,7 +888,7 @@ def _(alt, mo, tree_pts):
             color=alt.Color("cls:N", scale=_scale, title="class"),
             tooltip=["z:Q", "cls:N"],
         )
-        .properties(width=290, height=290, title="plan view — drag to select")
+        .properties(width=290, height=290, title="plan view - drag to select")
         .add_params(_brush)
     )
 
@@ -930,11 +930,11 @@ def _(mo):
     | feature | stem-like when | why |
     |---|---|---|
     | **verticality** | high | a stem surface is a vertical cylinder, so its normal is horizontal: $1 - \lvert n_z \rvert$ |
-    | **reflectance** | high | bark returns far more strongly than foliage — about 9 dB apart here |
+    | **reflectance** | high | bark returns far more strongly than foliage - about 9 dB apart here |
     | **radial distance** | low | stem points sit close to the tree's vertical axis; branches reach away from it |
 
-    Reflectance uses the course demo's own arithmetic — add 26, divide by 31, invert,
-    $\log_{10}$ — which for this sensor maps the raw range onto almost exactly 0–1.
+    Reflectance uses the course demo's own arithmetic - add 26, divide by 31, invert,
+    $\log_{10}$ - which for this sensor maps the raw range onto almost exactly 0–1.
 
     **Pre-screen %** keeps that percentage of the highest-scoring points. Lower is
     tighter: 10% keeps only the most stem-like tenth, 100% keeps everything.
@@ -976,15 +976,15 @@ def _(mo):
     k_normals = mo.ui.slider(
         5, 80, value=20, step=1, label="neighbours for surface normals (k)", show_value=True
     )
-    w_vert = mo.ui.slider(0.0, 1.0, value=0.4, step=0.05, label="weight — verticality", show_value=True)
-    w_refl = mo.ui.slider(0.0, 1.0, value=0.4, step=0.05, label="weight — reflectance", show_value=True)
-    w_radial = mo.ui.slider(0.0, 1.0, value=0.2, step=0.05, label="weight — radial distance", show_value=True)
+    w_vert = mo.ui.slider(0.0, 1.0, value=0.4, step=0.05, label="weight - verticality", show_value=True)
+    w_refl = mo.ui.slider(0.0, 1.0, value=0.4, step=0.05, label="weight - reflectance", show_value=True)
+    w_radial = mo.ui.slider(0.0, 1.0, value=0.2, step=0.05, label="weight - radial distance", show_value=True)
     prescreen = mo.ui.slider(
         5, 100, value=40, step=5, label="pre-screen % kept (lower = tighter)", show_value=True
     )
     mo.vstack([
         mo.md("**Surface normals**"), k_normals,
-        mo.md("**Feature weights** — relative; they are normalised to sum to 1"),
+        mo.md("**Feature weights** - relative; they are normalised to sum to 1"),
         w_vert, w_refl, w_radial,
         mo.md("**Pre-screen**"), prescreen,
     ])
@@ -1037,7 +1037,7 @@ def _(
         f"""
         Weights **{_wv:.2f} verticality / {_wr:.2f} reflectance / {_wd:.2f} radial**
         (normalised by {_tot:.2f}).
-        Keeping the top **{prescreen.value}%** — score ≥ **{_cut:.3f}** —
+        Keeping the top **{prescreen.value}%** - score ≥ **{_cut:.3f}** -
         which is **{int(stem_keep.sum()):,}** of {len(stem_score):,} band points.
         """
     )
@@ -1099,7 +1099,7 @@ def _(
     xyz,
 ):
     mo.stop(not score_it.value, mo.md("*Press **Score this filter** to grow and compare against the reference.*"))
-    mo.stop(len(seeds_filtered) == 0, mo.md("**No stems survived** — raise the pre-screen % or lower the weights."))
+    mo.stop(len(seeds_filtered) == 0, mo.md("**No stems survived** - raise the pre-screen % or lower the weights."))
 
     _res = grow_instances(xyz, seeds_filtered, GrowParams())
     _sc = instance_scores(_res.labels, reference)
@@ -1161,7 +1161,7 @@ def _(mo):
     taper_rtol = mo.ui.slider(0.005, 0.20, value=0.03, step=0.005, label="radius tolerance (m)", show_value=True)
     taper_ctol = mo.ui.slider(0.01, 0.30, value=0.06, step=0.01, label="centre tolerance (m)", show_value=True)
     taper_method = mo.ui.dropdown(
-        ["cubic spline", "moving median", "monotonic (isotonic)", "none — raw fits"],
+        ["cubic spline", "moving median", "monotonic (isotonic)", "none - raw fits"],
         value="cubic spline", label="taper method",
     )
     taper_stem_only = mo.ui.checkbox(value=True, label="restrict to stem-classified points")
@@ -1347,7 +1347,7 @@ def _(
         )
     else:
         dbh_taper, stem_volume = float("nan"), float("nan")
-        mo.md("**Too few accepted slices to build a curve** — lower the minimum points per slice, or loosen the tolerances.")
+        mo.md("**Too few accepted slices to build a curve** - lower the minimum points per slice, or loosen the tolerances.")
     return dbh_taper, taper_curve
 
 
@@ -1378,7 +1378,7 @@ def _(
     if np.isfinite(dbh_taper):
         _ax_t.plot([dbh_taper], [1.3], "o", c="crimson", ms=6, label=f"DBH {dbh_taper:.3f} m")
     _ax_t.set_xlabel("diameter (m)"); _ax_t.set_ylabel("height (m)")
-    _ax_t.set_title(f"taper — tree {tree_pick.value}"); _ax_t.legend(fontsize=7); _ax_t.set_xlim(left=0)
+    _ax_t.set_title(f"taper - tree {tree_pick.value}"); _ax_t.legend(fontsize=7); _ax_t.set_xlim(left=0)
 
     # 2. stem axis drift: does the fitted centre wander?
     _ax_c = _fg.add_subplot(1, 3, 2)

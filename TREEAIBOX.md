@@ -9,7 +9,7 @@ directly from a notebook. `novatrees.treeaibox` wraps the TLS boreal chain.
     TreeAIBox   learned stem classification -> learned tree location -> shortest path
     novatrees   cross-section circle fits   -> stem seeds            -> 3D Dijkstra
 
-The last step is the same idea in both — geodesic growing from seeds — which makes the
+The last step is the same idea in both - geodesic growing from seeds - which makes the
 comparison a narrow and fair one: **only the seeding differs**. Hold the growing
 constant and you are measuring a trained detector against fitted circles.
 
@@ -24,7 +24,7 @@ Measured on `crsot_mixed_stand_hnorm.laz`, 8 threads:
 | tree location | 2.2 s | 4.4 s |
 
 **Do not extrapolate per point.** 16x the points cost only 3.2x the time, because the
-network runs over *occupied voxel blocks*, not points — a denser cloud largely fills
+network runs over *occupied voxel blocks*, not points - a denser cloud largely fills
 blocks it was already visiting. Scaling the clip timing linearly predicted ~13 minutes
 for the full plot; it actually took **under 3 minutes**. Weights are ~20 MB each and
 download on demand.
@@ -37,7 +37,7 @@ The GUI does `pcd_abg = pcd_abg[stemcls > 1]` before calling it, and so must you
 
 **Pass `if_stem=True`.** The released `treeloc` weights carry a `linear_pred` head,
 which the model only builds when `if_stem=True`. Without it, `load_state_dict` fails on
-missing `linear_confidence` / `linear_radius` keys — the detection-head variant those
+missing `linear_confidence` / `linear_radius` keys - the detection-head variant those
 weights are not.
 
 ## Results on the full plot
@@ -59,7 +59,7 @@ Tree-level attribute errors over the matched instances:
 | C  TreeAIBox seeds + Dijkstra | **-0.481 m** | **0.948 m** | **0.222 m** |
 
 **C wins on every measure.** The learned detector proposed 34 locations against the
-cross-section's 38, and turned more of them into correct trees — 21 matched from 28
+cross-section's 38, and turned more of them into correct trees - 21 matched from 28
 surviving instances against 20 from 30. Same growing, same scoring, so the difference
 is entirely in the seeding.
 
@@ -118,7 +118,7 @@ invisible to the plugin. Verified from inside CloudCompare:
 The distinction matters: half the numbers in the UI change results, and the other
 half are baked into the trained weights.
 
-**Fixed — changing these requires retraining.** From the config JSON beside each
+**Fixed - changing these requires retraining.** From the config JSON beside each
 model:
 
 | model | voxel resolution (m) | block (voxels) | decoder dim | SR ratios |
@@ -130,7 +130,7 @@ model:
 | crownoff TLS 15 cm | 0.15 / 0.15 / **0.30** | 128³ | 64 | 8, 4, 2, 1 |
 
 A 128³ block at 0.04 m spans 5.12 m; at 0.10 m it spans 12.8 m. That is the real
-meaning of the resolution choice — how much of the plot the network sees at once,
+meaning of the resolution choice - how much of the plot the network sees at once,
 against how fine a stem it can resolve. `treeLoc(custom_resolution=...)` will
 override it, but the weights were trained at the config value and accuracy degrades
 away from it.
@@ -138,7 +138,7 @@ away from it.
 Note the crownoff model is **anisotropic**: 0.15 m horizontally, 0.30 m vertically.
 Crowns are wider than they are finely layered, so the vertical axis is coarser.
 
-**Tunable at inference** — these are the ones worth sweeping. Defaults from the
+**Tunable at inference** - these are the ones worth sweeping. Defaults from the
 plugin UI (`treeaibox_ui.html`) and the function signatures:
 
 | parameter | default | what it does |
@@ -158,7 +158,7 @@ what the plugin actually passes.
 
 Xi, Z. & Degenhardt, D. (2025), *A new unified framework for supervised 3D crown
 segmentation (TreeisoNet) using deep neural networks across airborne, UAV-borne, and
-terrestrial laser scans*, ISPRS Open Journal of Photogrammetry and Remote Sensing —
+terrestrial laser scans*, ISPRS Open Journal of Photogrammetry and Remote Sensing -
 [S266739322500002X](https://www.sciencedirect.com/science/article/pii/S266739322500002X).
 Canadian Forest Service, Natural Resources Canada.
 
@@ -176,12 +176,12 @@ the wrong resolution.
 ### Resolution has an optimum per module, and it is a bell curve
 
 Fig. 7 sweeps input point resolution for each module. Accuracy rises to a peak and
-falls away, with a **broad stable plateau** around the peak — which is what makes the
+falls away, with a **broad stable plateau** around the peak - which is what makes the
 models usable on data of varying quality. The optima:
 
 | module | optimal resolution | sensitivity |
 | --- | --- | --- |
-| **stem point classification** (StemCls) | **4 cm** | **most sensitive** — steepest accuracy fluctuations |
+| **stem point classification** (StemCls) | **4 cm** | **most sensitive** - steepest accuracy fluctuations |
 | stem base detection (TreeBase / treeloc) | **10 cm** | moderate |
 | crown and stem segmentation (TreeOff2D, CrownOff3D) | **30 cm or greater** | most stable |
 
@@ -202,7 +202,7 @@ Averages across the benchmark: **mIoU 0.77 for StemCls**, **F1 0.96 for TreeBase
 irregular plots.
 
 Two caveats the paper raises that bear on our plot. Crown detection at IoU > 0.5 is
-called "an arbitrary criterion that can be problematic with complex stem points" —
+called "an arbitrary criterion that can be problematic with complex stem points" -
 the same threshold our `instance_scores` uses, so our numbers inherit that objection.
 And the plot with the worst accuracy (TUWIEN_2) is the one with "more **stem tilting**
 and crown overlap", which is exactly the failure mode we hit.
@@ -223,7 +223,7 @@ the weights**, not the paper table, when driving these models.
 ## Practical note
 
 The two stages must be run in order and TLS stem-mode treeLoc must be fed **stem
-points only** — see the trap documented earlier. On this machine, CPU inference over
+points only** - see the trap documented earlier. On this machine, CPU inference over
 the full 15.6 M-point plot took 164.6 s for stemcls and 4.4 s for treeloc.
 
 
@@ -253,14 +253,14 @@ have near-identical height profiles, and both put 98.2% of their stem points on
 labelled reference trees. Whatever the 4 cm model resolves that the 10 cm one does
 not, it is not changing which points get called stem at this plot's density.
 
-**Downstream they are within noise of each other** — 22 matched trees against 21, mIoU
-0.805 against 0.789 — while 10 cm runs **four times faster**. On this evidence 10 cm
+**Downstream they are within noise of each other** - 22 matched trees against 21, mIoU
+0.805 against 0.789 - while 10 cm runs **four times faster**. On this evidence 10 cm
 is the better default for a TLS plot of this size, and 4 cm is worth the wait only if
 something later depends on fine stem detail.
 
 This does **not** contradict the paper. It measures StemCls by point-level mIoU
 against stem/non-stem reference labels; we have no such labels, so we measured the
-only thing we could — whether the resulting stem set produces better trees. Different
+only thing we could - whether the resulting stem set produces better trees. Different
 question, and the paper's answer still stands on its own metric.
 
 ## A metric artefact worth knowing about
@@ -268,7 +268,7 @@ question, and the paper's answer still stands on its own metric.
 The first version of this comparison showed 10 cm with *better* recall (0.66 against
 0.58). That was an artefact. `instance_scores` was computing recall against the
 reference trees a prediction happened to overlap, and the 10 cm run covered less of
-the plot, so its denominator shrank from 38 to 32 — **coverage falling made recall
+the plot, so its denominator shrank from 38 to 32 - **coverage falling made recall
 rise**. Against all 41 reference trees the ranking reverses to 0.54 against 0.51.
 
 `instance_scores` now also returns `n_ref_total` and `recall_total`. Use

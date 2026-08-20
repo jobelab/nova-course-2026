@@ -1,4 +1,4 @@
-# NOVA course 2026 — point cloud tooling
+# NOVA course 2026 - point cloud tooling
 # Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
@@ -13,9 +13,9 @@ instance-segmentation problem rather than a look-at-the-colours exercise.
 Instances are matched greedily by IoU, highest first, one-to-one. From that
 matching fall the three failure modes worth naming separately:
 
-* **missed** — a reference tree no prediction claimed
-* **over-segmentation** — one reference tree split across several predictions
-* **under-segmentation** — several reference trees merged into one prediction
+* **missed** - a reference tree no prediction claimed
+* **over-segmentation** - one reference tree split across several predictions
+* **under-segmentation** - several reference trees merged into one prediction
 
 A method can score a respectable mean IoU while doing badly on any of these, so
 they are reported alongside, not folded in.
@@ -81,7 +81,7 @@ def instance_scores(pred: np.ndarray, ref: np.ndarray, iou_threshold: float = 0.
     matched = int((ious >= iou_threshold).sum())
 
     # How many predictions overlap each reference tree by a non-trivial amount,
-    # and vice versa — the split/merge signal.
+    # and vice versa - the split/merge signal.
     frac_of_ref = counts / np.maximum(ref_sizes[None, :], 1)
     frac_of_pred = counts / np.maximum(pred_sizes[:, None], 1)
     splits = (frac_of_ref >= 0.20).sum(axis=0)  # predictions covering each ref
@@ -117,7 +117,7 @@ def attribute_errors(
 
     Segmentation methods do not produce heights the way normalisation does, so
     the comparable quantities are tree-level: how tall is each detected tree, and
-    where is it. Unmatched trees are excluded — an undetected tree has no height
+    where is it. Unmatched trees are excluded - an undetected tree has no height
     error, it has a detection failure, and the two should not be averaged together.
 
     `pairs` is the (pred_id, ref_id, iou) list from `instance_scores`.

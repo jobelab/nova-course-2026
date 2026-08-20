@@ -1,7 +1,7 @@
 # Course demo: tree detection and segmentation (CloudCompare + PCT_demo)
 
 Reference copy of the Day 3 demo instructions, *Computational Approaches for Tree
-Detection and Segmentation* — CloudCompare v2.13.2 with PCT_demo.
+Detection and Segmentation* - CloudCompare v2.13.2 with PCT_demo.
 
 Source: [published Google Doc](https://docs.google.com/document/d/e/2PACX-1vRNw-xE7l-sYjG515f5sMCPIhhnwzG04wBz3AXGun7NhGfnG59TpTfv0viCxtCs5Y8nPSNL596iXJc_/pub)
 
@@ -15,7 +15,7 @@ Data: `crsot_mixed_stand.laz`, `crsot_tree.laz`.
 
 ---
 
-## Phase 1 — Ground classification and height normalisation
+## Phase 1 - Ground classification and height normalisation
 
 | step | menu path | settings |
 | --- | --- | --- |
@@ -26,7 +26,7 @@ Data: `crsot_mixed_stand.laz`, `crsot_tree.laz`.
 Note the normalisation route: height above ground is the **point-to-cloth-mesh
 distance**, taken straight from the CSF cloth. No DTM raster is built at all.
 
-## Phase 2 — Horizontal slice and stem filtering
+## Phase 2 - Horizontal slice and stem filtering
 
 | step | menu path | settings |
 | --- | --- | --- |
@@ -41,15 +41,15 @@ distance**, taken straight from the CSF cloth. No DTM raster is built at all.
 
 Applied in sequence, quoted intent from the document:
 
-1. **Add 26** — "to make the range entirely positive"
-2. **Divide by 31** — "to make it fit approximately 0–1 scale"
+1. **Add 26** - "to make the range entirely positive"
+2. **Divide by 31** - "to make it fit approximately 0–1 scale"
 3. **Inverse** the scale
-4. **log10** — convert to logarithmic values
+4. **log10** - convert to logarithmic values
 
-The point of Phase 2 is that **two features are combined** — surface-normal
-verticality and reflectance — to separate stems from branches and foliage.
+The point of Phase 2 is that **two features are combined** - surface-normal
+verticality and reflectance - to separate stems from branches and foliage.
 
-## Phase 3 — Cross-section clustering and seed extraction
+## Phase 3 - Cross-section clustering and seed extraction
 
 | step | menu path | settings |
 | --- | --- | --- |
@@ -61,7 +61,7 @@ verticality and reflectance — to separate stems from branches and foliage.
 
 The document does not give an octree level or a specific minimum point count.
 
-## Phase 4 — 3D Dijkstra region growing
+## Phase 4 - 3D Dijkstra region growing
 
 | step | detail |
 | --- | --- |
@@ -70,12 +70,12 @@ The document does not give an octree level or a specific minimum point count.
 | Method | "3D Dijkstra Region Growing to label all points with corresponding treeIDs, based on seed-voxel connectivity paths" |
 | Output | treeID stored in the **UserData** attribute |
 
-## Phase 5 — Semantic segmentation and stem taper
+## Phase 5 - Semantic segmentation and stem taper
 
 Using PCT_demo's semantic segmentation tool on a single tree (`crsot_tree.laz`):
 
 1. Load the segmented tree instance
-2. Compute surface normals — neighbour count is left to the user to adjust
+2. Compute surface normals - neighbour count is left to the user to adjust
 3. Visualise geometric and spectral features
 4. Apply **weighted filtering** to separate stem from branches and foliage
 5. **RANSAC cylinder** fitting from stem base to top, giving the taper curve
@@ -86,7 +86,7 @@ No RANSAC parameters are specified; the document says to experiment.
 ## Bonus
 
 The document points to **TreeAIBox**, "a CloudCompare Python plugin for a suite of
-LiDAR processing modules targeting forest and tree analysis". Installed here — see
+LiDAR processing modules targeting forest and tree analysis". Installed here - see
 [`../TREEAIBOX.md`](../TREEAIBOX.md).
 
 ---
@@ -96,14 +96,14 @@ LiDAR processing modules targeting forest and tree analysis". Installed here —
 `novatrees` is an independent implementation of the same ideas, written by a course
 participant rather than as a course deliverable. It does not follow the demo step for
 step. It did converge on the identical method for Phase 4 before this document was
-read — **3D Dijkstra region growing from stem seeds** — and differs as follows.
+read - **3D Dijkstra region growing from stem seeds** - and differs as follows.
 
 | phase | course demo | `novatrees` | note |
 | --- | --- | --- | --- |
 | 1 ground | CSF, cloth **1.000** | CSF, cloth **0.20** | ours is finer; both use threshold 0.30 |
 | 1 normalise | distance to CSF **cloth mesh** | **DTM quantile 0.25** per 0.5 m cell | different route; ours validated at bias −0.002 m, RMSE 0.068 m vs the supplied `_hnorm` |
 | 2 slice | **1.2–1.4 m** | 1.15–1.45 m | effectively the same slab |
-| 2 filter | **verticality + reflectance** | *(was: none)* | **the significant gap — see below** |
+| 2 filter | **verticality + reflectance** | *(was: none)* | **the significant gap - see below** |
 | 3 cluster | connected components + manual review | DBSCAN + circle fit + vertical continuity | ours is automatic, no manual step |
 | 4 grow | PCT_demo Dijkstra | multi-source Dijkstra on a kNN graph | same method, independently arrived at |
 | 5 taper | RANSAC cylinders | *(not implemented)* | open |
@@ -112,7 +112,7 @@ read — **3D Dijkstra region growing from stem seeds** — and differs as follo
 
 Our pipeline clustered the raw slice, which merges stems that stand close together.
 Concretely, predicted tree 12 merged three reference trees (98%, 96% and 40% of
-refs 84, 79 and 70) because two of those stems are only **0.31 m apart** — closer
+refs 84, 79 and 70) because two of those stems are only **0.31 m apart** - closer
 than the DBSCAN neighbourhood, so they formed one cluster and produced one seed.
 
 Measured on the band 0.7–2.0 m of `crsot_mixed_stand_hnorm.laz`:
@@ -123,7 +123,7 @@ Measured on the band 0.7–2.0 m of `crsot_mixed_stand_hnorm.laz`:
 | ref 79 (stem) | 0.933 | −0.46 dB |
 | foliage | 0.817 | −9.78 dB |
 
-Reflectance separates stem from foliage by about **9 dB** — a far stronger signal
+Reflectance separates stem from foliage by about **9 dB** - a far stronger signal
 than verticality alone, which is why the demo combines the two.
 
 Full-plot instance scores against the reference `treeid`, 41 trees:
@@ -138,12 +138,12 @@ Full-plot instance scores against the reference `treeid`, 41 trees:
 
 ¹ These recalls are against the reference trees each run overlapped, which is how
 `instance_scores` reported it at the time. Against all 41 trees the pre-screened run
-scores **0.68** rather than 0.74. The comparison between rows still holds — they were
-computed the same way — but see the corrected table in the README for absolute figures.
+scores **0.68** rather than 0.74. The comparison between rows still holds - they were
+computed the same way - but see the corrected table in the README for absolute figures.
 
 Shrinking `eps` to 0.04 reaches the same recall but costs precision (0.59), because
 it also fragments single stems. Filtering on shape and reflectance first gets there
-**without** that trade — the same recall at 0.72 precision and the best mean IoU.
+**without** that trade - the same recall at 0.72 precision and the best mean IoU.
 
 Verticality here is computed as `1 - |n_z|` from local PCA over a 20-neighbour
 patch, `n` being the smallest eigenvector. That is the same quantity CloudCompare

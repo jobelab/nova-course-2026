@@ -1,4 +1,4 @@
-# NOVA course 2026 — point cloud tooling
+# NOVA course 2026 - point cloud tooling
 # Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
@@ -9,10 +9,10 @@
 
 CSF is available here two ways, and they are the *same* algorithm:
 
-* **In Python** — the `cloth-simulation-filter` package, bindings published by
+* **In Python** - the `cloth-simulation-filter` package, bindings published by
   the CSF authors. This is what the functions below use: no subprocess, no file
   round-trip, ~0.3 s on 15 M points.
-* **In CloudCompare** — the `qCSF` plugin built for this machine
+* **In CloudCompare** - the `qCSF` plugin built for this machine
   (`~/.local/share/CCCorp/CloudCompare/plugins/libQCSF_PLUGIN.so`), reachable
   from the GUI or the `-CSF` command line. See `csf/run-csf.sh`.
 

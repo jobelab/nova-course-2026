@@ -9,12 +9,12 @@ starting a kernel.
 
 Two different questions, and the pipeline answers both.
 
-**Semantic** — *what kind of point is this?* A label from a fixed vocabulary:
+**Semantic** - *what kind of point is this?* A label from a fixed vocabulary:
 
 $$f_{\text{sem}} : \mathbb{R}^3 \rightarrow \mathcal{C}, \qquad
   \mathcal{C} = \{\text{ground},\ \text{stem},\ \text{foliage}\}$$
 
-**Instance** — *which tree is this point part of?* An identifier with no fixed
+**Instance** - *which tree is this point part of?* An identifier with no fixed
 vocabulary, because the number of trees is discovered rather than known:
 
 $$f_{\text{inst}} : \mathbb{R}^3 \rightarrow \{1, \dots, K\} \cup \{\varnothing\},
@@ -67,17 +67,17 @@ Identical point order in both files, so this is a true point-to-point comparison
 | per-cell statistic | bias | RMSE | $s$ | within 0.25 m |
 | --- | ---: | ---: | ---: | ---: |
 | minimum ($q = 0$, textbook) | +0.264 m | 0.275 m | 0.077 m | 28.4 % |
-| quantile 0.10 | +0.054 m | 0.097 m | — | 99.0 % |
-| **quantile 0.25** (default) | **−0.002 m** | **0.068 m** | — | **98.8 %** |
-| quantile 0.02 | +0.150 m | 0.177 m | — | 82.0 % |
+| quantile 0.10 | +0.054 m | 0.097 m | - | 99.0 % |
+| **quantile 0.25** (default) | **−0.002 m** | **0.068 m** | - | **98.8 %** |
+| quantile 0.02 | +0.150 m | 0.177 m | - | 82.0 % |
 
-For the minimum, $s = \sqrt{0.275^2 - 0.264^2} \approx 0.077$ m — so 96 % of the
+For the minimum, $s = \sqrt{0.275^2 - 0.264^2} \approx 0.077$ m - so 96 % of the
 mean-square error is bias. That is a systematic problem with a fix, not noise to
 be tolerated, and the fix is the quantile.
 
 ---
 
-## 2. CSF — cloth simulation
+## 2. CSF - cloth simulation
 
 Invert the cloud and drop a cloth on it. Each cloth particle is a mass under
 gravity, integrated with Verlet:
@@ -91,7 +91,7 @@ $$\Delta \mathbf{p} = \tfrac{1}{2}\, b \,(\mathbf{p}_{j} - \mathbf{p}_{i}),
   \qquad b \in \{0, 1\}$$
 
 with $b = 0$ for particles already pinned by terrain. **Rigidness** is how many
-times this is applied per step — more iterations, a stiffer cloth that ignores
+times this is applied per step - more iterations, a stiffer cloth that ignores
 small dips. Classification is a single distance test against the settled cloth:
 
 $$c(\mathbf{p}) =
@@ -136,7 +136,7 @@ advance, which is the property the problem requires.
 $$A\,(x^{2} + y^{2}) + B\,x + C\,y + D = 0$$
 
 and Taubin minimises the algebraic distance normalised by its gradient, which is
-what makes it unbiased on partial arcs — the usual case in TLS, where a stem is
+what makes it unbiased on partial arcs - the usual case in TLS, where a stem is
 scanned from one side:
 
 $$\min_{A,B,C,D} \;
@@ -211,13 +211,13 @@ $$\mathrm{precision} = \frac{\mathrm{TP}}{\lvert \hat{\mathcal{T}} \rvert}, \qqu
   F_{1} = \frac{2\,\mathrm{PR}}{\mathrm{P} + \mathrm{R}}$$
 
 Those hide the two failure modes that matter most in forestry, so with coverage
-fraction $\phi = 0.20$ they are counted separately. **Over-segmentation** — one
+fraction $\phi = 0.20$ they are counted separately. **Over-segmentation** - one
 reference tree split across several predictions:
 
 $$\mathrm{split}(R_{j}) = \Big\lvert \Big\{ i \;:\;
   \tfrac{\lvert P_{i} \cap R_{j} \rvert}{\lvert R_{j} \rvert} \ge \phi \Big\} \Big\rvert > 1$$
 
-**Under-segmentation** — one prediction swallowing several reference trees:
+**Under-segmentation** - one prediction swallowing several reference trees:
 
 $$\mathrm{merge}(P_{i}) = \Big\lvert \Big\{ j \;:\;
   \tfrac{\lvert P_{i} \cap R_{j} \rvert}{\lvert P_{i} \rvert} \ge \phi \Big\} \Big\rvert > 1$$
@@ -250,7 +250,7 @@ $$\mathrm{RMSE}_{xy} = \sqrt{\frac{1}{M}\sum_{k=1}^{M}
 
 A's **positive** height bias is its failure mode as a number: absorbing a
 suppressed tree into a dominant neighbour makes the reported instance taller than
-the reference tree it matched. B and C are slightly negative — clipping crown
+the reference tree it matched. B and C are slightly negative - clipping crown
 tips rather than over-claiming.
 
 ---
@@ -275,10 +275,10 @@ height 7.5 m. Over half the stand is invisible before a parameter is chosen.
 
 ## Sources
 
-- CSF — Zhang W. et al. (2016), [Remote Sensing 8(6):501](https://doi.org/10.3390/rs8060501)
-- Taubin fit — Taubin G. (1991), *IEEE PAMI* 13(11)
-- DBSCAN — Ester M. et al. (1996), *KDD-96*
-- PCT — Yrttimaa T. (2021), [zenodo.5779288](https://doi.org/10.5281/zenodo.5779288);
+- CSF - Zhang W. et al. (2016), [Remote Sensing 8(6):501](https://doi.org/10.3390/rs8060501)
+- Taubin fit - Taubin G. (1991), *IEEE PAMI* 13(11)
+- DBSCAN - Ester M. et al. (1996), *KDD-96*
+- PCT - Yrttimaa T. (2021), [zenodo.5779288](https://doi.org/10.5281/zenodo.5779288);
   [Yrttimaa et al. 2019](https://doi.org/10.3390/rs11121423),
   [2020](https://doi.org/10.1016/j.isprsjprs.2020.08.017)
-- TreeAIBox — [NRCan/TreeAIBox](https://github.com/NRCan/TreeAIBox)
+- TreeAIBox - [NRCan/TreeAIBox](https://github.com/NRCan/TreeAIBox)

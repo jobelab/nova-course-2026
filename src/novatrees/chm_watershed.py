@@ -1,15 +1,15 @@
-# NOVA course 2026 — point cloud tooling
+# NOVA course 2026 - point cloud tooling
 # Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 # This file is part of a free software project distributed under the GNU General
 # Public License v3 or later. See LICENSE at the repository root.
 
-"""CHM watershed tree segmentation — a Python port of the PCT crown detection.
+"""CHM watershed tree segmentation - a Python port of the PCT crown detection.
 
 This is the reference method to compare against: Tuomas Yrttimaa's *Point-Cloud-Tools*
-(PCT), `pc_detect_tree_crowns_v2.m`. It is **top-down** — find the tree tops in a
-canopy height model and let watershed basins fall out from them — where
+(PCT), `pc_detect_tree_crowns_v2.m`. It is **top-down** - find the tree tops in a
+canopy height model and let watershed basins fall out from them - where
 `novatrees.pipeline` is **bottom-up**, growing outward from stem cross-sections.
 
 Comparing the two is the interesting part. They disagree in characteristic ways:

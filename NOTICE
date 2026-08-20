@@ -1,4 +1,4 @@
-NOVA course 2026 — point cloud tooling
+NOVA course 2026 - point cloud tooling
 
 Main author
   José M. Beltrán-Abaunza, PhD
@@ -8,7 +8,7 @@ Main author
   https://github.com/jobelab
 
 Contributors
-  (none yet — contributions welcome, see CONTRIBUTING notes in the README)
+  (none yet - contributions welcome, see CONTRIBUTING notes in the README)
 
 Released as open science: free to read, run, adapt and build on, under the
 GNU General Public License v3 or later (SPDX: GPL-3.0-or-later). See LICENSE.
@@ -23,7 +23,7 @@ PARTICULAR PURPOSE. See the GNU General Public License for more details.
 How to cite
 
   Chicago (author-date)
-    Beltrán-Abaunza, José M. 2026. "NOVA Course 2026 — Point Cloud Tooling."
+    Beltrán-Abaunza, José M. 2026. "NOVA Course 2026 - Point Cloud Tooling."
     Lund University. https://github.com/jobelab/nova-course-2026.
 
   BibTeX
@@ -64,7 +64,7 @@ further redistribution. Yrttimaa's original work remains CC BY 4.0 at source
 and is not relicensed by anything here.
 
 --------------------------------------------------------------------------
-Dependencies — used, not included or modified
+Dependencies - used, not included or modified
 --------------------------------------------------------------------------
 
   TreeAIBox / TreeisoNet   Zhouxin Xi & Dani Degenhardt, Natural Resources Canada

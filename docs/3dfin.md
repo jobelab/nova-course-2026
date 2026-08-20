@@ -1,4 +1,4 @@
-# 3DFin — third-party forest inventory
+# 3DFin - third-party forest inventory
 
 [3DFin](https://github.com/3DFin/3DFin) ("3D Forest inventory") and its algorithmic
 core [dendromatics](https://github.com/3DFin/dendromatics) are installed here. They
@@ -35,7 +35,7 @@ stem, where no single axis exists.
 dendromatics does the thing that actually works: **track the axis locally**, section
 by section, rather than assuming one direction for the whole stem. The relevant
 functions are `compute_axes_approximate`, `compute_axes_exact`, `tilt_detection`
-and `compute_sections`, the last of which also checks *sector occupancy* — how much
+and `compute_sections`, the last of which also checks *sector occupancy* - how much
 of each circle's circumference actually has points behind it, which is the honest
 way to reject a fit made from one visible arc.
 
@@ -43,7 +43,7 @@ way to reject a fit made from one visible arc.
 
 **It wants raw elevation in Z and normalised height in Z0.** Passing the normalised
 height as both makes `compute_axes_approximate` fail with
-`need at least one array to concatenate` — no cluster produces a valid axis. Build
+`need at least one array to concatenate` - no cluster produces a valid axis. Build
 the input as `[X, Y, raw_Z, normalised_Z]`.
 
 **`verticality_clustering(n_points=...)` is a hard floor on cluster size**, and the

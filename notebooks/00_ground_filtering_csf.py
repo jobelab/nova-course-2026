@@ -31,7 +31,7 @@ def _(mo):
 
         The Cloth Simulation Filter drapes a virtual cloth over the *inverted* point
         cloud; wherever the cloth settles onto points, those points are ground. One
-        intuitive parameter — how stiff the cloth is — instead of a pile of
+        intuitive parameter - how stiff the cloth is - instead of a pile of
         morphological thresholds.
 
         It is installed here **twice, as the same algorithm**:
@@ -41,7 +41,7 @@ def _(mo):
         | `cloth-simulation-filter` | Python bindings from the CSF authors | ~1 s on 15 M points |
         | `qCSF` | the CloudCompare plugin built for this machine | ~4 s, plus file I/O |
 
-        So the answer to "can we use CSF in a notebook" is yes, natively — no
+        So the answer to "can we use CSF in a notebook" is yes, natively - no
         subprocess, no LAZ round-trip. The plugin is still there for the GUI, and the
         last section runs both to see how far apart they land.
 
@@ -87,12 +87,12 @@ def _():
 
 @app.cell
 def _(RAW, mo, np, read_cloud):
-    mo.stop(not RAW.exists(), mo.md(f"**Missing** `{RAW}` — unzip `PCT_demo.zip` first."))
+    mo.stop(not RAW.exists(), mo.md(f"**Missing** `{RAW}` - unzip `PCT_demo.zip` first."))
 
     raw = read_cloud(RAW)
     mo.md(
         f"""
-        **{RAW.name}** — {raw.sizes['point']:,} points, elevation
+        **{RAW.name}** - {raw.sizes['point']:,} points, elevation
         {raw.z.min().item():.2f} to {raw.z.max().item():.2f} m
         (absolute, **not** normalised), extent
         {np.ptp(raw.x.values):.1f} x {np.ptp(raw.y.values):.1f} m.
@@ -107,7 +107,7 @@ def _(mo):
         r"""
         ## Cloth parameters
 
-        `cloth_resolution` is the grid spacing of the cloth — roughly the finest
+        `cloth_resolution` is the grid spacing of the cloth - roughly the finest
         terrain detail it can follow. `rigidness` is the stiffness: 1 for steep slopes,
         3 for flat ground. `class_threshold` $h_{cc}$ is how close to the settled cloth a
         point must be to count as ground:
@@ -131,7 +131,7 @@ def _(mo):
     cloth_res = mo.ui.slider(0.05, 1.0, value=0.2, step=0.05, label="cloth resolution (m)", show_value=True)
     threshold = mo.ui.slider(0.05, 1.0, value=0.3, step=0.05, label="class threshold (m)", show_value=True)
     rigid = mo.ui.dropdown(
-        {"1 — steep slope": 1, "2 — relief": 2, "3 — flat": 3}, value="2 — relief", label="rigidness"
+        {"1 - steep slope": 1, "2 - relief": 2, "3 - flat": 3}, value="2 - relief", label="rigidness"
     )
     run_csf = mo.ui.run_button(label="Run CSF")
     mo.vstack([cloth_res, threshold, rigid, run_csf])
@@ -195,7 +195,7 @@ def _(mo):
         r"""
         ### The classification in 3D
 
-        Drag to rotate. Brown is ground, green is everything else — the semantic split
+        Drag to rotate. Brown is ground, green is everything else - the semantic split
         the rest of the pipeline is built on.
         """
     )
@@ -222,7 +222,7 @@ def _(go, ground, mo, np, raw):
         height=600,
         margin=dict(l=0, r=0, t=30, b=0),
         scene=dict(aspectmode="data", xaxis_title="x (m)", yaxis_title="y (m)", zaxis_title="elevation (m)"),
-        title=f"CSF classification — {len(_idx):,} of {len(_xyz):,} points shown",
+        title=f"CSF classification - {len(_idx):,} of {len(_xyz):,} points shown",
         legend=dict(itemsizing="constant"),
     )
     mo.ui.plotly(_fig)
@@ -242,7 +242,7 @@ def _(mo):
 
         The per-cell statistic $Q_q$ matters more than it looks. Taking the strict
         **minimum** ($q = 0$) is the textbook choice but is biased low, because TLS noise
-        leaves a few returns beneath the real surface — and every tree then measures too
+        leaves a few returns beneath the real surface - and every tree then measures too
         tall. A low **quantile** is more robust.
         """
     )
@@ -305,7 +305,7 @@ def _(HNORM, mo, norm, np, read_cloud):
         | within 0.25 m | **{100 * (np.abs(_d) < 0.25).mean():.1f}%** of points |
 
         Switch the statistic above to *minimum* to watch the bias jump to about
-        +0.26 m — the low-noise effect, visible in one number.
+        +0.26 m - the low-noise effect, visible in one number.
         """
     )
     return
@@ -333,7 +333,7 @@ def _(mo):
 
 @app.cell
 def _(OUTDIR, RAW, cloth_res, compare_with_cloudcompare, ground, mo, rigid, run_cc, threshold):
-    mo.stop(not run_cc.value, mo.md("*Optional — needs the CloudCompare build.*"))
+    mo.stop(not run_cc.value, mo.md("*Optional - needs the CloudCompare build.*"))
 
     _scene = {1: "SLOPE", 2: "RELIEF", 3: "FLAT"}[rigid.value]
     try:

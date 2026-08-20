@@ -1,4 +1,4 @@
-# NOVA course 2026 — point cloud tooling
+# NOVA course 2026 - point cloud tooling
 # Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
@@ -15,8 +15,8 @@ chain:
     tree location         a second network, run on the stem points only
     clustering            shortest path over the stem points
 
-That last step is the same idea as `novatrees.pipeline` — geodesic growing from
-seeds — which makes the interesting comparison a narrow one: **the seeds**. Ours
+That last step is the same idea as `novatrees.pipeline` - geodesic growing from
+seeds - which makes the interesting comparison a narrow one: **the seeds**. Ours
 come from fitting circles in a cross-section; TreeAIBox's come from a trained
 detector. Everything downstream can be held constant.
 
@@ -96,7 +96,7 @@ def _prepare(cfg: TreeAIBoxConfig):
 def stem_classification(cloud, cfg: TreeAIBoxConfig = TreeAIBoxConfig()) -> np.ndarray:
     """Learned stem / non-stem classification. Returns a boolean mask, True = stem.
 
-    This is the slow step — about a minute per million points on CPU.
+    This is the slow step - about a minute per million points on CPU.
     """
     conf_dir = _prepare(cfg)
     from modules.filter.componentFilter import filterPoints  # noqa: E402
@@ -117,7 +117,7 @@ def stem_classification(cloud, cfg: TreeAIBoxConfig = TreeAIBoxConfig()) -> np.n
 def tree_locations(cloud, stem_mask: np.ndarray, cfg: TreeAIBoxConfig = TreeAIBoxConfig()) -> np.ndarray:
     """Learned tree locations, run on the stem points only. Returns (n, 3) x/y/z.
 
-    Feeding the whole cloud instead of just the stems is the mistake to avoid —
+    Feeding the whole cloud instead of just the stems is the mistake to avoid -
     the detector is trained on stem points and quietly finds fewer trees without
     them filtered.
     """

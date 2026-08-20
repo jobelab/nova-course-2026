@@ -1,4 +1,4 @@
-# NOVA course 2026 — point cloud tooling
+# NOVA course 2026 - point cloud tooling
 # Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
@@ -10,23 +10,23 @@
 Three signals say "this point is on a stem", and they fail in different places,
 which is why the course demo combines them rather than picking one:
 
-* **verticality** — a stem surface is a patch of a vertical cylinder, so its
+* **verticality** - a stem surface is a patch of a vertical cylinder, so its
   normal points sideways. High for stems, high for tree-sized noise, low for
   ground and for flat foliage clumps.
-* **reflectance** — bark returns far more strongly than needles. On the course
+* **reflectance** - bark returns far more strongly than needles. On the course
   plot the two sit about 9 dB apart, which makes this the single strongest
   feature, and it is one that geometry cannot supply.
-* **radial distance** — stem points hug the tree's vertical axis; branches reach
+* **radial distance** - stem points hug the tree's vertical axis; branches reach
   away from it. Only meaningful once seeds exist, so it refines rather than
   bootstraps.
 
 Each is scaled to 0–1 on its 1st–99th percentiles (not min–max, so one outlier
 cannot squash the range), weighted, and summed. `prescreen_pct` then keeps that
-percentage of the highest-scoring points — lower is tighter.
+percentage of the highest-scoring points - lower is tighter.
 
 The reflectance transform is the demo's own arithmetic: add 26, divide by 31,
-invert, log10. Those constants are calibrated to *this* scanner — they map its
-raw range (−25.0 … 5.0 dB) onto almost exactly 0–1 — so re-derive them from
+invert, log10. Those constants are calibrated to *this* scanner - they map its
+raw range (−25.0 … 5.0 dB) onto almost exactly 0–1 - so re-derive them from
 `reflectance_bounds()` before using this on another instrument.
 """
 
@@ -51,7 +51,7 @@ __all__ = [
 
 @dataclass
 class StemScoreParams:
-    """Weights are relative — they are normalised to sum to 1."""
+    """Weights are relative - they are normalised to sum to 1."""
 
     k: int = 20  # neighbours for the local PCA
     w_vertical: float = 0.4

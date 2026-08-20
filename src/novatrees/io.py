@@ -1,4 +1,4 @@
-# NOVA course 2026 — point cloud tooling
+# NOVA course 2026 - point cloud tooling
 # Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
@@ -32,7 +32,7 @@ def write_labelled(
 ) -> int:
     """Copy `src` to `dst`, adding a `treeID_dj` extra dimension from `labels`.
 
-    Labels are 1-based so that 0 reads as "unassigned" — CloudCompare renders a
+    Labels are 1-based so that 0 reads as "unassigned" - CloudCompare renders a
     scalar field of 0..n with a colour ramp, and a 0-valued background separates
     cleanly from tree 1.
 

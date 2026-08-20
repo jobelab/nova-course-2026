@@ -1,4 +1,4 @@
-# NOVA course 2026 — point cloud tooling
+# NOVA course 2026 - point cloud tooling
 
 My own take on the problems covered on **Day 3** (2026-08-19) of the NOVA PhD course
 *Introduction to Point Cloud Processing for Forest Sciences*, written as
@@ -6,7 +6,7 @@ My own take on the problems covered on **Day 3** (2026-08-19) of the NOVA PhD co
 
 > **This is student work, not course material.** I took the course as a participant.
 > These are **not** the course instructions, and they deliberately do not follow them
-> step for step — the demo runs interactively in CloudCompare and the Windows-only
+> step for step - the demo runs interactively in CloudCompare and the Windows-only
 > `PCT_demo.exe`, whereas this is an independent implementation in reproducible
 > Python. Where I diverged from the taught approach, or measured something the course
 > did not, that is my own choice and my own responsibility.
@@ -14,8 +14,8 @@ My own take on the problems covered on **Day 3** (2026-08-19) of the NOVA PhD co
 > Nothing here is endorsed by, or speaks for, the course organisers or NOVA. For the
 > actual course content, go to the organisers.
 
-It covers the same ground — CSF ground filtering, height normalisation, cross-section
-stem detection, 3D Dijkstra region growing, stem taper reconstruction — and scores each
+It covers the same ground - CSF ground filtering, height normalisation, cross-section
+stem detection, 3D Dijkstra region growing, stem taper reconstruction - and scores each
 method against the reference labels that ship with the course data, which is the part I
 was most interested in.
 
@@ -25,7 +25,7 @@ regenerate derived products with the scripts here.
 
 ## The course
 
-**Introduction to Point Cloud Processing for Forest Sciences** — SLU course code
+**Introduction to Point Cloud Processing for Forest Sciences** - SLU course code
 [P000158](https://www.slu.se/en/student-web/studies/courses-and-programmes/course-search/kurser/i/introduction-to-point-cloud-processing-for-forest-sciences/).
 
 | | |
@@ -59,12 +59,12 @@ Member universities:
 
 | | |
 | --- | --- |
-| **SLU** | Sveriges lantbruksuniversitet — Swedish University of Agricultural Sciences, Sweden |
-| **NMBU** | Norges miljø- og biovitenskapelige universitet — Norwegian University of Life Sciences, Norway |
-| **LBHÍ** | Landbúnaðarháskóli Íslands — Agricultural University of Iceland, Iceland |
-| **UEF** | Itä-Suomen Yliopisto, School of Forest Sciences — University of Eastern Finland |
-| **UH-V** | Helsingin yliopisto, Eläinlääketieteellinen tiedekunta — University of Helsinki, Faculty of Veterinary Medicine, Finland |
-| **UH-AF** | Helsingin yliopisto, Maatalous-metsätieteellinen tiedekunta — University of Helsinki, Faculty of Agriculture and Forestry, Finland |
+| **SLU** | Sveriges lantbruksuniversitet - Swedish University of Agricultural Sciences, Sweden |
+| **NMBU** | Norges miljø- og biovitenskapelige universitet - Norwegian University of Life Sciences, Norway |
+| **LBHÍ** | Landbúnaðarháskóli Íslands - Agricultural University of Iceland, Iceland |
+| **UEF** | Itä-Suomen Yliopisto, School of Forest Sciences - University of Eastern Finland |
+| **UH-V** | Helsingin yliopisto, Eläinlääketieteellinen tiedekunta - University of Helsinki, Faculty of Veterinary Medicine, Finland |
+| **UH-AF** | Helsingin yliopisto, Maatalous-metsätieteellinen tiedekunta - University of Helsinki, Faculty of Agriculture and Forestry, Finland |
 
 More about NOVA: <https://www.lbhi.is/nova>
 
@@ -80,7 +80,7 @@ Lund University, Sweden
 Main author and maintainer. Participating in the course as a student; this repository
 is personal work done alongside it, in no official capacity.
 
-**Contributors:** none yet. Issues, corrections and pull requests are welcome — this is
+**Contributors:** none yet. Issues, corrections and pull requests are welcome - this is
 open science, and the measurements here would benefit from more eyes on them. Anyone
 who contributes will be listed here and in [`NOTICE`](NOTICE).
 
@@ -107,7 +107,7 @@ mine.
 
 Chicago (author-date):
 
-> Beltrán-Abaunza, José M. 2026. "NOVA Course 2026 — Point Cloud Tooling."
+> Beltrán-Abaunza, José M. 2026. "NOVA Course 2026 - Point Cloud Tooling."
 > Lund University. https://github.com/jobelab/nova-course-2026.
 
 BibTeX:
@@ -129,19 +129,19 @@ GitHub shows a **Cite this repository** button and Zenodo can pick it up if this
 ever archived with a DOI.
 
 If you cite the methods rather than this implementation, cite the original authors in
-[Acknowledgements](#acknowledgements) instead — the ideas are theirs.
+[Acknowledgements](#acknowledgements) instead - the ideas are theirs.
 
 ## Licence
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-**GNU General Public License v3.0 or later** (SPDX: `GPL-3.0-or-later`) — see
+**GNU General Public License v3.0 or later** (SPDX: `GPL-3.0-or-later`) - see
 [`LICENSE`](LICENSE) for the full text and [`NOTICE`](NOTICE) for authorship and
 attribution.
 
 Released as open science: free to read, run, adapt and build on, with the same freedoms
 required of anything derived from it. Source files carry an SPDX identifier and an
-author line rather than a copyright banner — the licence is what governs reuse, and the
+author line rather than a copyright banner - the licence is what governs reuse, and the
 authorship is what should be cited.
 
 ### Why GPL over the CC BY it derives from
@@ -150,7 +150,7 @@ authorship is what should be cited.
 CC BY 4.0. CC BY explicitly permits distributing adapted material under the adapter's
 own terms (§3(a)) so long as attribution is given and the original licence identified,
 so a GPL-3.0 derivative is allowed. GPL is the better fit here because this is
-software, and CC licences are not written for code — they say nothing about source
+software, and CC licences are not written for code - they say nothing about source
 availability, linking, or patents.
 
 Two things this does **not** do: it does not relicense Yrttimaa's original work, which
@@ -207,26 +207,26 @@ step: ground classification makes the graph usable, stem detection supplies the 
 
 Point clouds are carried as `xarray.Dataset` objects over a `point` dimension, so
 the per-point attributes a LAS file already has (`reflectance`, `treeid`, …) stay
-named and aligned. The numeric kernels — scipy, scikit-learn, CSF — still take raw
+named and aligned. The numeric kernels - scipy, scikit-learn, CSF - still take raw
 arrays; xarray is the container, not the maths.
 
-1. **Ground filtering** (`novatrees.csf`) — CSF via the authors' Python bindings,
+1. **Ground filtering** (`novatrees.csf`) - CSF via the authors' Python bindings,
    ~1 s on 15 M points. The CloudCompare plugin runs the same algorithm and is
    available for cross-checking.
-2. **Height normalisation** — DTM per cell from the ground points. The per-cell
+2. **Height normalisation** - DTM per cell from the ground points. The per-cell
    statistic matters: the textbook minimum is biased low by sub-surface noise.
    Quantile 0.25 reproduces the course's own `_hnorm` to a bias of −0.002 m and
    RMSE 0.068 m; the minimum drifts to +0.264 m.
-3. **Cross-section stem seeds** (`novatrees.pipeline`) — cluster a slice at breast
+3. **Cross-section stem seeds** (`novatrees.pipeline`) - cluster a slice at breast
    height, fit circles, keep clusters that are stem-shaped *and* vertically
    continuous.
-4. **3D Dijkstra region growing** — multi-source shortest path over a kNN graph of
+4. **3D Dijkstra region growing** - multi-source shortest path over a kNN graph of
    the above-ground points; each point takes the label of its geodesically nearest
    seed.
 
 **Large merged instances are a seeding failure, not a growing failure.** The
 biggest predicted tree on this plot swallows two reference trees almost entirely,
-because only one of them had a seed. No graph parameter fixes that — `max_geodesic`
+because only one of them had a seed. No graph parameter fixes that - `max_geodesic`
 just truncates every tree, and `max_edge` barely moves it because the crowns really
 do touch. Better seeds do fix it; see [`TREEAIBOX.md`](TREEAIBOX.md).
 
@@ -237,7 +237,7 @@ ground, and labels bleed across the plot.
 
 ## State of the tooling, 2026-08-20
 
-Everything below runs on this machine, CPU-only, with no root access — plugins install
+Everything below runs on this machine, CPU-only, with no root access - plugins install
 into `~/.local/share/CCCorp/CloudCompare/plugins` rather than `/opt`.
 
 | component | status | note |
@@ -267,14 +267,14 @@ Seed positions land within 0.03 m of the reference stems, 33 of 36 hit.
 **No GPU.** TreeAIBox models are labelled for 3–12 GB of VRAM but run on CPU: stem
 classification takes 47 s at 10 cm resolution or 191 s at 4 cm, on the full plot. The
 two resolutions produce near-identical classifications (mask IoU 0.834), so **10 cm is
-the better default here** despite the paper naming 4 cm as optimal — it optimises a
+the better default here** despite the paper naming 4 cm as optimal - it optimises a
 point-level metric this dataset cannot measure.
 
 **Stem masks are the binding constraint**, not the graph or the geometry. Several trees
 fail taper reconstruction because their stem classification is contaminated; the stems
 that appear tilted 60–80° are misclassifications, not leaning trees. A single PCA axis
 rotation was tried and does not reliably help. `dendromatics` tracks the axis section by
-section instead, which is the better answer — see [`docs/3dfin.md`](docs/3dfin.md).
+section instead, which is the better answer - see [`docs/3dfin.md`](docs/3dfin.md).
 
 **Merged instances are a seeding failure.** The largest predicted tree swallowed two
 reference trees whole because only one had a seed, and no graph parameter fixes that.
@@ -283,13 +283,13 @@ Better seeds do.
 **3D visualisation is server-rendered.** plotly's 3D scatter never rendered in the
 browser here and the cause was never found, so the notebooks use matplotlib PNGs with
 azimuth/elevation sliders. Less interactive, but it cannot fail downstream of the
-kernel — and at 60 k points a raster is 1.8 MB against pydeck's 17.7 MB for 80 k.
+kernel - and at 60 k points a raster is 1.8 MB against pydeck's 17.7 MB for 80 k.
 
 ### Where to read further
 
 | document | covers |
 | --- | --- |
-| [`docs/methods-and-equations.md`](docs/methods-and-equations.md) | every formula with its measured numbers — bias, RMSE, IoU, CSF, Dijkstra |
+| [`docs/methods-and-equations.md`](docs/methods-and-equations.md) | every formula with its measured numbers - bias, RMSE, IoU, CSF, Dijkstra |
 | [`docs/course-demo-workflow.md`](docs/course-demo-workflow.md) | the Day 3 demo transcribed, phase by phase against this implementation |
 | [`TREEAIBOX.md`](TREEAIBOX.md) | driving the TreeisoNet models, and what the paper says about tuning |
 | [`docs/3dfin.md`](docs/3dfin.md) | 3DFin as a third method, and why it handles tilt better |
@@ -299,7 +299,7 @@ kernel — and at 60 k points a raster is 1.8 MB against pydeck's 17.7 MB for 80
 ## Comparing against Yrttimaa's method
 
 `novatrees.chm_watershed` ports the crown-detection stage of **Point-Cloud-Tools**
-(PCT) — the MATLAB toolbox by Dr. Tuomas Yrttimaa behind `PCT_demo_installer.exe`
+(PCT) - the MATLAB toolbox by Dr. Tuomas Yrttimaa behind `PCT_demo_installer.exe`
 in the course material. It is top-down: CHM → gaussian smooth → local-maxima tree
 tops → marker-controlled watershed.
 
@@ -313,7 +313,7 @@ Scored against the reference `treeid` labels in the cloud (41 instances):
 | C  TreeAIBox learned seeds | 34 | 28 | 22 | 0.54 | **0.79** | 0.805 | 0.95 m | 5 |
 
 Recall is against **all 41** reference trees (`recall_total`), not only those a
-prediction happened to overlap — see `novatrees.evaluate` for why that distinction
+prediction happened to overlap - see `novatrees.evaluate` for why that distinction
 matters.
 
 Method C swaps our cross-section seeds for TreeAIBox's trained stem detector and keeps
@@ -322,11 +322,11 @@ It costs under 3 minutes of CPU for the full plot and still gives the best preci
 
 **B+ is the best overall**, and that reverses an earlier reading of these results. C
 beat B when B clustered the raw cross-section. Adding the course demo's verticality
-and reflectance pre-screen lifted B past it — 28 matched trees against 22, and a lower
+and reflectance pre-screen lifted B past it - 28 matched trees against 22, and a lower
 height RMSE. The learned detector did not get worse; the geometric route got better.
 
 The gap is not a tuning failure, and no CHM parameters close it. **23 of the 41
-trees are under 10 m** in a canopy reaching 22.8 m, median tree height 7.5 m — over
+trees are under 10 m** in a canopy reaching 22.8 m, median tree height 7.5 m - over
 half this stand is suppressed. A canopy height model keeps only the highest return
 per cell, so a tree beneath a taller neighbour leaves no trace in it. Cross-section
 seeding looks at breast height, where a suppressed stem is as visible as a dominant

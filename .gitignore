@@ -1,4 +1,4 @@
-# Point clouds and rasters — regenerate or re-fetch, never commit (see global CLAUDE.md)
+# Point clouds and rasters - regenerate or re-fetch, never commit (see global CLAUDE.md)
 *.laz
 *.las
 *.lax
@@ -33,5 +33,5 @@ cloth_nodes.txt
 # TreeAIBox model weights (~20 MB each, re-downloadable from the NRCan release page)
 models/
 
-# marimo session cache — cell outputs, regenerated on run
+# marimo session cache - cell outputs, regenerated on run
 notebooks/__marimo__/

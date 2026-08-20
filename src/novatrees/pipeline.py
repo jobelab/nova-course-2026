@@ -1,4 +1,4 @@
-# NOVA course 2026 — point cloud tooling
+# NOVA course 2026 - point cloud tooling
 # Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
@@ -21,7 +21,7 @@ The method, in three moves:
 
 3. **Grow regions by 3D Dijkstra** from those seeds over a kNN graph of the
    above-ground points. Every point is labelled with the seed it is
-   geodesically closest to — distance *through the canopy*, not straight-line,
+   geodesically closest to - distance *through the canopy*, not straight-line,
    which is what keeps interlocking crowns apart.
 
 Where this fails, and where it does not
@@ -31,7 +31,7 @@ Big merged instances look like a growing problem and are almost always a
 *seeding* problem. Measured on the course plot: the largest predicted instance
 swallowed two reference trees nearly whole (99.5% and 99.7% of each). Ref 146 had
 a seed 0.02 m away; ref 141 had none within 1.95 m. Dijkstra cannot split a
-region between two trees when only one of them has a seed — there is nothing to
+region between two trees when only one of them has a seed - there is nothing to
 split toward.
 
 Neither graph knob repairs it, and the sweeps are worth knowing so nobody repeats

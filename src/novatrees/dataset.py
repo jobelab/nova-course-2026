@@ -1,4 +1,4 @@
-# NOVA course 2026 — point cloud tooling
+# NOVA course 2026 - point cloud tooling
 # Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
@@ -7,7 +7,7 @@
 
 """xarray containers for point clouds and rasters.
 
-A LAS file is a table of points with a pile of named per-point attributes —
+A LAS file is a table of points with a pile of named per-point attributes -
 `reflectance`, `treeid`, whatever the previous tool wrote. Carrying that around
 as a bare `(n, 3)` array plus a handful of loose variables loses the names and
 invites mismatched-length bugs. An `xarray.Dataset` over a single `point`

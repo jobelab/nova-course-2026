@@ -1,7 +1,7 @@
-# CloudCompare + plugins on WSL2 / Ubuntu 24.04 — local setup
+# CloudCompare + plugins on WSL2 / Ubuntu 24.04 - local setup
 
 How CloudCompare, the CSF filter, the Python runtime and TreeAIBox were built
-and wired on this machine, 2026-08-19. **Nothing here needed root** — there is
+and wired on this machine, 2026-08-19. **Nothing here needed root** - there is
 no passwordless sudo on this box, so everything installs user-local.
 
 TreeAIBox upstream ships a Windows `.exe` installer only; this is the Linux
@@ -20,19 +20,19 @@ equivalent.
 | Runtime settings | `~/.config/CCCorp/CloudCompare:PythonRuntime.Settings.conf` |
 
 CloudCompare scans `~/.local/share/CCCorp/CloudCompare/plugins` at startup, so
-plugins go there instead of `/opt` — no sudo, and they survive a `/opt` reinstall.
+plugins go there instead of `/opt` - no sudo, and they survive a `/opt` reinstall.
 
 ## Two patches / workarounds worth remembering
 
 1. **`ccColorScale` API drift.** PythonRuntime master calls
    `ccColorScale::isReadOnly()` / `setReadOnly()`; CloudCompare v2.13.1-372
    (this tree) still names them `isLocked()` / `setLocked()`. Patched in
-   `wrapper/pycc/src/qcc_db/ccColorScale.cpp` — Python-facing names unchanged.
+   `wrapper/pycc/src/qcc_db/ccColorScale.cpp` - Python-facing names unchanged.
    Re-apply if PythonRuntime is ever re-cloned.
 
 2. **PyQt6 must come from Ubuntu's Qt, not from pip.** CloudCompare loads the
    system Qt 6.4.2. Pip's PyQt6 bundles its own Qt (6.11), and the two cannot
-   coexist in one process. Going the other way — putting the wheel's Qt first —
+   coexist in one process. Going the other way - putting the wheel's Qt first -
    breaks CloudCompare itself, which needs Ubuntu's `qt_resourceFeatureZstd`.
    So the Ubuntu `python3-pyqt6*` debs are extracted (not installed) under
    `~/.local/opt/qt6we` and symlinked into the venv's `site-packages`.

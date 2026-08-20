@@ -1,4 +1,4 @@
-# NOVA course 2026 — point cloud tooling
+# NOVA course 2026 - point cloud tooling
 # Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
@@ -18,7 +18,7 @@ Two choices worth knowing about:
 
 **RANSAC rather than least squares.** A plain circle fit is dragged off the stem
 by branch stubs and by far-side returns arriving through gaps in the bark. The
-consensus step matters more here than the refinement does — the refinement is
+consensus step matters more here than the refinement does - the refinement is
 just a Taubin fit on the inliers.
 
 **Tolerances compare against the last *accepted* slice, not the previous one.**
@@ -189,7 +189,7 @@ def taper_curve(
     """Full reconstruction: slice fits, consistency filter, smoothing, metrics.
 
     `points` should be the stem-classified points. `total_height` is the whole
-    tree's height including crown — pass it when you have it, since the stem
+    tree's height including crown - pass it when you have it, since the stem
     points alone only reach as far as the stem was reconstructed, and the taper
     model's relative-height terms need the true total.
     """

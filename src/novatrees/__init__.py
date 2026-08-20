@@ -1,4 +1,4 @@
-# NOVA course 2026 — point cloud tooling
+# NOVA course 2026 - point cloud tooling
 # Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
@@ -8,7 +8,7 @@
 """Tree instance segmentation for the NOVA 2026 course.
 
 Ground filtering (CSF), cross-section stem detection for seeds, then 3D Dijkstra
-region growing for per-point tree IDs — with a CHM-watershed reference method
+region growing for per-point tree IDs - with a CHM-watershed reference method
 ported from Yrttimaa's Point-Cloud-Tools for comparison.
 
 Point clouds are carried as `xarray.Dataset` objects over a `point` dimension;

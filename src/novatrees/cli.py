@@ -1,4 +1,4 @@
-# NOVA course 2026 — point cloud tooling
+# NOVA course 2026 - point cloud tooling
 # Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
@@ -109,7 +109,7 @@ def main(argv: list[str] | None = None) -> int:
     zmin = xyz[:, 2].min()
     if zmin < -2.0 or xyz[:, 2].max() > 200:
         print(
-            f"warning: Z spans {zmin:.1f}..{xyz[:, 2].max():.1f} m — this looks like "
+            f"warning: Z spans {zmin:.1f}..{xyz[:, 2].max():.1f} m - this looks like "
             "absolute elevation, not normalised height. Run CSF and normalise first.",
             file=sys.stderr,
         )

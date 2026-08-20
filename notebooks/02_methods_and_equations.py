@@ -30,13 +30,13 @@ def _(mo):
 
     Two questions the pipeline answers, and they are not the same question.
 
-    **Semantic segmentation** asks *what kind of thing is this point?* — ground,
+    **Semantic segmentation** asks *what kind of thing is this point?* - ground,
     stem, foliage. A label from a fixed set of classes:
 
     $$f_{\text{sem}} : \mathbb{R}^3 \rightarrow \mathcal{C}, \qquad
       \mathcal{C} = \{\text{ground},\ \text{stem},\ \text{foliage}\}$$
 
-    **Instance segmentation** asks *which tree is this point part of?* — an
+    **Instance segmentation** asks *which tree is this point part of?* - an
     identifier with no fixed vocabulary, because the number of trees is discovered,
     not known in advance:
 
@@ -135,7 +135,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 1. CSF — cloth simulation
+    ## 1. CSF - cloth simulation
 
     Flip the cloud upside down and drop a cloth on it. Where the cloth comes to
     rest is the terrain. Each cloth particle is a mass under gravity, integrated
@@ -151,7 +151,7 @@ def _(mo):
       \qquad b \in \{0, 1\}$$
 
     with $b = 0$ for particles already pinned by the terrain. **Rigidness** is
-    simply how many times this constraint is applied per step — more iterations, a
+    simply how many times this constraint is applied per step - more iterations, a
     stiffer cloth that ignores small dips. Finally a point is ground if it sits
     close enough to the settled cloth:
 
@@ -161,7 +161,7 @@ def _(mo):
         \text{non-ground}, & \text{otherwise}
       \end{cases}$$
 
-    where $h_{cc}$ is `class_threshold`. That is the whole classifier — one
+    where $h_{cc}$ is `class_threshold`. That is the whole classifier - one
     distance test against a simulated surface.
     """)
     return
@@ -212,7 +212,7 @@ def _(mo):
     $$\mathrm{RMSE}^{2} = \mathrm{bias}^{2} + s^{2}$$
 
     which is why they must be read together. A method can have near-zero bias and a
-    terrible RMSE (unbiased but noisy), or a small RMSE dominated entirely by bias —
+    terrible RMSE (unbiased but noisy), or a small RMSE dominated entirely by bias -
     the latter is the $q=0$ case here, where $\mathrm{bias} = 0.264$ and
     $\mathrm{RMSE} = 0.275$, so $s = \sqrt{0.275^2 - 0.264^2} \approx 0.077$ m.
     Almost all of that error is a constant offset, and a constant offset is a
@@ -240,7 +240,7 @@ def _(mo):
     $$A\,(x^{2} + y^{2}) + B\,x + C\,y + D = 0$$
 
     and Taubin's estimator minimises the algebraic distance normalised by its
-    gradient, which is what makes it unbiased for partial arcs — the usual case in
+    gradient, which is what makes it unbiased for partial arcs - the usual case in
     TLS, where a stem is only scanned from one side:
 
     $$\min_{A,B,C,D} \;
@@ -300,7 +300,7 @@ def _(mo):
     geodesic distance has to travel *through the tree*, so a branch stays with the
     trunk it is physically connected to.
 
-    Computed for all seeds at once with a multi-source Dijkstra — one pass, $O(|E| \log |V|)$,
+    Computed for all seeds at once with a multi-source Dijkstra - one pass, $O(|E| \log |V|)$,
     not one pass per tree.
     """)
     return
@@ -444,7 +444,7 @@ def _(mo):
     problem. A suppressed tree beneath a taller neighbour contributes to no cell's
     maximum, so it is absent from $\tilde{C}$, absent from $T$, and cannot be
     recovered by any downstream tuning. On this plot 23 of 41 reference trees are
-    under 10 m in a 22.8 m canopy — over half the stand is invisible to the method
+    under 10 m in a 22.8 m canopy - over half the stand is invisible to the method
     before a single parameter is chosen.
 
     Method B's seeds come from a slab at $h \approx 1.3$ m, where a suppressed stem
@@ -461,10 +461,10 @@ def _(mo):
 
     ### Sources
 
-    - CSF — Zhang W. et al. (2016), [Remote Sensing 8(6):501](https://doi.org/10.3390/rs8060501)
-    - Taubin fit — Taubin G. (1991), *IEEE PAMI* 13(11)
-    - DBSCAN — Ester M. et al. (1996), *KDD-96*
-    - PCT — Yrttimaa T. (2021), [zenodo.5779288](https://doi.org/10.5281/zenodo.5779288);
+    - CSF - Zhang W. et al. (2016), [Remote Sensing 8(6):501](https://doi.org/10.3390/rs8060501)
+    - Taubin fit - Taubin G. (1991), *IEEE PAMI* 13(11)
+    - DBSCAN - Ester M. et al. (1996), *KDD-96*
+    - PCT - Yrttimaa T. (2021), [zenodo.5779288](https://doi.org/10.5281/zenodo.5779288);
       [Yrttimaa et al. 2019](https://doi.org/10.3390/rs11121423),
       [2020](https://doi.org/10.1016/j.isprsjprs.2020.08.017)
     """)
