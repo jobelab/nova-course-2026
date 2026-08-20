@@ -69,6 +69,11 @@ class TreeAIBoxConfig:
     # ALS has no stem classification stage in the released model set, so the
     # detector runs on the whole cloud rather than on stem points.
     stem_stage: bool = True
+    # Peak extraction for the detection head. Defaults are the plugin UI's.
+    conf_thresh: float = 0.3
+    nms_thresh: float = 0.5
+    min_rad: float = 0.2
+    max_gap: float = 0.3
 
 
 def _weight_name(model: str) -> str:
@@ -142,9 +147,28 @@ def tree_locations(cloud, stem_mask: np.ndarray, cfg: TreeAIBoxConfig = TreeAIBo
         stems,
         str(ensure_model(cfg.treeloc, cfg)),
         use_cuda=cfg.use_cuda,
-        if_stem=cfg.stem_stage,  # if_stem selects the linear_pred head in the weights
+        if_stem=cfg.stem_stage,  # selects which head the weights are expected to carry
     )
-    return np.asarray(tops) if tops is not None else np.empty((0, 3))
+    if tops is None:
+        return np.empty((0, 3))
+    tops = np.asarray(tops)
+
+    if not cfg.stem_stage:
+        # The detection head returns a per-voxel confidence and radius, not tree
+        # locations. Without this step every point comes back as a "top": on 60 k
+        # synthetic points it returned 60 k. postPeakExtraction is what turns the
+        # confidence field into peaks.
+        from modules.treeisonet.treeLoc import postPeakExtraction  # noqa: E402
+
+        if tops.ndim == 2 and tops.shape[1] >= 5:
+            keep = tops[tops[:, -2] > cfg.conf_thresh]
+            if len(keep) == 0:
+                return np.empty((0, 3))
+            tops = np.asarray(
+                postPeakExtraction(keep, K=5, max_gap=cfg.max_gap,
+                                   min_rad=cfg.min_rad, nms_thresh=cfg.nms_thresh)
+            )
+    return tops if tops.ndim == 2 and len(tops) else np.empty((0, 3))
 
 
 def treeaibox_seeds(
