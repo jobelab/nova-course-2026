@@ -94,7 +94,7 @@ contributed code here**, and any errors in this implementation are mine alone.
 | --- | --- | --- |
 | [**Point-Cloud-Tools (PCT)**](https://github.com/tuomasyr/Point-Cloud-Tools) | Dr. Tuomas Yrttimaa, University of Eastern Finland | `novatrees.chm_watershed` is a Python port of the crown-detection stage. CC BY 4.0. Cite [Yrttimaa 2021](https://doi.org/10.5281/zenodo.5779288), [Yrttimaa et al. 2019](https://doi.org/10.3390/rs11121423), [2020](https://doi.org/10.1016/j.isprsjprs.2020.08.017) |
 | [**TreeAIBox / TreeisoNet**](https://github.com/NRCan/TreeAIBox) | Zhouxin Xi & Dani Degenhardt, Canadian Forest Service, Natural Resources Canada | driven directly for learned stem classification and tree location. [Xi & Degenhardt 2025](https://www.sciencedirect.com/science/article/pii/S266739322500002X) |
-| [**3DFin**](https://github.com/3DFin/3DFin) and [**dendromatics**](https://github.com/3DFin/dendromatics) | the 3DFin developers | third-party forest inventory, and a better answer than ours for tilted stems |
+| [**3DFin**](https://github.com/3DFin/3DFin) and [**dendromatics**](https://github.com/3DFin/dendromatics) | the 3DFin developers | installed and evaluated as a third method; its locally-tracked-axis idea is where `extract.track_stem_axis` came from. No pipeline code imports it |
 | [**CSF**](https://github.com/jianboqi/CSF) | Wuming Zhang, Jianbo Qi et al. | ground filtering. [Zhang et al. 2016](https://doi.org/10.3390/rs8060501) |
 | [**CloudCompare**](https://www.cloudcompare.org/) and [CloudCompare-PythonRuntime](https://github.com/tmontaigu/CloudCompare-PythonRuntime) | Daniel Girardeau-Montaut; Thomas Montaigu | the host application and its Python runtime |
 | [**marimo**](https://marimo.io) | the marimo developers | the reactive notebook format |
@@ -172,13 +172,17 @@ travels with any redistribution. Both are recorded in [`NOTICE`](NOTICE).
 ## Quick start
 
     uv sync
-    uv run marimo edit notebooks/         # browse every notebook
+    uv run marimo edit notebooks/ --watch         # browse every notebook
+
+**`--watch` is not optional.** Without it marimo serves each notebook as it stood when
+the server started and ignores every later edit to the file, so a change made in an
+editor never appears, and a stale browser session can overwrite the file when it saves.
 
 Or open one directly:
 
-    uv run marimo edit notebooks/day03/01_tree_instance_segmentation.py
-    uv run marimo edit notebooks/day04/00_multisensor_inventory.py
-    uv run marimo edit notebooks/02_methods_and_equations.py
+    uv run marimo edit notebooks/day03/01_tree_instance_segmentation.py --watch
+    uv run marimo edit notebooks/day04/00_multisensor_inventory.py --watch
+    uv run marimo edit notebooks/02_methods_and_equations.py --watch
 
 Or from the shell:
 
@@ -315,7 +319,7 @@ into `~/.local/share/CCCorp/CloudCompare/plugins` rather than `/opt`.
 | qPCL / PCD I/O | working | needs `/opt/pcl-qt6/lib` on the loader path |
 | PythonRuntime (`pycc`) | working | one local patch, see `setup/patches/` |
 | TreeAIBox / TreeisoNet | working, **CPU-only** | TLS boreal stemcls + treeloc weights installed |
-| 3DFin / dendromatics | installed | auto-registers as a CloudCompare Python plugin |
+| 3DFin / dendromatics | installed, **not used by the pipeline** | auto-registers as a CloudCompare Python plugin; run once for comparison, see [`docs/3dfin.md`](docs/3dfin.md) |
 | `novatrees` | 67 exports across 16 modules | see the module table above |
 | notebooks | 4, marimo `0.24.0` | day03 x2, day04 x1, plus the shared methods reference |
 | Day 4 data | ALS 11.2 M, MLS 61.0 M, TLS 290.3 M | circular cookie cuts, common centre |
@@ -378,7 +382,7 @@ kernel, and at 60 k points a raster is 1.8 MB against pydeck's 17.7 MB for 80 k.
 | [`notebooks/day04/README.md`](notebooks/day04/README.md) | Day 4: three sensors, the exercise, and what the data forces |
 | [`docs/day03/course-demo-workflow.md`](docs/day03/course-demo-workflow.md) | the Day 3 demo transcribed, phase by phase against this implementation |
 | [`TREEAIBOX.md`](TREEAIBOX.md) | driving the TreeisoNet models, and what the paper says about tuning |
-| [`docs/3dfin.md`](docs/3dfin.md) | 3DFin as a third method, and why it handles tilt better |
+| [`docs/3dfin.md`](docs/3dfin.md) | 3DFin as a third method, installed but not wired in, and the idea taken from it |
 | [`setup/cloudcompare-linux.md`](setup/cloudcompare-linux.md) | how the plugins were built, and the two version traps |
 | [`docs/rf-sensing-resolution.md`](docs/rf-sensing-resolution.md) | why WiFi cannot produce point clouds at this resolution |
 

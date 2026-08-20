@@ -4,7 +4,7 @@ Takes `crsot_mixed_stand.laz` (raw elevations) to normalised heights without
 leaving Python, and checks the result against the course's own `_hnorm` file and
 against the CloudCompare qCSF plugin.
 
-Run:  uv run marimo edit notebooks/00_ground_filtering_csf.py
+Run:  uv run marimo edit notebooks/day03/00_ground_filtering_csf.py --watch
 
 SPDX-License-Identifier: GPL-3.0-or-later
 Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University

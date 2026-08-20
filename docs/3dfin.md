@@ -3,7 +3,15 @@
 [3DFin](https://github.com/3DFin/3DFin) ("3D Forest inventory") and its algorithmic
 core [dendromatics](https://github.com/3DFin/dendromatics) are installed here. They
 matter for two reasons: an independent implementation to check ours against, and a
-better answer than ours to the tilted-stem problem.
+better-founded approach to the tilted-stem problem.
+
+**Nothing in `novatrees` imports either of them.** No result in this repository was
+produced with 3DFin, and it is not declared in `pyproject.toml`, so a fresh checkout
+will not have it. What it contributed is an idea rather than code: tracking the stem
+axis section by section instead of assuming one direction, which
+`novatrees.extract.track_stem_axis` reimplements, and sector occupancy, which
+`novatrees.stemgeom` reimplements. The comparison below was run once, with 3DFin
+barely tuned, and is not evidence that either is better.
 
 ## Installed in two places, deliberately
 
@@ -23,7 +31,7 @@ Nothing had to be copied into a plugins folder. If it stops appearing, check tha
 `EnvPath` in `~/.config/CCCorp/'CloudCompare:PythonRuntime.Settings.conf'` still
 points at the venv 3DFin is installed in.
 
-## Why it is the better answer for tilted stems
+## Why its approach to tilted stems is better founded
 
 Our taper reconstruction slices horizontally and rejects a slice whose centre moves
 too far from the last accepted one. On a leaning stem the centre *must* move, so the
