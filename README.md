@@ -235,30 +235,66 @@ sheet of points touching the base of every stem, so with it in place the cheapes
 path from one tree's seed to another tree's crown runs straight through the
 ground, and labels bleed across the plot.
 
-## State of the tooling, 2026-08-19
+## State of the tooling, 2026-08-20
 
-| Component | Status |
+Everything below runs on this machine, CPU-only, with no root access — plugins install
+into `~/.local/share/CCCorp/CloudCompare/plugins` rather than `/opt`.
+
+| component | status | note |
+| --- | --- | --- |
+| CloudCompare | built from source, `v2.13.1-372-g0d385434` | installed to `/opt/cloudcompare-qt6-qpcl` |
+| qCSF (Cloth Simulation Filter) | working | also available natively in Python, ~1 s on 15.6 M points |
+| qPCL / PCD I/O | working | needs `/opt/pcl-qt6/lib` on the loader path |
+| PythonRuntime (`pycc`) | working | one local patch, see `setup/patches/` |
+| TreeAIBox / TreeisoNet | working, **CPU-only** | TLS boreal stemcls + treeloc weights installed |
+| 3DFin / dendromatics | installed | auto-registers as a CloudCompare Python plugin |
+| `novatrees` | 42 exports across 12 modules | CSF, features, pipeline, taper, extract, evaluate |
+| notebooks | 3, marimo `0.24.0` | ground filtering · segmentation · methods reference |
+
+### What the pipeline does now
+
+Ground filtering (CSF) → height normalisation → **weighted stem pre-screen**
+(verticality + reflectance) → cross-section seeds → 3D Dijkstra region growing →
+per-tree extraction → **RANSAC stem taper**. Every stage is scored against the
+reference `treeid` labels in the course cloud.
+
+Best result on `crsot_mixed_stand_hnorm.laz` (15.6 M points, 41 reference trees):
+**28 trees matched, recall 0.68, precision 0.78, mean IoU 0.805, height RMSE 0.82 m**.
+Seed positions land within 0.03 m of the reference stems, 33 of 36 hit.
+
+### Known limitations
+
+**No GPU.** TreeAIBox models are labelled for 3–12 GB of VRAM but run on CPU: stem
+classification takes 47 s at 10 cm resolution or 191 s at 4 cm, on the full plot. The
+two resolutions produce near-identical classifications (mask IoU 0.834), so **10 cm is
+the better default here** despite the paper naming 4 cm as optimal — it optimises a
+point-level metric this dataset cannot measure.
+
+**Stem masks are the binding constraint**, not the graph or the geometry. Several trees
+fail taper reconstruction because their stem classification is contaminated; the stems
+that appear tilted 60–80° are misclassifications, not leaning trees. A single PCA axis
+rotation was tried and does not reliably help. `dendromatics` tracks the axis section by
+section instead, which is the better answer — see [`docs/3dfin.md`](docs/3dfin.md).
+
+**Merged instances are a seeding failure.** The largest predicted tree swallowed two
+reference trees whole because only one had a seed, and no graph parameter fixes that.
+Better seeds do.
+
+**3D visualisation is server-rendered.** plotly's 3D scatter never rendered in the
+browser here and the cause was never found, so the notebooks use matplotlib PNGs with
+azimuth/elevation sliders. Less interactive, but it cannot fail downstream of the
+kernel — and at 60 k points a raster is 1.8 MB against pydeck's 17.7 MB for 80 k.
+
+### Where to read further
+
+| document | covers |
 | --- | --- |
-| CloudCompare | built from source, `v2.13.1-372-g0d385434`, installed to `/opt/cloudcompare-qt6-qpcl` |
-| qCSF (Cloth Simulation Filter) | built and loading |
-| qPCL / PCD I/O | loading, once `/opt/pcl-qt6/lib` is on the loader path |
-| PythonRuntime (`pycc`) | built and loading, one local patch |
-| TreeAIBox | installed, imports cleanly, **CPU-only** |
-| 3DFin / dendromatics | installed; auto-registers as a CloudCompare Python plugin |
-
-TreeAIBox runs but this machine has no NVIDIA GPU, while every bundled model
-config is labelled for 3–12 GB of VRAM. Expect slow inference and test on a
-small clip first.
-
-The Day 3 demo instructions this pipeline reimplements are transcribed in
-[`docs/course-demo-workflow.md`](docs/course-demo-workflow.md), with a phase-by-phase
-comparison against what `novatrees` actually does.
-
-Full detail, including the two version traps that cost the most time, is in
-[`setup/cloudcompare-linux.md`](setup/cloudcompare-linux.md). Every formula the
-pipeline computes — bias, RMSE, IoU, the CSF and Dijkstra definitions — is written
-out with the measured numbers in
-[`docs/methods-and-equations.md`](docs/methods-and-equations.md).
+| [`docs/methods-and-equations.md`](docs/methods-and-equations.md) | every formula with its measured numbers — bias, RMSE, IoU, CSF, Dijkstra |
+| [`docs/course-demo-workflow.md`](docs/course-demo-workflow.md) | the Day 3 demo transcribed, phase by phase against this implementation |
+| [`TREEAIBOX.md`](TREEAIBOX.md) | driving the TreeisoNet models, and what the paper says about tuning |
+| [`docs/3dfin.md`](docs/3dfin.md) | 3DFin as a third method, and why it handles tilt better |
+| [`setup/cloudcompare-linux.md`](setup/cloudcompare-linux.md) | how the plugins were built, and the two version traps |
+| [`docs/rf-sensing-resolution.md`](docs/rf-sensing-resolution.md) | why WiFi cannot produce point clouds at this resolution |
 
 ## Comparing against Yrttimaa's method
 
