@@ -44,40 +44,90 @@ _SKIP = {
 }
 
 
-def read_cloud(path: str | Path, extras: bool = True) -> xr.Dataset:
+def read_cloud(
+    path: str | Path,
+    extras: bool = True,
+    every: int = 1,
+    max_points: int | None = None,
+) -> xr.Dataset:
     """Read a LAS/LAZ file into a Dataset over a `point` dimension.
 
     Coordinates x, y, z become data variables (not xarray coords: they are not
     an index, and making them one would invite a sort that reorders the cloud).
+
+    `every` keeps one point in N, `max_points` picks that stride for you. Both read
+    in chunks, so the whole file never lands in memory at once. This matters more
+    than it sounds: the Day 4 TLS plot is 290 M points, which is 6.5 GB of float64
+    coordinates before any working copy, on a machine with about 9 GB free.
+
+    Decimation here is a **stride**, not a random sample. Reproducible between runs,
+    and it does not disturb the spatial distribution the way taking the first N
+    points would.
     """
-    f = laspy.read(str(path))
-    n = len(f.points)
-    data = {
-        "x": ("point", np.asarray(f.x)),
-        "y": ("point", np.asarray(f.y)),
-        "z": ("point", np.asarray(f.z)),
-    }
-    if extras:
-        for name in f.point_format.dimension_names:
-            if name in _SKIP or name in data:
-                continue
-            try:
-                arr = np.asarray(f[name])
-            except Exception:
-                continue
-            if arr.shape == (n,):
-                data[name] = ("point", arr)
+    if max_points is not None and every == 1:
+        with laspy.open(str(path)) as fh:
+            total = fh.header.point_count
+        every = max(1, int(np.ceil(total / max_points)))
+
+    if every > 1:
+        chunks: dict[str, list[np.ndarray]] = {}
+        names: list[str] | None = None
+        offset = 0
+        with laspy.open(str(path)) as fh:
+            header = fh.header
+            for chunk in fh.chunk_iterator(5_000_000):
+                sel = np.arange((-offset) % every, len(chunk.array), every)
+                offset = (offset + len(chunk.array)) % every
+                if len(sel) == 0:
+                    continue
+                sub = chunk[sel]
+                if names is None:
+                    names = ["x", "y", "z"] + (
+                        [n for n in sub.point_format.dimension_names if n not in _SKIP
+                         and n not in ("x", "y", "z")] if extras else []
+                    )
+                for n in names:
+                    try:
+                        arr = np.asarray(sub[n])
+                    except Exception:
+                        continue
+                    chunks.setdefault(n, []).append(arr)
+        data = {n: ("point", np.concatenate(v)) for n, v in chunks.items() if len(v)}
+        n_points = len(data["x"][1]) if "x" in data else 0
+    else:
+        f = laspy.read(str(path))
+        header = f.header
+        n = len(f.points)
+        data = {
+            "x": ("point", np.asarray(f.x)),
+            "y": ("point", np.asarray(f.y)),
+            "z": ("point", np.asarray(f.z)),
+        }
+        if extras:
+            for name in f.point_format.dimension_names:
+                if name in _SKIP or name in data:
+                    continue
+                try:
+                    arr = np.asarray(f[name])
+                except Exception:
+                    continue
+                if arr.shape == (n,):
+                    data[name] = ("point", arr)
+        n_points = n
 
     ds = xr.Dataset(data)
     ds.attrs.update(
         source=str(path),
-        n_points=n,
-        crs_offsets=tuple(float(v) for v in f.header.offsets),
-        crs_scales=tuple(float(v) for v in f.header.scales),
+        n_points=n_points,
+        decimation=every,
+        crs_offsets=tuple(float(v) for v in header.offsets),
+        crs_scales=tuple(float(v) for v in header.scales),
     )
     for var, unit in (("x", "m"), ("y", "m"), ("z", "m")):
-        ds[var].attrs["units"] = unit
-    ds["z"].attrs["description"] = "height above ground if the cloud is normalised"
+        if var in ds:
+            ds[var].attrs["units"] = unit
+    if "z" in ds:
+        ds["z"].attrs["description"] = "height above ground if the cloud is normalised"
     return ds
 
 

@@ -38,7 +38,17 @@ from .extract import (
     semantic_labels,
     tree_table,
 )
+from .inventory import (
+    PlotGeometry,
+    als_metrics,
+    flag_edge_trees,
+    infer_plot_geometry,
+    join_sensors,
+    match_positions,
+    tree_metrics,
+)
 from .io import read_xyz, write_labelled, write_seeds
+from .presets import ALS, MLS, PRESETS, TLS, SensorPreset, preset_for
 from .stemgeom import ForkParams, axis_ratio, find_forks, sector_occupancy
 from .taper import TaperParams, TaperResult, slice_fits, taper_curve
 from .pipeline import (
@@ -51,6 +61,19 @@ from .pipeline import (
 )
 
 __all__ = [
+    "join_sensors",
+    "match_positions",
+    "als_metrics",
+    "tree_metrics",
+    "flag_edge_trees",
+    "infer_plot_geometry",
+    "PlotGeometry",
+    "preset_for",
+    "SensorPreset",
+    "PRESETS",
+    "TLS",
+    "MLS",
+    "ALS",
     "track_stem_axis",
     "StemTrackParams",
     "sector_occupancy",

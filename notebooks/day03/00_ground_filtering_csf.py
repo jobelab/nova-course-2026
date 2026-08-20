@@ -63,7 +63,7 @@ def _():
     from novatrees import CsfParams, csf_ground, normalize_heights, read_cloud, write_cloud
     from novatrees.csf import compare_with_cloudcompare
 
-    REPO = Path(__file__).resolve().parents[1]
+    REPO = Path(__file__).resolve().parents[2]
     RAW = REPO / "PCT_demo" / "PCT_demo" / "crsot_mixed_stand.laz"
     HNORM = REPO / "Day03_ToumasYrttima" / "crsot_mixed_stand_hnorm.laz"
     OUTDIR = REPO / "out" / "csf"

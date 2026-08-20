@@ -85,7 +85,7 @@ def _():
         write_cloud,
     )
 
-    REPO = Path(__file__).resolve().parents[1]
+    REPO = Path(__file__).resolve().parents[2]
     RAW = REPO / "PCT_demo" / "PCT_demo" / "crsot_mixed_stand.laz"
     CLOUD = REPO / "Day03_ToumasYrttima" / "crsot_mixed_stand_hnorm.laz"
     OUTDIR = REPO / "out" / "trees"
@@ -756,8 +756,8 @@ def _(CLOUD, OUTDIR, export, labels_a, labels_b, laspy, mo, np, seeds):
 
     mo.md(
         f"""
-        Wrote **{len(_f.points):,} points** → `{_out.relative_to(OUTDIR.parents[1])}`
-        and {len(seeds)} stem seeds → `{_seedfile.relative_to(OUTDIR.parents[1])}`.
+        Wrote **{len(_f.points):,} points** → `{_out.relative_to(OUTDIR.parents[2])}`
+        and {len(seeds)} stem seeds → `{_seedfile.relative_to(OUTDIR.parents[2])}`.
 
         ```
         cloudcompare {_out}
