@@ -13,9 +13,17 @@ which is why the course demo combines them rather than picking one:
 * **verticality** - a stem surface is a patch of a vertical cylinder, so its
   normal points sideways. High for stems, high for tree-sized noise, low for
   ground and for flat foliage clumps.
-* **reflectance** - bark returns far more strongly than needles. On the course
-  plot the two sit about 9 dB apart, which makes this the single strongest
-  feature, and it is one that geometry cannot supply.
+* **return strength** - bark returns far more strongly than needles. On the Day 3
+  plot the two sit about 9 dB apart in *reflectance*, which makes this the single
+  strongest feature, and one that geometry cannot supply.
+
+  Not every cloud records reflectance. Where it is absent, **intensity carries the
+  same physical information**, and `radiometric_field` picks whichever is present
+  and actually varies. That check matters: the Day 3 cloud carries an intensity
+  field that is **entirely zero**, so a naive fallback would have fed the score pure
+  noise. Scaling is per-cloud on percentiles rather than by fixed constants, because
+  intensity is uncalibrated and arbitrary between instruments: on the Day 4 clouds
+  the MLS spans 1 to 255 and the ALS 166 to 62,660, for the same forest.
 * **radial distance** - stem points hug the tree's vertical axis; branches reach
   away from it. Only meaningful once seeds exist, so it refines rather than
   bootstraps.
@@ -42,6 +50,8 @@ from .dataset import xyz as _xyz
 __all__ = [
     "StemScoreParams",
     "eigen_features",
+    "radiometric_field",
+    "radiometric_score",
     "reflectance_index",
     "reflectance_bounds",
     "stem_score",
@@ -134,9 +144,11 @@ def stem_score(
 
     terms, weights = [_unit(vert)], [p.w_vertical]
 
-    if reflectance is not None and p.w_reflectance > 0:
-        idx = reflectance_index(reflectance, p.refl_offset, p.refl_scale)
-        terms.append(_unit(idx, invert=True))  # low index = bark
+    # An explicit array is taken as reflectance; a Dataset is inspected for whichever
+    # radiometric field it actually carries.
+    field, values = ("reflectance", reflectance) if reflectance is not None else radiometric_field(points)
+    if values is not None and p.w_reflectance > 0:
+        terms.append(radiometric_score(values, field))
         weights.append(p.w_reflectance)
 
     if seeds is not None and len(seeds) and p.w_radial > 0:
@@ -162,3 +174,43 @@ def stem_prescreen(
         return np.ones(len(score), bool)
     cut = np.percentile(score, 100.0 - p.prescreen_pct)
     return score >= cut
+
+
+def radiometric_field(cloud) -> tuple[str | None, "np.ndarray | None"]:
+    """Pick the field carrying return strength: reflectance, else intensity.
+
+    Returns `(name, values)` or `(None, None)` when neither is present or the one
+    that is present is constant. Constancy is checked rather than assumed: the Day 3
+    cloud carries an all-zero intensity field alongside a real reflectance field, and
+    feeding the zeros to the score would add a term of pure noise.
+    """
+    import xarray as xr
+
+    if not isinstance(cloud, xr.Dataset):
+        return None, None
+    for name in ("reflectance", "intensity"):
+        if name in cloud:
+            v = np.asarray(cloud[name].values, float)
+            if v.size and float(np.nanstd(v)) > 0:
+                return name, v
+    return None, None
+
+
+def radiometric_score(values: np.ndarray, field: str = "reflectance") -> np.ndarray:
+    """Scale return strength to 0-1, where **1 is the strongest return**, i.e. bark.
+
+    Both fields mean the same physical thing and run in the same direction: a higher
+    number is a stronger return. The demo's reflectance arithmetic inverts it into an
+    index where low means bark, so `reflectance_index` is used for that field and the
+    result flipped, which keeps the published transform intact while presenting one
+    consistent convention here.
+
+    Scaling is on the 1st to 99th percentiles, per cloud. Intensity is uncalibrated
+    and its range is an artefact of the instrument, so fixed constants like the demo's
+    +26 and /31 do not transfer.
+    """
+    v = np.asarray(values, float)
+    if field == "reflectance":
+        idx = reflectance_index(v, *reflectance_bounds(v))
+        return _unit(idx, invert=True)  # low index = bark -> high score
+    return _unit(v)  # intensity: high = strong return = bark

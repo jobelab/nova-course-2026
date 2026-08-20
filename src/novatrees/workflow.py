@@ -41,7 +41,7 @@ from .csf import csf_ground, normalize_heights
 from .dataset import read_cloud
 from .dataset import xyz as _xyz
 from .denoise import denoise
-from .features import stem_prescreen
+from .features import radiometric_field, stem_prescreen
 from .inventory import PlotGeometry, als_metrics, flag_edge_trees, infer_plot_geometry, tree_metrics
 from .pipeline import detect_seeds, grow_instances
 from .presets import SensorPreset, preset_for
@@ -135,14 +135,18 @@ def run_sensor(
         seeds = (np.c_[tops[:, 0], tops[:, 1], np.full(len(tops), 0.25)]
                  if len(tops) else np.empty((0, 3)))
     else:
-        refl = ds.reflectance.values if "reflectance" in ds else None
+        # Reflectance where the sensor records it, intensity otherwise: both carry
+        # return strength, and the Day 4 clouds have only intensity.
+        _field, _values = radiometric_field(ds)
         band = (norm_xyz[:, 2] >= 0.7) & (norm_xyz[:, 2] < 2.0)
         mask = np.zeros(len(norm_xyz), bool)
         if band.sum() > p.score.k:
-            sub_keep = stem_prescreen(
-                norm_xyz[band], reflectance=None if refl is None else refl[band], p=p.score
-            )
+            sub = ds.isel(point=np.flatnonzero(band)) if _values is not None else norm_xyz[band]
+            sub_keep = stem_prescreen(sub if _values is not None else norm_xyz[band], p=p.score)
             mask[np.flatnonzero(band)[sub_keep]] = True
+        if _values is None:
+            log(f"[{p.name}] no usable reflectance or intensity: "
+                "the pre-screen is running on verticality alone")
         mask &= keep  # noise never becomes a seed
         seeds = detect_seeds(norm_xyz, p.seeds, mask=mask if mask.any() else None)
     t["detect"] = time.time() - t0
