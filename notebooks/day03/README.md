@@ -16,6 +16,8 @@ scored rather than admired.
 | [`00_ground_filtering_csf.py`](00_ground_filtering_csf.py) | noise filtering, CSF ground classification, height normalisation, validated against the course's own `_hnorm` file |
 | [`01_tree_instance_segmentation.py`](01_tree_instance_segmentation.py) | two detection methods compared, the weighted stem pre-screen, semantic segmentation, per-tree inspection, taper reconstruction |
 
+![semantic classes on the Day 3 plot](../../docs/figures/day03_semantic_segmentation.png)
+
 Both notebooks end with a **Results as measured** section carrying the numbers from the
 recorded run, so they can be read without executing anything.
 

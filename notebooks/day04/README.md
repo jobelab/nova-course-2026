@@ -26,6 +26,8 @@ per tree rather than one.
 both the heuristic and the learned detector. It also carries the measured results as a
 static section at the end, so the numbers are readable without a ninety-minute pass.
 
+![semantic segmentation, three sensors](../../docs/figures/day04_semantic_segmentation.png)
+
 **Semantic segmentation, side by side.** Between steps 4 and 5 the notebook classifies
 every point as ground, stem or foliage and draws the three sensors against each other:
 a cross-section over the same 30 m of ground, and the stem class from above. The ALS
@@ -103,6 +105,8 @@ statistics.
 
 ## Step 5 in detail: a taper integral is not a stem volume
 
+![the three volume answers](../../docs/figures/day04_volume_variants.png)
+
 The volume in the first version of this table was wrong, and the error is worth
 keeping on the page because it is invisible in the formula.
 
@@ -177,6 +181,8 @@ at the last measured diameter, which understates butt swell slightly and cannot
 explode.
 
 ## Step 6 and the objective: the joined table
+
+![the objective, twelve matched trees](../../docs/figures/day04_objective.png)
 
 `out/day04/FINAL_joined_MLS_ALSfiltered.csv`, twelve trees matched between the MLS
 heuristic run and the fragment-filtered ALS, median position offset 0.53 m:

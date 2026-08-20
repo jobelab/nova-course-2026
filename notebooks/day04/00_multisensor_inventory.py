@@ -957,5 +957,97 @@ def _(mo):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### The recorded table, and the recorded figures
+
+    Everything below is read from `out/day04/`, written by the last full run. It is the
+    same table and the same figures the cells above produce, kept so the notebook can be
+    read straight through without executing anything. Re-run the notebook and they are
+    regenerated in place.
+    """)
+    return
+
+
+@app.cell
+def _(OUTDIR, mo, pd):
+    _csv = OUTDIR / "FINAL_joined_MLS_ALSfiltered.csv"
+    mo.stop(not _csv.exists(),
+            mo.md(f"*`{_csv}` not found. Run the notebook, or the Day 4 script, to write it.*"))
+
+    final_table = pd.read_csv(_csv)
+    _cols = {
+        "treeID_ground": "tree", "h_total_m_ground": "H (m)", "dbh_strict_m_ground": "DBH (m)",
+        "vol_measured_strict_m3_ground": "V strict", "cover_strict_ground": "cover",
+        "vol_measured_relaxed_m3_ground": "V relaxed", "cover_relaxed_ground": "cover ",
+        "vol_model_relaxed_m3_ground": "V model", "ff_model_relaxed_ground": "f",
+        "h_max_air": "ALS h_max", "crown_area_m2_air": "crown m2",
+        "crown_volume_m3_air": "crown m3", "distance": "match (m)",
+    }
+    _show = (final_table[[_c for _c in _cols if _c in final_table.columns]]
+             .rename(columns=_cols).round(3)
+             .sort_values("V model", ascending=False))
+
+    mo.vstack([
+        mo.ui.table(_show, selection=None, page_size=15),
+        mo.md(
+            f"""
+            **{len(final_table)} trees**, MLS heuristic against the fragment-filtered ALS,
+            median match offset
+            {final_table.distance.median():.2f} m. Ground-derived on the left, ALS-derived
+            on the right, and this is the objective the exercise was asking for.
+
+            Median volumes: strict
+            **{final_table.vol_measured_strict_m3_ground.median():.3f} m3**, relaxed
+            **{final_table.vol_measured_relaxed_m3_ground.median():.3f} m3**, modelled
+            **{final_table.vol_model_relaxed_m3_ground.median():.3f} m3**. Form factors of
+            these trees run
+            {final_table.ff_model_relaxed_ground.min():.3f} to
+            {final_table.ff_model_relaxed_ground.max():.3f}, median
+            {final_table.ff_model_relaxed_ground.median():.3f}, which is where a boreal
+            conifer stem belongs and is the check that the modelled column is the one to
+            carry forward.
+
+            The full file has every ALS metric and both DBH estimates:
+            `{_csv}`.
+            """
+        ),
+    ])
+    return (final_table,)
+
+
+@app.cell
+def _(OUTDIR, mo):
+    # OUTDIR is <repo>/out/day04, so two levels up is the repository root.
+    _figdir = OUTDIR.parent.parent / "docs" / "figures"
+    _figs = [
+        ("Semantic segmentation, three sensors",
+         "day04_semantic_segmentation.png",
+         "ALS has no stem class. The rings in its panel are canopy apices, positions "
+         "measured twenty metres above the stem they belong to."),
+        ("The three volume answers",
+         "day04_volume_variants.png",
+         "Every point below the 1:1 line is stem the reconstruction never reached, and "
+         "the form factor of a measured volume rises with cover until it meets the band "
+         "where a boreal conifer belongs."),
+        ("The objective, twelve matched trees",
+         "day04_objective.png",
+         "Against ALS height the modelled volume tracks better than the strict one, "
+         "+0.79 against +0.59. Nothing in the taper reconstruction knows about the ALS, "
+         "so this is an independent check."),
+    ]
+    _items = []
+    for _title, _name, _cap in _figs:
+        _p = _figdir / _name
+        _items.append(mo.md(f"**{_title}**"))
+        _items.append(
+            mo.image(str(_p), alt=_title, width="100%", caption=_cap) if _p.exists()
+            else mo.md(f"*`{_name}` has not been rendered yet.*")
+        )
+    mo.vstack(_items)
+    return
+
+
 if __name__ == "__main__":
     app.run()
