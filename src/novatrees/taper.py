@@ -93,6 +93,20 @@ class TaperParams:
     min_occupancy: float = 0.0  # 0 disables; 0.5 is a reasonable filter
     min_axis_ratio: float = 0.0  # 0 disables; 0.6 rejects badly non-round slices
 
+    # The inner-circle test, taken from 3DFin. A stem cross-section is a *ring*: the
+    # scanner sees bark, and the wood behind it stops the beam, so the middle of a
+    # real cross-section is empty. Points inside it did not come from the stem
+    # surface. They are foliage caught in the slab, a branch crossing it, mist, or a
+    # circle that has wrapped around something that is not a stem.
+    #
+    # This is a better test than a minimum point count, because it asks whether the
+    # geometry is right rather than whether there is enough of it. 3DFin uses an
+    # absolute count of 5; a fraction is used here instead because these clouds range
+    # over three orders of magnitude in density, from ALS to TLS, and five points
+    # means something different in each.
+    inner_proportion: float = 0.5  # inner circle radius, as a fraction of the fit
+    max_inner_fraction: float = 0.10  # share of slice points allowed inside; 1.0 disables
+
     def relaxed(self) -> "TaperParams":
         """The same settings, loosened so the reconstruction reaches further up.
 
@@ -197,7 +211,7 @@ def slice_fits(points, p: TaperParams = TaperParams()):
     if len(P) < p.min_points:
         return pd.DataFrame(
             columns=["z", "x", "y", "r", "d", "sigma", "n", "inliers",
-                     "occupancy", "axis_ratio", "ok", "why"]
+                     "occupancy", "axis_ratio", "inner", "inner_fraction", "ok", "why"]
         )
 
     z0, z1 = P[:, 2].min(), P[:, 2].max()
@@ -213,8 +227,15 @@ def slice_fits(points, p: TaperParams = TaperParams()):
         occ = sector_occupancy(sl[:, :2], xc, yc)
         ratio = axis_ratio(sl[:, :2])
 
+        # Hollowness. Anything inside the inner circle cannot be a return from the
+        # stem surface, so a filled cross-section is not a cross-section.
+        inner = int((np.hypot(sl[:, 0] - xc, sl[:, 1] - yc) < p.inner_proportion * r).sum())
+        inner_frac = inner / len(sl)
+
         ok, why = True, ""
-        if p.min_occupancy > 0 and occ < p.min_occupancy:
+        if p.max_inner_fraction < 1.0 and inner_frac > p.max_inner_fraction:
+            ok, why = False, "not hollow"
+        elif p.min_occupancy > 0 and occ < p.min_occupancy:
             ok, why = False, "arc too narrow"
         elif p.min_axis_ratio > 0 and np.isfinite(ratio) and ratio < p.min_axis_ratio:
             ok, why = False, "not round"
@@ -227,7 +248,7 @@ def slice_fits(points, p: TaperParams = TaperParams()):
         rows.append(
             dict(z=float(zc), x=xc, y=yc, r=r, d=2 * r, sigma=sigma,
                  n=len(sl), inliers=n_in, occupancy=occ, axis_ratio=ratio,
-                 ok=ok, why=why)
+                 inner=inner, inner_fraction=inner_frac, ok=ok, why=why)
         )
         if ok:
             last_ok = (xc, yc, r)
@@ -320,6 +341,7 @@ def taper_curve(
     #    two thirds of this number was never measured. covered_fraction says how much.
     volume_model = float("nan")
     model_capped = float("nan")
+    model_closes = model_monotone = False
     if predict is not None and height > 1.4 and np.isfinite(dbh) and dbh > 0:
         # Extrapolate upward from the lowest accepted slice, never downward past it.
         # Kozak's exponent carries a log term, so as relative height goes to zero the
@@ -328,14 +350,29 @@ def taper_curve(
         # which understates butt swell slightly and cannot explode.
         z0 = float(z.min())
         full = np.linspace(z0, height * 0.999, 400)
-        dfull = np.nan_to_num(predict(full), nan=0.0, posinf=0.0, neginf=0.0)
+        raw = np.nan_to_num(predict(full), nan=0.0, posinf=0.0, neginf=0.0)
+
+        # Two tests on the raw curve, before any clamping hides its behaviour. A
+        # taper function has to *close*: diameter falls with height and reaches
+        # nearly nothing at the tip. A fit that rises above the measurements, or
+        # that is still thick at the top, has not extrapolated the stem, it has
+        # left the data. Clamping such a fit produces a flat cylinder to the tree
+        # top, which looks tidy on a plot and inflates the volume badly.
+        # Threshold set from the measured separation rather than by taste. On the
+        # Day 4 MLS stems the ratio of tip diameter to last measured diameter comes
+        # out at 0.08 and 0.25 for fits that close, and 1.00 for the one that runs
+        # flat to the tree top. Anything between 0.4 and 0.9 would split them; 0.5
+        # sits in the middle and stays generous toward real stems.
+        d_at_top_of_data = float(np.nan_to_num(predict(np.array([z.max()]))[0]))
+        model_closes = bool(
+            d_at_top_of_data > 0 and raw[-1] <= 0.50 * d_at_top_of_data
+        )
+        model_monotone = bool(np.all(np.diff(raw) <= 1e-3))
+
         cap = 2.5 * dbh  # no stem is two and a half times its own DBH
-        model_capped = float(np.mean(dfull > cap))
-        dfull = np.clip(dfull, 0.0, cap)
-        # A stem cannot widen with height. Imposing it kills the residual runaway
-        # and costs nothing on a fit that was already behaving.
-        dfull = np.minimum.accumulate(dfull)
-        if model_capped <= 0.10:
+        model_capped = float(np.mean(raw > cap))
+        dfull = np.minimum.accumulate(np.clip(raw, 0.0, cap))
+        if model_capped <= 0.10 and model_closes and model_monotone:
             volume_model = float(np.trapezoid(np.pi * (dfull / 2) ** 2, full))
             volume_model += float(np.pi * (dfull[0] / 2) ** 2 * z0)  # stump section
 
@@ -369,6 +406,8 @@ def taper_curve(
             "volume_cylinder": volume_cylinder,
             "covered_fraction": covered,
             "model_capped_fraction": model_capped,
+            "model_closes": model_closes,
+            "model_monotone": model_monotone,
             "dbh_extrapolated": bool(not (z.min() <= 1.3 <= z.max())),
             "height_total": height,
             "height_stem": float(z.max() - z.min()),

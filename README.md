@@ -24,6 +24,34 @@ labels that ship with the course data, which is the part I was most interested i
 are excluded by `.gitignore`. Re-fetch the course material from the organisers;
 regenerate derived products with the scripts here.
 
+## What it produces
+
+![semantic segmentation across three sensors](docs/figures/day04_semantic_segmentation.png)
+
+Ground, stem and foliage on the same plot from a helicopter, a mobile scanner and a
+tripod. The ALS panel has **no stem class in it**, because a helicopter never records
+bark, and the rings in its plan view are canopy apices standing twenty metres above
+the stems they belong to. That difference is the reason the Day 4 exercise exists.
+
+![stem profile with the fitted taper](docs/figures/day04_taper_profile.png)
+
+Every fitted cross-section for three stems, the Kozak taper through them, and the part
+that is extrapolated above the last usable slice. DBH is read from the curve at 1.3 m
+rather than from any one slice. The third panel is a fit being **refused**: it does not
+close at the tip, so integrating it would charge a 0.16 m cylinder from 18.6 m to the
+treetop as stem volume.
+
+![the three volume answers](docs/figures/day04_volume_variants.png)
+
+Why there are three volume columns rather than one. The middle panel is the argument:
+the form factor of a measured volume rises with how much of the stem was reconstructed
+and only reaches the boreal band as cover approaches one.
+
+More figures, and the numbers behind them, are in the day READMEs:
+[Day 3](notebooks/day03/README.md) and [Day 4](notebooks/day04/README.md). What the
+whole exercise taught, rule by rule with the mistake behind each one, is collected in
+[**best practices**](docs/best-practices.md).
+
 ## The course
 
 **Introduction to Point Cloud Processing for Forest Sciences** - SLU course code
@@ -94,7 +122,7 @@ contributed code here**, and any errors in this implementation are mine alone.
 | --- | --- | --- |
 | [**Point-Cloud-Tools (PCT)**](https://github.com/tuomasyr/Point-Cloud-Tools) | Dr. Tuomas Yrttimaa, University of Eastern Finland | `novatrees.chm_watershed` is a Python port of the crown-detection stage. CC BY 4.0. Cite [Yrttimaa 2021](https://doi.org/10.5281/zenodo.5779288), [Yrttimaa et al. 2019](https://doi.org/10.3390/rs11121423), [2020](https://doi.org/10.1016/j.isprsjprs.2020.08.017) |
 | [**TreeAIBox / TreeisoNet**](https://github.com/NRCan/TreeAIBox) | Zhouxin Xi & Dani Degenhardt, Canadian Forest Service, Natural Resources Canada | driven directly for learned stem classification and tree location. [Xi & Degenhardt 2025](https://www.sciencedirect.com/science/article/pii/S266739322500002X) |
-| [**3DFin**](https://github.com/3DFin/3DFin) and [**dendromatics**](https://github.com/3DFin/dendromatics) | the 3DFin developers | installed and evaluated as a third method; its locally-tracked-axis idea is where `extract.track_stem_axis` came from. No pipeline code imports it |
+| [**3DFin**](https://github.com/3DFin/3DFin) and [**dendromatics**](https://github.com/3DFin/dendromatics) | the 3DFin developers | driven by `novatrees.dfin_bridge` as a third detection method, at their own defaults. Their locally-tracked-axis idea is where `extract.track_stem_axis` came from |
 | [**CSF**](https://github.com/jianboqi/CSF) | Wuming Zhang, Jianbo Qi et al. | ground filtering. [Zhang et al. 2016](https://doi.org/10.3390/rs8060501) |
 | [**CloudCompare**](https://www.cloudcompare.org/) and [CloudCompare-PythonRuntime](https://github.com/tmontaigu/CloudCompare-PythonRuntime) | Daniel Girardeau-Montaut; Thomas Montaigu | the host application and its Python runtime |
 | [**marimo**](https://marimo.io) | the marimo developers | the reactive notebook format |
@@ -303,6 +331,7 @@ ground, and labels bleed across the plot.
 | `workflow` | `run_sensor`: the whole sequence for one cloud in one call |
 | `treeaibox` | the learned alternative, driving TreeAIBox models on CPU |
 | `pcf_bridge` | runs the earlier course package `pcf` side by side, where it is available |
+| `dfin_bridge` | runs 3DFin / dendromatics as a third detection method, scored the same way |
 | `glossary` | the acronym table in `docs/glossary.yaml`, loadable in a notebook |
 | `io` | LAS/LAZ writing, used by the per-tree extractor and the CLI |
 | `cli` | `novatrees` on the command line: detect, grow, taper, extract |
@@ -319,7 +348,7 @@ into `~/.local/share/CCCorp/CloudCompare/plugins` rather than `/opt`.
 | qPCL / PCD I/O | working | needs `/opt/pcl-qt6/lib` on the loader path |
 | PythonRuntime (`pycc`) | working | one local patch, see `setup/patches/` |
 | TreeAIBox / TreeisoNet | working, **CPU-only** | TLS boreal stemcls + treeloc weights installed |
-| 3DFin / dendromatics | installed, **not used by the pipeline** | auto-registers as a CloudCompare Python plugin; run once for comparison, see [`docs/3dfin.md`](docs/3dfin.md) |
+| 3DFin / dendromatics | installed, wired in as method **D** | driven by `novatrees.dfin_bridge`, and auto-registers as a CloudCompare Python plugin. See [`docs/3dfin.md`](docs/3dfin.md) |
 | `novatrees` | 67 exports across 16 modules | see the module table above |
 | notebooks | 4, marimo `0.24.0` | day03 x2, day04 x1, plus the shared methods reference |
 | Day 4 data | ALS 11.2 M, MLS 61.0 M, TLS 290.3 M | circular cookie cuts, common centre |
@@ -382,7 +411,8 @@ kernel, and at 60 k points a raster is 1.8 MB against pydeck's 17.7 MB for 80 k.
 | [`notebooks/day04/README.md`](notebooks/day04/README.md) | Day 4: three sensors, the exercise, and what the data forces |
 | [`docs/day03/course-demo-workflow.md`](docs/day03/course-demo-workflow.md) | the Day 3 demo transcribed, phase by phase against this implementation |
 | [`TREEAIBOX.md`](TREEAIBOX.md) | driving the TreeisoNet models, and what the paper says about tuning |
-| [`docs/3dfin.md`](docs/3dfin.md) | 3DFin as a third method, installed but not wired in, and the idea taken from it |
+| [`docs/best-practices.md`](docs/best-practices.md) | every rule this exercise taught, each with the mistake it came from |
+| [`docs/3dfin.md`](docs/3dfin.md) | 3DFin as method D: how it is driven, how it scores, and where it agrees with us |
 | [`setup/cloudcompare-linux.md`](setup/cloudcompare-linux.md) | how the plugins were built, and the two version traps |
 | [`docs/rf-sensing-resolution.md`](docs/rf-sensing-resolution.md) | why WiFi cannot produce point clouds at this resolution |
 

@@ -1293,6 +1293,10 @@ def _(mo):
     taper_dist = mo.ui.slider(0.005, 0.15, value=0.04, step=0.005, label="distance threshold (m)", show_value=True)
     taper_rtol = mo.ui.slider(0.005, 0.20, value=0.03, step=0.005, label="radius tolerance (m)", show_value=True)
     taper_ctol = mo.ui.slider(0.01, 0.30, value=0.06, step=0.01, label="centre tolerance (m)", show_value=True)
+    taper_inner = mo.ui.slider(0.0, 0.9, value=0.50, step=0.05,
+                               label="inner circle, as a fraction of the radius", show_value=True)
+    taper_inmax = mo.ui.slider(0.0, 1.0, value=0.10, step=0.02,
+                               label="max share of points inside it (1 = off)", show_value=True)
     taper_method = mo.ui.dropdown(
         ["cubic spline", "moving median", "monotonic (isotonic)", "none - raw fits"],
         value="cubic spline", label="taper method",
@@ -1302,11 +1306,17 @@ def _(mo):
         mo.md("**Slicing**"), taper_thick, taper_step, taper_minpts,
         mo.md("**RANSAC circle fit**"), taper_iters, taper_dist,
         mo.md("**Consistency between slices**"), taper_rtol, taper_ctol,
+        mo.md("**Hollowness** - a stem cross-section is a ring, so the middle should be "
+              "empty. Points inside the inner circle are foliage, a branch, mist, or a "
+              "circle fitted to something that is not a stem."),
+        taper_inner, taper_inmax,
         mo.md("**Smoothing**"), taper_smooth, taper_method, taper_stem_only,
     ])
     return (
         taper_ctol,
         taper_dist,
+        taper_inmax,
+        taper_inner,
         taper_iters,
         taper_method,
         taper_minpts,
@@ -1327,6 +1337,8 @@ def _(
     semantic,
     taper_ctol,
     taper_dist,
+    taper_inmax,
+    taper_inner,
     taper_iters,
     taper_minpts,
     taper_rtol,
@@ -1393,14 +1405,22 @@ def _(
             if _fit is None:
                 continue
             _xc, _yc, _r, _sg, _nin = _fit
+            # Hollowness: the middle of a real cross-section is empty, because the
+            # wood stops the beam. Anything in there is not a return from bark.
+            _inside = int((np.hypot(_sl2[:, 0] - _xc, _sl2[:, 1] - _yc)
+                           < taper_inner.value * _r).sum())
+            _ifrac = _inside / len(_sl2)
             _ok, _why = True, ""
-            if _prev is not None:
+            if taper_inmax.value < 1.0 and _ifrac > taper_inmax.value:
+                _ok, _why = False, "not hollow"
+            elif _prev is not None:
                 if abs(_r - _prev[2]) > taper_rtol.value:
                     _ok, _why = False, "radius jump"
                 elif np.hypot(_xc - _prev[0], _yc - _prev[1]) > taper_ctol.value:
                     _ok, _why = False, "centre jump"
             _rows.append(dict(z=_zc, x=_xc, y=_yc, r=_r, d=2 * _r, sigma=_sg,
-                              n=len(_sl2), inliers=_nin, ok=_ok, why=_why))
+                              n=len(_sl2), inliers=_nin, inner=_inside,
+                              inner_fraction=_ifrac, ok=_ok, why=_why))
             if _ok:
                 _prev = (_xc, _yc, _r)
 
@@ -1409,7 +1429,8 @@ def _(
         f"Tree **{tree_pick.value}**: {len(_TP):,} points"
         + (" (stem-classified only)" if taper_stem_only.value else "")
         + f" → **{len(taper_raw)}** slice fits, "
-        + (f"**{int(taper_raw.ok.sum())}** passing the consistency checks."
+        + (f"**{int(taper_raw.ok.sum())}** passing the checks"
+           f", {int((taper_raw.why == 'not hollow').sum())} rejected as not hollow."
            if len(taper_raw) else "none.")
     )
     return (taper_raw,)
@@ -1598,6 +1619,46 @@ def _(mo):
     against the 0.45 to 0.50 a boreal conifer holds. Day 4 reports three volumes per
     tree instead of one and closes the gap with a fitted taper.
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### The recorded figures
+
+    Rendered from this notebook and from Day 4, and kept in `docs/figures/` so they
+    can be read without running anything. Re-run the cells above and they are
+    regenerated live.
+    """)
+    return
+
+
+@app.cell
+def _(OUTDIR, mo):
+    # OUTDIR is <repo>/out/trees, so two levels up is the repository root.
+    _figdir = OUTDIR.parent.parent / "docs" / "figures"
+    _figs = [
+        ("Semantic classes on this plot", "day03_semantic_segmentation.png",
+         "1,078,517 stem points out of 15.6 M. The streaks in the plan view are "
+         "leaning stems flattened along their own tracked axis, not errors."),
+        ("Stem profile and the taper function (Day 4 data)", "day04_taper_profile.png",
+         "What the taper section above produces, carried further: the fitted Kozak "
+         "curve, its extrapolation to the tip, and one fit refused for not closing."),
+        ("Semantic segmentation across three sensors (Day 4)",
+         "day04_semantic_segmentation.png",
+         "The same classes from a helicopter, a mobile scanner and a tripod. Only the "
+         "ground-based sensors have a stem class at all."),
+    ]
+    _items = []
+    for _title, _name, _cap in _figs:
+        _p = _figdir / _name
+        _items.append(mo.md(f"**{_title}**"))
+        _items.append(
+            mo.image(str(_p), alt=_title, width="100%", caption=_cap) if _p.exists()
+            else mo.md(f"*`{_name}` has not been rendered yet.*")
+        )
+    mo.vstack(_items)
     return
 
 

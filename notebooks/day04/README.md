@@ -129,8 +129,12 @@ the heuristic detector, 38 trees, medians:
 | --- | ---: | ---: | ---: | --- |
 | measured, strict (PCT thresholds) | 0.407 m3 | 0.30 | 0.24 | the lower third of the stem, measured |
 | measured, relaxed thresholds | 0.772 m3 | 0.75 | 0.44 | three quarters of the stem, measured, noisier |
-| Kozak model, integrated $0$ to $H$ | 0.884 m3 | 1.00 | **0.50** | the whole stem, extrapolated above the slices |
+| Kozak model, integrated $0$ to $H$ | 0.981 m3 | 1.00 | **0.49** | the whole stem, extrapolated above the slices |
 | cylinder $\pi (D_{1.3}/2)^2 H$ | 1.769 m3 | | 1.00 | the bound no stem reaches |
+
+The model column covers 26 of the 38 trees. The other twelve had fits that did not
+close at the tip and were refused rather than clamped, which is the subject of the
+stem-profile figure above.
 
 Median DBH 0.300 m, median height 25.2 m.
 
@@ -139,20 +143,23 @@ Two sensors, two detectors, medians:
 
 | run | trees | strict | cover | f | relaxed | cover | f | model | f | model usable |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| MLS heuristic | 38 | 0.407 | 0.30 | 0.24 | 0.772 | 0.75 | 0.44 | 0.884 | **0.50** | 38/38 |
-| TLS heuristic | 42 | 0.308 | 0.35 | 0.27 | 0.643 | 0.73 | 0.46 | 0.743 | **0.53** | 39/42 |
-| MLS learned | 23 | 0.139 | 0.17 | 0.18 | 0.522 | 0.74 | 0.47 | 0.706 | 0.60 | 20/23 |
-| TLS learned | 23 | 0.176 | 0.27 | 0.22 | 0.532 | 0.70 | 0.45 | 0.669 | **0.53** | 21/23 |
+| MLS heuristic | 38 | 0.407 | 0.30 | 0.24 | 0.772 | 0.75 | 0.44 | 0.981 | **0.49** | 26/38 |
+| TLS heuristic | 42 | 0.308 | 0.35 | 0.27 | 0.643 | 0.73 | 0.46 | 0.763 | **0.51** | 30/42 |
+| MLS learned | 23 | 0.139 | 0.17 | 0.18 | 0.522 | 0.74 | 0.47 | 0.826 | **0.51** | 11/23 |
+| TLS learned | 23 | 0.176 | 0.27 | 0.22 | 0.532 | 0.70 | 0.45 | 0.695 | **0.53** | 18/23 |
 
 The strict column varies by a factor of three across runs because it is measuring
 different amounts of stem, not different trees. The relaxed column collapses that
-spread to 0.44 to 0.47, and the model column to 0.50 to 0.53 with one outlier. Four
-runs that disagree on the raw number and agree on the form factor is exactly what a
-coverage artefact looks like once it is corrected.
+spread to 0.44 to 0.47, and the model column to **0.49 to 0.53**. Four runs that
+disagree on the raw number and agree on the ratio is exactly what a coverage artefact
+looks like once it is corrected.
 
-The MLS learned run at 0.60 is the exception and should be read as one: it has the
-lowest cover of the four before relaxation, 0.17, so its model extrapolates further
-than any other and three of its 23 trees were refused outright.
+**The last column is the price.** Only 26 of 38 trees get a model volume on MLS, and
+11 of 23 on MLS learned. A fitted taper that does not close at the tip is refused
+rather than clamped flat, so fewer trees carry a whole-stem estimate and the ones that
+do are defensible. An earlier version clamped instead and reported 38 of 38, with the
+MLS learned form factor at 0.60 rather than 0.51. The extra twelve trees were
+cylinders running to the treetop.
 
 Read the three rows as one argument. Loosening the thresholds is not a fudge: cover
 goes from 0.30 to 0.75 and the form factor moves from 0.24 to 0.44, which is measured
@@ -165,6 +172,47 @@ converging on the same place is the reason to believe the last one.
 quote when the question is measurement. The model column is the one to carry into a
 regression against ALS metrics, because ALS crown metrics respond to the whole tree.
 The relaxed column is the bridge that shows the other two are consistent.
+
+![stem profile with the fitted taper](../../docs/figures/day04_taper_profile.png)
+
+The stem profile is where the three columns become one picture. Grey circles are the
+cross-sections accepted at PCT's thresholds, blue triangles the relaxed ones, the
+solid line is the Kozak function fitted through them, and the dashed line is where it
+is extrapolating above the last usable slice. Shaded area is stem that was never
+measured.
+
+**The third panel is a fit being refused.** Its curve does not close at the tip: the
+predicted diameter at the top is 0.998 of the diameter at the last measurement, so
+the model would have run a 0.16 m cylinder from 18.6 m to the tree top and charged
+the volume for it. Its form factor came out at 0.60 where its neighbours hold 0.44 to
+0.48. Clamping such a fit to be non-increasing does not repair it, it disguises it,
+so the volume is refused instead. The two tests are that the curve must close,
+$d(0.999H) \le 0.5\,d(z_1)$, and must not widen with height.
+
+### The numbers behind the numbers
+
+Nothing here used half-metre sections. Every reported volume came from these:
+
+| | strict | relaxed | 3DFin |
+| --- | ---: | ---: | ---: |
+| slice thickness | 0.10 m | 0.20 m | 0.05 m |
+| **step between cross-sections** | **0.08 m** | **0.20 m** | **0.20 m** |
+| minimum points per slice | 100 | 15 | n/a |
+| RANSAC distance threshold | 0.04 m | 0.06 m | 0.02 m |
+| radius tolerance between slices | 0.03 m | 0.09 m | n/a |
+| centre tolerance | 0.06 m | 0.15 m | n/a |
+| RANSAC iterations | 2000 | 2000 | n/a |
+| diameter accepted | 0.02 to 3.0 m | 0.02 to 3.0 m | 0.06 to 1.0 m |
+
+The strict column is PCT's Phase 5 as taught: cross-sections every 8 cm through a
+10 cm slab, so consecutive slabs overlap. `presets.ALS.taper` does carry a 0.50 m
+step, but `run_sensor` never consumes it, so no result here used it.
+
+**DBH is not a slice.** It is the fitted Kozak curve evaluated at exactly 1.3 m, so it
+does not depend on a slice landing at breast height. Without a fitted model it falls
+back to interpolating the smoothed curve there. 3DFin instead has `tree_locator` pick
+the best-quality section near breast height, which is one reason the two disagree
+tree by tree.
 
 The relaxed settings are `TaperParams.relaxed()`: slices twice as thick, steps two
 and a half times longer, the minimum point count cut to 15 per cent, and the
@@ -219,12 +267,17 @@ MLS here.
 Correlation with ALS metrics across the twelve matched trees, one column per volume
 variant:
 
-| ALS metric | strict | relaxed | model |
+| ALS metric | strict (n=12) | relaxed (n=12) | model (n=10) |
 | --- | ---: | ---: | ---: |
-| h_max | +0.590 | +0.751 | **+0.791** |
-| h_p99 | +0.495 | +0.675 | **+0.722** |
-| crown volume | +0.680 | +0.725 | +0.716 |
-| crown area | +0.625 | +0.650 | +0.634 |
+| h_max | +0.590 | +0.752 | **+0.822** |
+| h_p99 | +0.495 | +0.676 | **+0.763** |
+| crown volume | +0.680 | +0.724 | +0.689 |
+| crown area | +0.625 | +0.649 | +0.565 |
+
+The model column covers ten of the twelve trees; the other two had their fits refused.
+Refusing them **raised** the height correlation, from +0.791 to +0.822, which is a
+second independent argument that the refusal is right: the ALS knows nothing about the
+taper, so a rule that improves the agreement is removing noise rather than data.
 
 This is worth more than it looks. Nothing in the taper reconstruction knows about the
 ALS, so the ALS correlations are an independent test of which column is closest to the

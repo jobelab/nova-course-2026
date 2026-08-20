@@ -106,8 +106,11 @@ def _():
     }
     OUTDIR = REPO / "out" / "day04"
     return (
+        ALS,
         CLOUDS,
+        MLS,
         OUTDIR,
+        TLS,
         TaperParams,
         alt,
         join_sensors,
@@ -116,7 +119,6 @@ def _():
         pd,
         plt,
         run_sensor,
-        taper_curve,
     )
 
 
@@ -906,20 +908,22 @@ def _(mo):
 
     | run | trees | strict | cover | f | relaxed | cover | f | model | f | model usable |
     | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-    | MLS heuristic | 38 | 0.407 | 0.30 | 0.24 | 0.772 | 0.75 | 0.44 | 0.884 | **0.50** | 38/38 |
-    | TLS heuristic | 42 | 0.308 | 0.35 | 0.27 | 0.643 | 0.73 | 0.46 | 0.743 | **0.53** | 39/42 |
-    | MLS learned | 23 | 0.139 | 0.17 | 0.18 | 0.522 | 0.74 | 0.47 | 0.706 | 0.60 | 20/23 |
-    | TLS learned | 23 | 0.176 | 0.27 | 0.22 | 0.532 | 0.70 | 0.45 | 0.669 | **0.53** | 21/23 |
+    | MLS heuristic | 38 | 0.407 | 0.30 | 0.24 | 0.772 | 0.75 | 0.44 | 0.981 | **0.49** | 26/38 |
+    | TLS heuristic | 42 | 0.308 | 0.35 | 0.27 | 0.643 | 0.73 | 0.46 | 0.763 | **0.51** | 30/42 |
+    | MLS learned | 23 | 0.139 | 0.17 | 0.18 | 0.522 | 0.74 | 0.47 | 0.826 | **0.51** | 11/23 |
+    | TLS learned | 23 | 0.176 | 0.27 | 0.22 | 0.532 | 0.70 | 0.45 | 0.695 | **0.53** | 18/23 |
 
     Volumes in m3. **The strict column varies threefold across runs and the form
     factor does not.** That is the signature of a coverage artefact: the runs are
     measuring different amounts of stem, not different trees. Relaxing the thresholds
-    collapses the spread to 0.44 to 0.47, and the model column to 0.50 to 0.53, where
+    collapses the spread to 0.44 to 0.47, and the model column to 0.49 to 0.53, where
     a boreal conifer belongs.
 
-    MLS learned at 0.60 is the exception and reads as one: lowest cover of the four
-    before relaxation at 0.17, so it extrapolates furthest, and 3 of its 23 trees were
-    refused outright.
+    The last column is the price. A fitted taper that does not close at the tip is
+    refused rather than clamped flat, so only 26 of 38 trees carry a model volume on
+    MLS and 11 of 23 on MLS learned. An earlier version clamped instead and reported
+    every tree, with the MLS learned form factor at 0.60 rather than 0.51. The extra
+    trees were cylinders running to the treetop.
 
     ### Matching to ALS
 
@@ -937,12 +941,12 @@ def _(mo):
 
     ### The objective, twelve matched trees
 
-    | ALS metric | strict | relaxed | model |
+    | ALS metric | strict (n=12) | relaxed (n=12) | model (n=10) |
     | --- | ---: | ---: | ---: |
-    | h_max | +0.590 | +0.751 | **+0.791** |
-    | h_p99 | +0.495 | +0.675 | **+0.722** |
-    | crown volume | +0.680 | +0.725 | +0.716 |
-    | crown area | +0.625 | +0.650 | +0.634 |
+    | h_max | +0.590 | +0.752 | **+0.822** |
+    | h_p99 | +0.495 | +0.676 | **+0.763** |
+    | crown volume | +0.680 | +0.724 | +0.689 |
+    | crown area | +0.625 | +0.649 | +0.565 |
 
     Correlation with ground-derived stem volume, one column per variant. Nothing in the
     taper reconstruction knows about the ALS, so this is an independent test of which
@@ -1016,7 +1020,7 @@ def _(OUTDIR, mo, pd):
             """
         ),
     ])
-    return (final_table,)
+    return
 
 
 @app.cell
@@ -1033,6 +1037,14 @@ def _(OUTDIR, mo):
          "Every point below the 1:1 line is stem the reconstruction never reached, and "
          "the form factor of a measured volume rises with cover until it meets the band "
          "where a boreal conifer belongs."),
+        ("Stem profile: cross-sections, the taper function, and the extrapolation",
+         "day04_taper_profile.png",
+         "Diameter against height for three real stems. Grey circles are slices "
+         "accepted at PCT's thresholds, blue triangles the relaxed ones, the solid "
+         "line is the Kozak fit through them and the dashed line its extrapolation "
+         "to the tip. The red dot at 1.3 m is DBH, read from the curve rather than "
+         "from any one slice. Where the fit does not close at the tip the model is "
+         "refused outright, which is the red panel."),
         ("The objective, twelve matched trees",
          "day04_objective.png",
          "Against ALS height the modelled volume tracks better than the strict one, "

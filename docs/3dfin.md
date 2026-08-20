@@ -66,20 +66,66 @@ default of 1000 starves it on a plot this size:
 
 45 at `vert > 0.7, n_points = 200` is closest to the 41 reference trees.
 
-## First run, and why it is not a fair comparison
+## Wired in as a method: `novatrees.dfin_bridge`
 
-With lightly-tuned parameters on `crsot_mixed_stand`:
+`run_dendromatics` drives the five steps in the order 3DFin's own
+`abstract_processing.py` calls them, and returns per-tree measurements, per-point
+instance labels and every fitted section, so the result is scored by the same
+`novatrees.evaluate` functions as everything else.
 
-| | trees | reference hit | recall |
-| --- | ---: | ---: | ---: |
-| 3DFin / dendromatics | 14 | 17 of 36 | 0.47 |
-| `novatrees` with the weighted pre-screen | 37 | 33 of 36 | **0.92** |
+    from novatrees.dfin_bridge import prepare, run_dendromatics, section_volumes
+
+    coords = prepare(read_cloud("crsot_mixed_stand-2.laz"))   # raw Z, normalised Z0
+    r = run_dendromatics(coords)
+    r.trees, r.labels, r.sections
+
+**Parameters stay at 3DFin's shipped defaults**, with one deviation: `n_points` is
+200 rather than 1000, because 1000 is a hard floor on cluster size and starves on a
+plot this small. Retuning someone else's software until it agrees with yours proves
+nothing.
+
+## Measured, scored the same way as everything else
+
+On `crsot_mixed_stand`, against the 41 reference instances, ground excluded from the
+labels because dendromatics assigns every point in the cloud and we never label
+ground:
+
+| method | instances | matched of 41 | recall | precision | mean IoU | h RMSE |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| A  CHM watershed (PCT port) | 13 | 6 | 0.15 | 0.46 | 0.735 | 1.99 m |
+| **D  3DFin / dendromatics** | **23** | **16** | **0.39** | **0.70** | **0.673** | **1.96 m** |
+| B  cross-section seeds | 32 | 24 | 0.59 | 0.75 | 0.790 | 0.87 m |
+| C  TreeAIBox learned seeds | 28 | 22 | 0.54 | 0.79 | 0.805 | 0.95 m |
+| B+ pre-screened | 36 | 28 | 0.68 | 0.78 | 0.805 | 0.82 m |
+
+3DFin lands between the top-down method and ours: clearly better than a CHM on a
+stand where half the stems are suppressed, clearly behind cross-section seeding here.
+Its 51 verticality clusters became 23 trees, so most of the loss is in
+individualisation rather than in finding stems.
 
 **Do not read that as ours being better.** 3DFin is built for plot-scale multi-scan
-TLS and exposes a large parameter set through its own GUI, almost none of which was
-tuned here; ours has been tuned against this exact plot for a full session, which is
-a form of overfitting. The useful comparison would tune both, and would be worth
-doing before trusting either on a new plot.
+TLS and exposes a large parameter set through its own GUI, essentially none of which
+was tuned here; ours has been tuned against this exact plot for a full session, which
+is a form of overfitting. Its `maximum_height` default of 25 m and its stripe limits
+are survey conventions, not physics. The useful comparison would tune both.
+
+## Where it agrees with us, which matters more
+
+`section_volumes` integrates the dendromatics sections the same way our measured
+column does. On this plot it returns 18 usable stems with a **median cover of 0.24
+and a median form factor of 0.21**.
+
+Ours, on the Day 4 MLS, was cover 0.30 and form factor 0.24 before the fitted taper
+was added. **Two independent implementations produce the same pathology**, which is
+the strongest evidence available that a partial stem volume is a property of these
+clouds rather than a defect in our slice acceptance. It also means 3DFin's stem
+volumes carry the same caveat, and reading its output as whole-stem volume would make
+the same mistake.
+
+One difference worth noting: 3DFin is far stricter per section. It accepted 192
+sections across 23 trees, roughly 8 each out of 124 attempted, because a circle is
+rejected unless the inner circle is nearly empty, which is a genuinely better test for
+"is this bark or foliage" than a minimum point count.
 
 ## Usage
 

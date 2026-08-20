@@ -18,6 +18,17 @@ scored rather than admired.
 
 ![semantic classes on the Day 3 plot](../../docs/figures/day03_semantic_segmentation.png)
 
+Ground grey, stem red, foliage green. The streaks in the plan view are leaning stems
+flattened along their own tracked axis: a round blob is a plumb tree, a streak points
+the way it leans.
+
+![stem profile with the fitted taper](../../docs/figures/day04_taper_profile.png)
+
+Where the taper section of the notebook leads. Measured cross-sections, the Kozak
+function fitted through them, and its extrapolation above the last usable slice.
+Rendered from the Day 4 MLS because that is where the three volume variants are
+compared, but the reconstruction is the one this notebook builds.
+
 Both notebooks end with a **Results as measured** section carrying the numbers from the
 recorded run, so they can be read without executing anything.
 
@@ -44,6 +55,7 @@ Scored against the reference `treeid` labels in the cloud (41 instances):
 | method | seeds | instances | matched of 41 | recall | precision | mean IoU | h RMSE | under-seg |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | A  CHM watershed (PCT port) | 13 | 13 | 6 | 0.15 | 0.46 | 0.735 | 1.99 m | 7 |
+| D  3DFin / dendromatics | 51 | 23 | 16 | 0.39 | 0.70 | 0.673 | 1.96 m | - |
 | B  cross-section seeds | 38 | 32 | 24 | 0.59 | 0.75 | 0.790 | 0.87 m | 5 |
 | **B+ pre-screened (verticality + reflectance)** | 37 | 36 | **28** | **0.68** | 0.78 | **0.805** | **0.82 m** | **3** |
 | C  TreeAIBox learned seeds | 34 | 28 | 22 | 0.54 | **0.79** | 0.805 | 0.95 m | 5 |
@@ -67,6 +79,25 @@ half this stand is suppressed. A canopy height model keeps only the highest retu
 per cell, so a tree beneath a taller neighbour leaves no trace in it. Cross-section
 seeding looks at breast height, where a suppressed stem is as visible as a dominant
 one.
+
+**Method D is third-party software, not our code.** `novatrees.dfin_bridge` drives
+3DFin's algorithmic core, dendromatics, in the order 3DFin's own processing module
+calls it, at its shipped defaults except for one cluster-size floor that starves on a
+plot this small. It lands between the top-down method and ours, which is roughly what
+its design predicts: it seeks stems at breast height like B, but individualises by
+distance to a PCA axis, and 51 verticality clusters became 23 trees, so most of the
+loss is there rather than in finding stems.
+
+Read that row with care. Its parameters were not tuned here and ours were tuned
+against this exact plot for a session, which is a form of overfitting. Its 25 m
+`maximum_height` default and its stripe limits are survey conventions, not physics.
+
+Where it agrees with us matters more than where it wins. Its own stem reconstruction
+covers a median 24 per cent of tree height at form factor 0.21, against our 30 per
+cent and 0.24 before a fitted taper was added. **Two independent implementations
+produce the same partial-volume pathology**, which is the strongest evidence that this
+is a property of the clouds rather than a defect in our slice acceptance. See
+[`../../docs/3dfin.md`](../../docs/3dfin.md).
 
 Note what is being compared: PCT uses crown segments as a *partition* step and then
 classifies stem points within each segment. This is one stage of that pipeline

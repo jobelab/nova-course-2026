@@ -349,6 +349,33 @@ model that extrapolated itself too fat. The form factor is a diagnostic here, no
 a result: it is the fastest way to catch the failure above, which is exactly how
 that failure was found.
 
+### The model has to close
+
+An extrapolated taper is only usable if it behaves like a stem above the data, so
+the fitted curve is tested before it is integrated, on the raw prediction rather
+than on a clamped copy:
+
+$$d(0.999H) \le 0.5\,d(z_1) \qquad\wedge\qquad \frac{\partial d}{\partial z} \le 0
+\ \ \text{on}\ [z_0, H]$$
+
+A stem closes to nearly nothing at the tip and never widens with height. A fit
+failing either test has left the data rather than extended it, and its volume is
+refused outright.
+
+**This matters more than it sounds.** Forcing a badly-behaved fit to be non-increasing
+does not repair it, it turns it into a flat cylinder running to the tree top: a
+plausible-looking profile carrying a large invented volume. One tree drawn in the
+stem-profile figure did exactly that, at diameter 0.16 m from 18.6 m to 23.6 m, and
+its form factor came out at 0.60 against the 0.45 to 0.50 its neighbours held.
+
+The coefficient is measured, not chosen by taste. Audited across ten MLS stems, the
+ratio $d(0.999H)/d(z_1)$ is **0.031 to 0.191 for the eight fits that close** and
+**0.571 and 1.137 for the two that do not**. The gap between those groups is wide, so
+any threshold from about 0.25 to 0.5 gives the same answer, and the choice is not
+load-bearing. Two stems in ten being refused is the price, and it is the right price:
+a fit predicting a tip 57 per cent as thick as the last real measurement is not
+describing a tree.
+
 The Kozak form keeps a power of $X$ whose exponent varies with relative height:
 
 $$d(h) = D \cdot X^{\,b_1 z^2 + b_2 \ln(z + 0.001) + b_3 \sqrt{z} + b_4 e^{z}},
@@ -356,6 +383,31 @@ $$d(h) = D \cdot X^{\,b_1 z^2 + b_2 \ln(z + 0.001) + b_3 \sqrt{z} + b_4 e^{z}},
 
 reduced to four coefficients, because the published nine-coefficient version is
 fitted across a population rather than one stem.
+
+### The inner circle: a cross-section has to be hollow
+
+A stem cross-section is a **ring**, not a disc. The scanner sees bark and the wood
+behind it stops the beam, so the middle of a real cross-section is empty. Anything
+inside it did not come from the stem surface.
+
+With a circle fitted at $(x_c, y_c, r)$, count the points inside a concentric inner
+circle and reject the slice when too many sit there:
+
+$$\frac{\lvert \{\, \mathbf{q} : \lVert \mathbf{q} - \mathbf{c} \rVert < \lambda r \,\} \rvert}
+{\lvert \text{slice} \rvert} \; \le \; \tau,
+\qquad \lambda = 0.5, \quad \tau = 0.10$$
+
+**This asks whether the geometry is right, where a minimum point count only asks
+whether there is enough of it.** A slab full of foliage, a branch crossing the slice,
+mist between the stems, or a circle that has wrapped around something that is not a
+stem all produce a filled disc, and all of them pass a point-count test comfortably.
+
+The idea is 3DFin's, and it is the one place their per-section acceptance is clearly
+stricter than ours was: they reject a circle unless the inner circle holds no more
+than five points. An absolute count is used there because 3DFin is a TLS tool. Here it
+is a fraction, because these clouds span three orders of magnitude in density, from
+ALS at 3,000 points per square metre to TLS at 323,000, and five points means
+something different in each.
 
 ### Sector occupancy, and what the ellipse cannot do
 
