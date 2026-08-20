@@ -50,6 +50,7 @@ from .inventory import (
 )
 from .io import read_xyz, write_labelled, write_seeds
 from .presets import ALS, MLS, PRESETS, TLS, SensorPreset, preset_for
+from .workflow import SensorRun, run_sensor
 from .stemgeom import ForkParams, axis_ratio, find_forks, sector_occupancy
 from .taper import TaperParams, TaperResult, slice_fits, taper_curve
 from .pipeline import (
@@ -62,6 +63,8 @@ from .pipeline import (
 )
 
 __all__ = [
+    "run_sensor",
+    "SensorRun",
     "denoise_statistical",
     "denoise_radius",
     "denoise",

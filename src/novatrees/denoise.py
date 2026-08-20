@@ -20,6 +20,19 @@ here: they form a faint halo around every stem, and a circle fitted through that
 halo comes out too large. They are harder to remove because they are not isolated,
 they are thinly but consistently distributed.
 
+**Atmospheric returns**: mist, fog and drizzle. Droplets hang around stems and drift
+between trees, and they are the awkward case because they are **diffuse rather than
+isolated**. A statistical filter looks at each point's k nearest neighbours, and a
+droplet inside a patch of mist has neighbours, so it survives. Raising `n_sigma`
+does not help; it removes real sparse canopy first.
+
+Two things do work on mist. A **radius** filter at a scale wider than the droplet
+spacing sees the patch as under-dense where a k-nearest test saw it as fine. And
+mist returns are **weak**: on this scanner bark sits near -0.5 dB and foliage near
+-9.8 dB, so atmospheric returns fall below both and the reflectance screen in
+`novatrees.features` removes them almost incidentally. Where reflectance is
+recorded, screen on it before reaching for a geometric filter.
+
 **Registration ghosts** in multi-scan or mobile data, where the same surface appears
 twice a few centimetres apart. Neither filter here removes those; they need better
 registration, not outlier rejection.
