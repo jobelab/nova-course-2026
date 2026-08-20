@@ -183,7 +183,13 @@ measured on 13 crowns near the plot centre and applied to 53.
 
 Everything above ran on our own CHM watershed crowns. Repeating it with `pcf`'s
 variable-window tops and Dalponte 2016 crowns, on the same normalised heights so that
-only the segmentation differs:
+only the segmentation differs.
+
+`pcf` is my Python mirror of the R exercises from the earlier course sessions, and the
+crown algorithm inside it is [Dalponte and Coomes
+2016](https://doi.org/10.1111/2041-210X.12575), reached through
+[lidR](https://doi.org/10.1016/j.rse.2020.112061). Neither is mine, and on this step
+both are better than what I wrote:
 
 | | ours, watershed | `pcf`, dalponte2016 |
 | --- | ---: | ---: |

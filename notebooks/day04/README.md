@@ -299,8 +299,15 @@ twelve trees from one plot would produce a demonstration, not a model.
 
 ## Against the earlier course pipeline
 
-The exercises from the earlier sessions live in the sibling package `pcf`, a Python
-reimplementation of the lidR route: CSF or morphological ground, **TIN** height
+The exercises from the earlier sessions of this course are the organisers' material,
+written in R against `lidR`: `Lecture2_Exercise_SurfaceModels.Rmd` for ground, DTM and
+CHM, and `Session3_Exercise_Segmentation.Rmd` for detection and crowns. `pcf` is my own
+Python mirror of that pipeline, written for those sessions and reused here rather than
+rewritten. The algorithms in it belong to their authors: Dalponte and Coomes 2016 for
+the crowns used on the ALS, Silva et al. 2016 for the alternative, Roussel et al. 2020
+for lidR itself.
+
+It follows the lidR route: CSF or morphological ground, **TIN** height
 normalisation, variable-window tree tops, then Dalponte 2016 or Silva 2016 crowns.
 `novatrees.pcf_bridge` runs it beside this one rather than choosing between them,
 because they were built for different data and it shows.

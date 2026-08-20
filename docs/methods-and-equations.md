@@ -457,3 +457,28 @@ compared cover different amounts of ground.
   [Yrttimaa et al. 2019](https://doi.org/10.3390/rs11121423),
   [2020](https://doi.org/10.1016/j.isprsjprs.2020.08.017)
 - TreeAIBox - [NRCan/TreeAIBox](https://github.com/NRCan/TreeAIBox)
+
+---
+
+## Where the algorithms come from
+
+This repository implements very little that is new. What it adds is the measurement of
+one approach against another on the same data, and the record of what that measurement
+overturned.
+
+| step | algorithm | source |
+| --- | --- | --- |
+| ground | Cloth Simulation Filter | Zhang et al. 2016 |
+| circle fit | Taubin algebraic fit, inside RANSAC | Taubin 1991 |
+| clustering | DBSCAN | Ester et al. 1996 |
+| crown detection, top-down | marker-controlled watershed | ported from Yrttimaa's PCT |
+| crown detection, ALS | variable window + Dalponte 2016 | Dalponte & Coomes 2016, reached through `pcf` |
+| crown detection, alternative | Silva 2016 | Silva et al. 2016 |
+| stem axis, sector occupancy | section-by-section tracking | the idea is dendromatics / 3DFin |
+| taper | variable-exponent form, four coefficients | Kozak 2004 |
+| log back-transform | bias correction factor | Baskerville 1972 |
+| learned stem and tree detection | TreeisoNet | Xi & Degenhardt 2025 |
+
+The R exercises of the earlier course sessions, `Lecture2_Exercise_SurfaceModels.Rmd`
+and `Session3_Exercise_Segmentation.Rmd`, are the course organisers' material. `pcf` is
+my own Python mirror of that pipeline, written for those sessions and reused here.

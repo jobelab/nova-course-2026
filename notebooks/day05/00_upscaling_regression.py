@@ -932,5 +932,70 @@ def _(mo):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+
+    ## Results as measured
+
+    Recorded from the run of 2026-08-20 so the numbers are readable without executing
+    anything. Reproduce them by pressing the buttons above.
+
+    ### The ALS segmentation decides everything downstream
+
+    | | ours, watershed | `pcf`, dalponte2016 |
+    |---|---:|---:|
+    | objects found | 92 | 118 |
+    | after fragment filtering | 53 | 97 |
+    | crowns inside the 15 m ground plot | 13 | **25** |
+    | median crown area | 84.1 m2 | **29.8 m2** |
+    | stems per occupied crown | 2.64 | **1.31** |
+    | **stems the ALS accounts for** | **34 %** | **63 %** |
+    | training trees | 11 | **21** |
+    | R2 cv | -0.174 | **+0.378** |
+    | RMSE cv | 30.7 % | **20.8 %** |
+    | fitted height exponent | 1.48 | **2.21** |
+    | expansion ratio R | 1.60 | **1.06** |
+
+    Our crowns are about three times too large, each holding two or three stems. The
+    height exponent only reaches 2.21, which is what a cone predicts, once the crowns
+    are the right size, and with crowns holding roughly one stem the dominant-stem
+    model already captures 94 per cent of the volume under them.
+
+    **The claim that the helicopter cannot see the understorey was mostly wrong.** It
+    was our crown delineation merging neighbours, and only running someone else's
+    implementation on the same data separated the two.
+
+    ### Three formulations of the same question
+
+    | matching | n | fitted | R2 cv | RMSE cv |
+    |---|---:|---|---:|---:|
+    | nearest neighbour, dominant stem | 10 | `V = 2.81e-07 h_max^4.060 crown_volume^0.326` | +0.557 | 19.8 % |
+    | crown ownership, dominant stem | 11 | `V = 0.000897 h_max^1.523 crown_volume^0.341` | -0.116 | 29.9 % |
+    | crown occupancy, volume per crown | 14 | crown volume alone | +0.122 | 52.5 % |
+    | crown occupancy, stems per crown | 14 | every model loses to the mean | negative | > 51 % |
+
+    Each row is a better question than the one above it and scores worse. The first
+    row's flattering number came from a selected sample: matching within a fixed radius
+    keeps isolated upright trees whose base sits under their own apex.
+
+    ### The stand, with `pcf` crowns
+
+    | | dominant stems only | corrected by R |
+    |---|---:|---:|
+    | plot total | 101.5 m3 | **107.7 m3** |
+    | **per hectare** | 359 m3/ha | **381 m3/ha** |
+    | stems per hectare | 343 | **450** |
+
+    The ground plot holds 38 stems in 0.071 ha, near 540 per hectare, so the corrected
+    density is the right order and still a little low, which is what a canopy that hides
+    the smallest trees should do. At 450 stems and 381 m3 per hectare the mean tree is
+    0.85 m3, and a 25 m stem of 0.30 m DBH at form factor 0.5 is 0.88 m3. That the two
+    agree is a check, not a proof, and the volume still rests on 21 trees from one plot.
+    """)
+    return
+
+
 if __name__ == "__main__":
     app.run()

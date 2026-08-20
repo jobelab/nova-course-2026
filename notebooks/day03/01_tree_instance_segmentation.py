@@ -1579,14 +1579,20 @@ def _(mo):
     Scored against the 41 reference instances in the `treeid` field of the cloud.
     Recorded from the run of 2026-08-19 so the numbers are here without a full pass.
 
-    ### Detection, four methods on the same cloud
+    ### Detection, five methods on the same cloud
 
     | method | seeds | instances | matched of 41 | recall | precision | mean IoU | h RMSE | under-seg |
     | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
     | A  CHM watershed (PCT port) | 13 | 13 | 6 | 0.15 | 0.46 | 0.735 | 1.99 m | 7 |
+    | D  3DFin / dendromatics | 51 | 23 | 16 | 0.39 | 0.70 | 0.673 | 1.96 m | - |
     | B  cross-section seeds | 38 | 32 | 24 | 0.59 | 0.75 | 0.790 | 0.87 m | 5 |
     | **B+ pre-screened (verticality + reflectance)** | 37 | 36 | **28** | **0.68** | 0.78 | **0.805** | **0.82 m** | **3** |
     | C  TreeAIBox learned seeds | 34 | 28 | 22 | 0.54 | **0.79** | 0.805 | 0.95 m | 5 |
+
+    Method D is third-party software driven through `novatrees.dfin_bridge`, at 3DFin's
+    own defaults except one cluster-size floor that starves on a plot this small. Read
+    its row with care: its parameters were not tuned here and ours were tuned against
+    this exact plot for a session.
 
     Recall is against **all 41** reference trees, not only those a prediction happened
     to overlap. That denominator matters: scored the other way, covering less of the
@@ -1612,12 +1618,35 @@ def _(mo):
     The minimum is dragged down by sub-surface noise, and 96 per cent of its RMSE is
     bias rather than scatter.
 
-    ### Taper
+    ### Taper, and this stand as the second plot
 
     Reconstruction spans 16 to 44 per cent of tree height at these thresholds, so the
     volume above is a **partial** stem volume and its form factor sits near 0.25
     against the 0.45 to 0.50 a boreal conifer holds. Day 4 reports three volumes per
     tree instead of one and closes the gap with a fitted taper.
+
+    This stand is the independent check on that. It is a different stand, a different
+    scanner and a different size class, and it carries **41 reference instances**, so
+    the taper can be measured with our own segmentation out of the way:
+
+    | set | n | height | DBH | cover strict | cover relaxed | f strict | f relaxed | f model | models usable |
+    | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+    | Plot 167 MLS | 38 | 25.2 m | 0.300 | 0.30 | 0.75 | 0.24 | 0.44 | 0.49 | 26/38 |
+    | Plot 167 TLS | 42 | 23.8 m | 0.285 | 0.35 | 0.73 | 0.27 | 0.46 | 0.51 | 30/42 |
+    | Mixed stand, detected | 23 | 12.8 m | 0.185 | 0.42 | 0.74 | 0.34 | 0.48 | 0.52 | 7/23 |
+    | **Mixed stand, reference labels** | 16 | 8.3 m | 0.097 | 0.39 | 0.65 | 0.40 | 0.56 | - | **0/16** |
+
+    **The coverage artefact transfers and is not our segmentation.** Strict settings
+    cover 0.30 to 0.42 of tree height on every set including the reference-labelled
+    one, and relaxing reaches 0.65 to 0.75 everywhere: two stands, three sensors, stems
+    from 8 m to 25 m.
+
+    **The fitted taper does not transfer to small trees.** 26 of 38 usable at 25 m,
+    7 of 23 at 13 m, and none of 16 at 8 m. The refusals are not marginal: predicted
+    tip diameters come back 10^9 to 10^12 times the last measured diameter, because
+    four Kozak coefficients on a short, thin, partly-covered stem are under-determined.
+    The modelled whole-stem volume is a **dominant-tree** quantity; the measured
+    columns are the only ones that work across the size range.
     """)
     return
 
@@ -1645,6 +1674,11 @@ def _(OUTDIR, mo):
         ("Stem profile and the taper function (Day 4 data)", "day04_taper_profile.png",
          "What the taper section above produces, carried further: the fitted Kozak "
          "curve, its extrapolation to the tip, and one fit refused for not closing."),
+        ("Two plots compared: does the taper transfer?",
+         "two_plot_taper_comparison.png",
+         "Cover and form factor behave the same on both stands, including on "
+         "reference-labelled stems. The fitted taper does not: usable on 26 of 38 "
+         "stems at 25 m and on none of 16 at 8 m."),
         ("Semantic segmentation across three sensors (Day 4)",
          "day04_semantic_segmentation.png",
          "The same classes from a helicopter, a mobile scanner and a tripod. Only the "

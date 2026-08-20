@@ -132,12 +132,36 @@ contributed code here**, and any errors in this implementation are mine alone.
 | [**3DFin**](https://github.com/3DFin/3DFin) and [**dendromatics**](https://github.com/3DFin/dendromatics) | the 3DFin developers | driven by `novatrees.dfin_bridge` as a third detection method, at their own defaults. Their locally-tracked-axis idea is where `extract.track_stem_axis` came from |
 | [**CSF**](https://github.com/jianboqi/CSF) | Wuming Zhang, Jianbo Qi et al. | ground filtering. [Zhang et al. 2016](https://doi.org/10.3390/rs8060501) |
 | [**CloudCompare**](https://www.cloudcompare.org/) and [CloudCompare-PythonRuntime](https://github.com/tmontaigu/CloudCompare-PythonRuntime) | Daniel Girardeau-Montaut; Thomas Montaigu | the host application and its Python runtime |
+| [**lidR**](https://github.com/r-lidar/lidR) | Jean-Romain Roussel, David Auty and contributors | the R package the earlier course exercises were written against, and whose pipeline `pcf` mirrors. [Roussel et al. 2020](https://doi.org/10.1016/j.rse.2020.112061) |
+| **Dalponte 2016 crown segmentation** | Michele Dalponte & David Coomes | the ALS crown algorithm this repository now uses, reached through `pcf`. [Dalponte & Coomes 2016](https://doi.org/10.1111/2041-210X.12575) |
+| **Silva 2016 crown segmentation** | Carlos Alberto Silva et al. | the alternative in `pcf`, available through `PcfParams.method`. [Silva et al. 2016](https://doi.org/10.1080/07038992.2016.1196582) |
+| **Kozak variable-exponent taper** | Antal Kozak | the analytic taper fitted in `novatrees.taper`, reduced to four coefficients. Kozak 2004, *Forestry Chronicle* 80(4):507-515 |
+| **Baskerville correction** | G. L. Baskerville | the bias correction on the log-log back-transform in `novatrees.upscale`. Baskerville 1972, *Can. J. For. Res.* 2(1):49-53 |
 | [**marimo**](https://marimo.io) | the marimo developers | the reactive notebook format |
 
-The course and its Day 3 demo are the work of the organisers at SLU, with the
-close-range-sensing session taught by Tuomas Yrttimaa. The approach implemented here
-was learned from that session; the implementation, and any departures from it, are
-mine.
+### The earlier sessions of this course
+
+This is not the first exercise of the course, and Days 4 and 5 lean on the earlier
+ones. **The exercises themselves are the course organisers' material**, written in R
+against `lidR` and `terra`:
+
+| | |
+| --- | --- |
+| `Lecture2_Exercise_SurfaceModels.Rmd` | ground classification, DTM and CHM, surface models |
+| `Session3_Exercise_Segmentation.Rmd` | tree detection and crown segmentation |
+
+`pcf` (`point_cloud_forestry`) is **my own Python mirror** of that R pipeline, written
+for those earlier sessions and reused here rather than rewritten. It is a separate
+repository and an optional dependency; `novatrees.pcf_bridge` runs it side by side with
+this code, and on the ALS crown step it is the better of the two and is what the
+pipeline now uses. Where its results appear in this repository they are labelled
+`pcf`, and the algorithms inside it belong to the authors credited above rather than to
+either of us.
+
+The course, its Day 3 demo and the multi-sensor data are the work of the organisers at
+SLU, with the close-range-sensing session taught by Tuomas Yrttimaa. The approaches
+implemented here were learned from those sessions; the implementations, and any
+departures from them, are mine.
 
 ## Citation
 

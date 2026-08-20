@@ -560,6 +560,14 @@ def _(mo):
     - Taubin fit - Taubin G. (1991), *IEEE PAMI* 13(11)
     - DBSCAN - Ester M. et al. (1996), *KDD-96*
     - Kozak taper - Kozak A. (2004), *Forestry Chronicle* 80(4):507-515
+    - Log back-transform bias - Baskerville G.L. (1972),
+      *Can. J. For. Res.* 2(1):49-53
+    - lidR, the R pipeline the earlier course exercises used and that `pcf` mirrors -
+      Roussel J.-R. et al. (2020), [RSE 251:112061](https://doi.org/10.1016/j.rse.2020.112061)
+    - Crown segmentation used on the ALS - Dalponte M. & Coomes D. (2016),
+      [Methods Ecol. Evol. 7:1236](https://doi.org/10.1111/2041-210X.12575)
+    - Crown segmentation, alternative - Silva C.A. et al. (2016),
+      [Can. J. Remote Sens. 42:554](https://doi.org/10.1080/07038992.2016.1196582)
     - PCT - Yrttimaa T. (2021), [zenodo.5779288](https://doi.org/10.5281/zenodo.5779288);
       [Yrttimaa et al. 2019](https://doi.org/10.3390/rs11121423),
       [2020](https://doi.org/10.1016/j.isprsjprs.2020.08.017)

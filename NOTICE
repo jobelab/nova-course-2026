@@ -76,6 +76,46 @@ Dependencies - used, not included or modified
 Each is governed by its own licence.
 
 --------------------------------------------------------------------------
+Earlier sessions of the same course
+--------------------------------------------------------------------------
+
+Days 4 and 5 of this work reuse material from the earlier course sessions.
+
+  The exercises themselves are the course organisers' material, written in R
+  against lidR and terra:
+
+    Lecture2_Exercise_SurfaceModels.Rmd    ground, DTM, CHM, surface models
+    Session3_Exercise_Segmentation.Rmd     tree detection and crown segmentation
+
+  They are not distributed here and belong to the organisers at SLU.
+
+  pcf (point_cloud_forestry) is the present author's own Python mirror of that
+  R pipeline, written for those sessions and reused here rather than rewritten.
+  It lives in a separate repository and is an optional dependency. On the ALS
+  crown step it outperforms the implementation in this repository and is what
+  the pipeline now uses.
+
+  The algorithms reached through it belong to their authors, not to pcf:
+
+    lidR                     Roussel J.-R., Auty D. et al. (2020)
+                             Remote Sensing of Environment 251:112061
+                             doi:10.1016/j.rse.2020.112061
+    Dalponte 2016 crowns     Dalponte M. & Coomes D.A. (2016)
+                             Methods in Ecology and Evolution 7:1236-1245
+                             doi:10.1111/2041-210X.12575
+    Silva 2016 crowns        Silva C.A. et al. (2016)
+                             Canadian Journal of Remote Sensing 42:554-573
+                             doi:10.1080/07038992.2016.1196582
+
+  Two further methods are implemented directly in this repository from their
+  published descriptions:
+
+    Kozak variable-exponent taper   Kozak A. (2004)
+                                    Forestry Chronicle 80(4):507-515
+    Log back-transform correction   Baskerville G.L. (1972)
+                                    Canadian Journal of Forest Research 2(1):49-53
+
+--------------------------------------------------------------------------
 Data
 --------------------------------------------------------------------------
 

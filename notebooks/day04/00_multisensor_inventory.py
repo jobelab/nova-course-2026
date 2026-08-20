@@ -925,6 +925,30 @@ def _(mo):
     every tree, with the MLS learned form factor at 0.60 rather than 0.51. The extra
     trees were cylinders running to the treetop.
 
+    ### The ALS segmentation matters more than anything else here
+
+    Our CHM watershed against `pcf`'s Dalponte crowns, on the same normalised heights
+    so that only the segmentation differs. Run it with
+    `run_sensor(..., detector="pcf")`:
+
+    | | ours, watershed | `pcf`, dalponte2016 |
+    |---|---:|---:|
+    | objects found | 92 | 118 |
+    | after fragment filtering | 53 | 97 |
+    | crowns inside the 15 m ground plot | 13 | **25** |
+    | median crown area | 84.1 m2 | **29.8 m2** |
+    | stems per occupied crown | 2.64 | **1.31** |
+    | **stems the ALS accounts for** | **34 %** | **63 %** |
+
+    **Our crowns are about three times too large**, each swallowing two or three stems,
+    and everything downstream inherits it. In Day 5 the fitted height exponent moves
+    from 1.48 to 2.21, which is what a cone predicts, and the volume expansion ratio
+    falls from 1.60 to 1.06.
+
+    The lesson is not about `pcf`. It is that a result which looks like a sensor
+    limitation, *the helicopter cannot see the understorey*, was mostly a software one,
+    and only running someone else's implementation on the same data separated them.
+
     ### Matching to ALS
 
     | run | matched | median offset | height RMSE against ALS |
