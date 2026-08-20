@@ -161,8 +161,8 @@ travels with any redistribution. Both are recorded in [`NOTICE`](NOTICE).
 
     src/novatrees/     the Python library, see the module table below
     notebooks/         02_methods_and_equations.py, shared across days
-    notebooks/day03/   ground filtering, tree instance segmentation
-    notebooks/day04/   ALS + MLS + TLS to one joined inventory table
+    notebooks/day03/   ground filtering, tree instance segmentation  (+ README)
+    notebooks/day04/   ALS + MLS + TLS to one joined inventory table  (+ README)
     docs/              methods and equations, 3DFin, RF sensing
     docs/day03/        the Day 3 demo transcribed
     setup/             how CloudCompare and its plugins were built here
@@ -171,9 +171,13 @@ travels with any redistribution. Both are recorded in [`NOTICE`](NOTICE).
 ## Quick start
 
     uv sync
-    uv run marimo edit notebooks/00_ground_filtering_csf.py        # raw -> ground -> normalised
-    uv run marimo edit notebooks/01_tree_instance_segmentation.py  # trees, two methods compared
-    uv run marimo edit notebooks/02_methods_and_equations.py       # diagrams + the equations
+    uv run marimo edit notebooks/         # browse every notebook
+
+Or open one directly:
+
+    uv run marimo edit notebooks/day03/01_tree_instance_segmentation.py
+    uv run marimo edit notebooks/day04/00_multisensor_inventory.py
+    uv run marimo edit notebooks/02_methods_and_equations.py
 
 Or from the shell:
 
@@ -183,6 +187,21 @@ Or from the shell:
 
 CloudCompare launches with `cloudcompare` (the wrapper in `setup/bin`, installed
 to `~/.local/bin`). It carries the CSF, PCL and Python plugins.
+
+## The days
+
+Each day has its own README with the data, the exercise and the findings from it.
+This one stays general: what the repository is, how it is licensed and cited, and
+what the library does.
+
+| day | subject | notebooks |
+| --- | --- | --- |
+| **[Day 3](notebooks/day03/README.md)** | close-range sensing on one TLS plot: ground filtering, tree instance segmentation, stem taper | `notebooks/day03/` |
+| **[Day 4](notebooks/day04/README.md)** | ALS, MLS and TLS over plot 167, joined into one inventory table | `notebooks/day04/` |
+
+Shared across days: [`notebooks/02_methods_and_equations.py`](notebooks/02_methods_and_equations.py)
+and [`docs/methods-and-equations.md`](docs/methods-and-equations.md), the same content
+with and without a kernel.
 
 ## The pipeline
 
@@ -269,24 +288,6 @@ ground, and labels bleed across the plot.
 | `workflow` | `run_sensor`: the whole sequence for one cloud in one call |
 | `treeaibox` | the learned alternative, driving TreeAIBox models on CPU |
 
-## Day 4: three sensors over one plot
-
-`notebooks/day04/` works ALS, MLS and TLS over plot 167, ending in a table with
-ground-derived stem volume beside airborne metrics. The exercise stops at the table;
-the regression that would upscale volume from ALS is separate work.
-
-What makes it more than a repeat of Day 3:
-
-- **The method has to change with the sensor.** ALS switches to CHM watershed because
-  a helicopter cannot see a stem under closed canopy. On the Day 3 TLS plot the
-  ranking was the reverse. Neither method is better in general.
-- **The TLS is not georeferenced in Z**, so normalised height is the only datum the
-  three clouds share.
-- **All three are circular cookie cuts**, so edge trees are measured from a fraction
-  of themselves. They are flagged, not corrected.
-- **Two ground sensors let the result be checked**, which is worth more than either
-  one's internal fit statistics.
-
 ## State of the tooling, 2026-08-20
 
 Everything below runs on this machine, CPU-only, with no root access - plugins install
@@ -306,107 +307,51 @@ into `~/.local/share/CCCorp/CloudCompare/plugins` rather than `/opt`.
 
 ### What the pipeline does now
 
-Noise filtering → ground filtering (CSF) → height normalisation → **weighted stem
-pre-screen** (verticality + reflectance) → cross-section seeds → 3D Dijkstra region
-growing → stem-axis tracking → per-tree extraction → **RANSAC stem taper and volume**
-→ cross-sensor matching. Every stage is scored against the reference `treeid` labels
-where the course cloud provides them.
+Noise filtering, ground filtering (CSF), height normalisation, a weighted stem
+pre-screen on verticality and reflectance, cross-section seeds, 3D Dijkstra region
+growing, stem-axis tracking, per-tree extraction, RANSAC stem taper and volume, and
+cross-sensor matching. Where a cloud carries reference labels, every stage is scored
+against them rather than eyeballed.
 
-Best result on `crsot_mixed_stand_hnorm.laz` (15.6 M points, 41 reference trees):
-**28 trees matched, recall 0.68, precision 0.78, mean IoU 0.805, height RMSE 0.82 m**.
-Seed positions land within 0.03 m of the reference stems, 33 of 36 hit.
+Per-day results are in the day READMEs, since what counts as a good result depends
+entirely on the sensor and the stand.
 
 ### Known limitations
 
-**No GPU.** TreeAIBox models are labelled for 3–12 GB of VRAM but run on CPU: stem
-classification takes 47 s at 10 cm resolution or 191 s at 4 cm, on the full plot. The
-two resolutions produce near-identical classifications (mask IoU 0.834), so **10 cm is
-the better default here** despite the paper naming 4 cm as optimal - it optimises a
-point-level metric this dataset cannot measure.
+**No GPU.** TreeAIBox models are labelled for 3 to 12 GB of VRAM but run on CPU here:
+stem classification takes 47 s at 10 cm resolution or 191 s at 4 cm on a 15.6 M point
+cloud. The two resolutions classify almost identically (mask IoU 0.834), so 10 cm is
+the better default despite the paper naming 4 cm as optimal. The paper optimises a
+point-level metric this data cannot measure.
 
-**Stem masks are the binding constraint**, not the graph or the geometry. Several trees
-fail taper reconstruction because their stem classification is contaminated; the stems
-that appear tilted 60–80° are misclassifications, not leaning trees. A single PCA axis
-rotation was tried and does not reliably help. `dendromatics` tracks the axis section by
-section instead, which is the better answer - see [`docs/3dfin.md`](docs/3dfin.md).
-
-**Merged instances are a seeding failure.** The largest predicted tree swallowed two
-reference trees whole because only one had a seed, and no graph parameter fixes that.
-Better seeds do.
+**Stem masks bound the taper more than the geometry does.** Trees fail taper
+reconstruction because their stem classification is contaminated, not because the
+fitting is wrong. Axis tracking helped; better stem classification would help more.
 
 **The ellipse cannot measure lean.** The geometry is right, but at the lean angles
-here the signal is about 50 times below the ovality of a real stem, so `axis_ratio`
-ships as a per-slice quality flag only. Lean comes from the tracked centreline.
+present here the signal is about 50 times below the ovality of a real stem, so
+`axis_ratio` ships as a per-slice quality flag only. Lean comes from the tracked
+centreline.
 
-**Fork detection needs four tests, not one.** Counting components per band marks
-every tree as forked. Persistence, vertical extent, lean and relative radius together
-bring it to 3 of 12 large trees, which is believable for this stand.
+**Fork detection needs four tests, not one.** Counting components per band marks every
+tree as forked. Persistence, vertical extent, lean and relative radius together bring
+it to 3 of 12 large trees, which is believable for a boreal stand.
 
 **3D visualisation is server-rendered.** plotly's 3D scatter never rendered in the
 browser here and the cause was never found, so the notebooks use matplotlib PNGs with
-azimuth/elevation sliders. Less interactive, but it cannot fail downstream of the
-kernel - and at 60 k points a raster is 1.8 MB against pydeck's 17.7 MB for 80 k.
+azimuth and elevation sliders. Less interactive, but it cannot fail downstream of the
+kernel, and at 60 k points a raster is 1.8 MB against pydeck's 17.7 MB for 80 k.
 
 ### Where to read further
 
 | document | covers |
 | --- | --- |
 | [`docs/methods-and-equations.md`](docs/methods-and-equations.md) | every formula with its measured numbers - bias, RMSE, IoU, CSF, Dijkstra |
+| [`notebooks/day03/README.md`](notebooks/day03/README.md) | Day 3: the data, the method comparison, what the stand taught |
+| [`notebooks/day04/README.md`](notebooks/day04/README.md) | Day 4: three sensors, the exercise, and what the data forces |
 | [`docs/day03/course-demo-workflow.md`](docs/day03/course-demo-workflow.md) | the Day 3 demo transcribed, phase by phase against this implementation |
 | [`TREEAIBOX.md`](TREEAIBOX.md) | driving the TreeisoNet models, and what the paper says about tuning |
 | [`docs/3dfin.md`](docs/3dfin.md) | 3DFin as a third method, and why it handles tilt better |
 | [`setup/cloudcompare-linux.md`](setup/cloudcompare-linux.md) | how the plugins were built, and the two version traps |
 | [`docs/rf-sensing-resolution.md`](docs/rf-sensing-resolution.md) | why WiFi cannot produce point clouds at this resolution |
 
-## Comparing against Yrttimaa's method
-
-`novatrees.chm_watershed` ports the crown-detection stage of **Point-Cloud-Tools**
-(PCT) - the MATLAB toolbox by Dr. Tuomas Yrttimaa behind `PCT_demo_installer.exe`
-in the course material. It is top-down: CHM → gaussian smooth → local-maxima tree
-tops → marker-controlled watershed.
-
-Scored against the reference `treeid` labels in the cloud (41 instances):
-
-| method | seeds | instances | matched of 41 | recall | precision | mean IoU | h RMSE | under-seg |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| A  CHM watershed (PCT port) | 13 | 13 | 6 | 0.15 | 0.46 | 0.735 | 1.99 m | 7 |
-| B  cross-section seeds | 38 | 32 | 24 | 0.59 | 0.75 | 0.790 | 0.87 m | 5 |
-| **B+ pre-screened (verticality + reflectance)** | 37 | 36 | **28** | **0.68** | 0.78 | **0.805** | **0.82 m** | **3** |
-| C  TreeAIBox learned seeds | 34 | 28 | 22 | 0.54 | **0.79** | 0.805 | 0.95 m | 5 |
-
-Recall is against **all 41** reference trees (`recall_total`), not only those a
-prediction happened to overlap - see `novatrees.evaluate` for why that distinction
-matters.
-
-Method C swaps our cross-section seeds for TreeAIBox's trained stem detector and keeps
-the growing identical, so it isolates the seeding; see [`TREEAIBOX.md`](TREEAIBOX.md).
-It costs under 3 minutes of CPU for the full plot and still gives the best precision.
-
-**B+ is the best overall**, and that reverses an earlier reading of these results. C
-beat B when B clustered the raw cross-section. Adding the course demo's verticality
-and reflectance pre-screen lifted B past it - 28 matched trees against 22, and a lower
-height RMSE. The learned detector did not get worse; the geometric route got better.
-
-The gap is not a tuning failure, and no CHM parameters close it. **23 of the 41
-trees are under 10 m** in a canopy reaching 22.8 m, median tree height 7.5 m - over
-half this stand is suppressed. A canopy height model keeps only the highest return
-per cell, so a tree beneath a taller neighbour leaves no trace in it. Cross-section
-seeding looks at breast height, where a suppressed stem is as visible as a dominant
-one.
-
-Note what is being compared: PCT uses crown segments as a *partition* step and then
-classifies stem points within each segment. This is one stage of that pipeline
-against a complete alternative, not the whole toolbox.
-
-## Reference results
-
-CSF on `crsot_mixed_stand.laz` (TLS, 18.0 × 18.8 m, 15,595,864 points),
-cloth 0.2 m, threshold 0.3 m, relief:
-
-| implementation | ground | share |
-| --- | ---: | ---: |
-| CloudCompare `qCSF` | 3,830,441 | 24.6 % |
-| Python `cloth-simulation-filter` | 3,659,893 | 23.5 % |
-
-Ground spans only ~1.03 m across the plot. Tree instance segmentation from our own
-CSF normalisation finds **40–41 stems**, against 41 reference instances.
