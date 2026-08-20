@@ -35,3 +35,11 @@ models/
 
 # marimo session cache - cell outputs, regenerated on run
 notebooks/__marimo__/
+
+# Conversation exports. These land in the working tree and can run to hundreds of
+# kilobytes of transcript; nothing here belongs in a public repository.
+# /export names them <date>-<time>-<slug-of-first-message>.txt, so match the
+# timestamp prefix rather than any one conversation's title.
+[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9]*-*.txt
+*conversation-export*.txt
+claude-export-*.txt
