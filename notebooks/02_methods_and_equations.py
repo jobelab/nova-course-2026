@@ -7,7 +7,7 @@ report.
 Run:  uv run marimo edit notebooks/02_methods_and_equations.py
 
 SPDX-License-Identifier: GPL-3.0-or-later
-Author: José M. Beltrán Abaunza, Lund University
+Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University
 """
 
 import marimo

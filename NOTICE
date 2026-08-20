@@ -1,9 +1,10 @@
 NOVA course 2026 — point cloud tooling
 
 Main author
-  José M. Beltrán Abaunza, PhD
+  José M. Beltrán-Abaunza, PhD
   Sr. Research Engineer, Department of Earth and Environmental Sciences
   Lund University, Sweden
+  ORCID: https://orcid.org/0000-0003-3777-6788
   https://github.com/jobelab
 
 Contributors
@@ -22,18 +23,18 @@ PARTICULAR PURPOSE. See the GNU General Public License for more details.
 How to cite
 
   Chicago (author-date)
-    Beltrán Abaunza, José M. 2026. "NOVA Course 2026 — Point Cloud Tooling."
+    Beltrán-Abaunza, José M. 2026. "NOVA Course 2026 — Point Cloud Tooling."
     Lund University. https://github.com/jobelab/nova-course-2026.
 
   BibTeX
     @software{beltranabaunza_2026_novapointcloud,
-      author  = {Beltr{\'a}n Abaunza, Jos{\'e} M.},
+      author  = {Beltr{\'a}n-Abaunza, Jos{\'e} M.},
       title   = {{NOVA} course 2026 --- point cloud tooling},
       year    = {2026},
       url     = {https://github.com/jobelab/nova-course-2026},
       license = {GPL-3.0-or-later},
       note    = {Department of Earth and Environmental Sciences,
-                 Lund University, Sweden}
+                 Lund University, Sweden. ORCID: 0000-0003-3777-6788}
     }
 
 See CITATION.cff for machine-readable metadata; GitHub renders it as a

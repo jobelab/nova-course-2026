@@ -6,7 +6,8 @@ message: >-
 type: software
 authors:
   - given-names: José M.
-    family-names: Beltrán Abaunza
+    family-names: Beltrán-Abaunza
+    orcid: https://orcid.org/0000-0003-3777-6788
     affiliation: >-
       Department of Earth and Environmental Sciences, Lund University, Sweden
     website: https://github.com/jobelab

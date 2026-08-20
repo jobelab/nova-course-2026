@@ -70,7 +70,10 @@ More about NOVA: <https://www.lbhi.is/nova>
 
 ## Author
 
-**José M. Beltrán Abaunza, PhD** — [@jobelab](https://github.com/jobelab)
+**José M. Beltrán-Abaunza, PhD**
+[![ORCID](https://img.shields.io/badge/ORCID-0000--0003--3777--6788-a6ce39?logo=orcid&logoColor=white)](https://orcid.org/0000-0003-3777-6788)
+[![GitHub](https://img.shields.io/badge/GitHub-jobelab-181717?logo=github)](https://github.com/jobelab)
+
 Sr. Research Engineer, Department of Earth and Environmental Sciences,
 Lund University, Sweden
 
@@ -104,20 +107,20 @@ mine.
 
 Chicago (author-date):
 
-> Beltrán Abaunza, José M. 2026. "NOVA Course 2026 — Point Cloud Tooling."
+> Beltrán-Abaunza, José M. 2026. "NOVA Course 2026 — Point Cloud Tooling."
 > Lund University. https://github.com/jobelab/nova-course-2026.
 
 BibTeX:
 
 ```bibtex
 @software{beltranabaunza_2026_novapointcloud,
-  author  = {Beltr{\'a}n Abaunza, Jos{\'e} M.},
+  author  = {Beltr{\'a}n-Abaunza, Jos{\'e} M.},
   title   = {{NOVA} course 2026 --- point cloud tooling},
   year    = {2026},
   url     = {https://github.com/jobelab/nova-course-2026},
   license = {GPL-3.0-or-later},
   note    = {Department of Earth and Environmental Sciences,
-             Lund University, Sweden}
+             Lund University, Sweden. ORCID: 0000-0003-3777-6788}
 }
 ```
 

@@ -7,7 +7,7 @@ against the CloudCompare qCSF plugin.
 Run:  uv run marimo edit notebooks/00_ground_filtering_csf.py
 
 SPDX-License-Identifier: GPL-3.0-or-later
-Author: José M. Beltrán Abaunza, Lund University
+Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University
 """
 
 import marimo
