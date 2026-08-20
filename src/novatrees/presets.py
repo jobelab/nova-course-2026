@@ -37,6 +37,7 @@ from dataclasses import dataclass, field
 
 from .chm_watershed import ChmParams
 from .csf import CsfParams
+from .denoise import DenoiseParams
 from .features import StemScoreParams
 from .pipeline import GrowParams, SeedParams
 from .taper import TaperParams
@@ -54,6 +55,7 @@ class SensorPreset:
     score: StemScoreParams
     chm: ChmParams
     taper: TaperParams
+    denoise: DenoiseParams = field(default_factory=DenoiseParams)
     max_points: int | None = None  # decimate on load; None reads everything
     notes: str = ""
 
@@ -73,6 +75,8 @@ TLS = SensorPreset(
                           prescreen_pct=40),
     chm=ChmParams(pixel_size=0.20, min_distance=0.6, min_tree_height=2.0),
     taper=TaperParams(),
+    # Mixed pixels around stems are the concern, not birds: keep it gentle.
+    denoise=DenoiseParams(method='statistical', k=8, n_sigma=2.5),
     max_points=8_000_000,
     notes="Dense, from below. Stems richly sampled; canopy poorly. Occlusion behind "
           "stems is the dominant error. Decimated on load: a full Day 4 TLS plot is "
@@ -92,6 +96,8 @@ MLS = SensorPreset(
                           prescreen_pct=50),
     chm=ChmParams(pixel_size=0.25, min_distance=0.8, min_tree_height=2.0),
     taper=TaperParams(min_points=60, slice_thickness=0.15),
+    # Mobile data carries more stray returns; tighter than TLS.
+    denoise=DenoiseParams(method='statistical', k=8, n_sigma=2.0),
     max_points=8_000_000,
     notes="From below and moving. Sees stems but with fewer returns each and some "
           "trajectory noise, so cluster thresholds are looser than TLS. Registration "
@@ -113,6 +119,8 @@ ALS = SensorPreset(
     chm=ChmParams(pixel_size=0.50, min_distance=1.5, min_tree_height=3.0,
                   min_crown_area=3.0, smooth_sigma=1.0),
     taper=TaperParams(min_points=40, slice_thickness=0.50, vertical_step=0.50),
+    # Airborne returns are sparse; a harsh filter deletes real canopy.
+    denoise=DenoiseParams(method='statistical', k=6, n_sigma=3.0),
     max_points=None,
     notes="From above. No usable stem returns under canopy, so cross-section seeding "
           "has nothing to find and CHM watershed is the only route. Expect suppressed "

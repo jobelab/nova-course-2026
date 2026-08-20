@@ -18,6 +18,7 @@ see `novatrees.dataset`.
 from .chm_watershed import ChmParams, chm_segment, rasterize_chm
 from .csf import CsfParams, compare_with_cloudcompare, csf_ground, normalize_heights
 from .dataset import as_dataset, attach, chm_dataarray, read_cloud, write_cloud, xyz
+from .denoise import DenoiseParams, denoise, denoise_radius, denoise_statistical
 from .evaluate import attribute_errors, confusion_pairs, instance_scores
 from .features import (
     StemScoreParams,
@@ -61,6 +62,10 @@ from .pipeline import (
 )
 
 __all__ = [
+    "denoise_statistical",
+    "denoise_radius",
+    "denoise",
+    "DenoiseParams",
     "join_sensors",
     "match_positions",
     "als_metrics",
