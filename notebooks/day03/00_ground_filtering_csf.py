@@ -60,7 +60,15 @@ def _():
     import plotly.graph_objects as go
     import pandas as pd
 
-    from novatrees import CsfParams, csf_ground, normalize_heights, read_cloud, write_cloud
+    from novatrees import (
+        CsfParams,
+        DenoiseParams,
+        csf_ground,
+        denoise,
+        normalize_heights,
+        read_cloud,
+        write_cloud,
+    )
     from novatrees.csf import compare_with_cloudcompare
 
     REPO = Path(__file__).resolve().parents[2]
@@ -75,7 +83,9 @@ def _():
         RAW,
         alt,
         compare_with_cloudcompare,
+        DenoiseParams,
         csf_ground,
+        denoise,
         go,
         normalize_heights,
         np,
@@ -233,6 +243,88 @@ def _(go, ground, mo, np, raw):
 def _(mo):
     mo.md(
         r"""
+        ## Noise filtering
+
+        Three different things get called noise, and only one of them is the real
+        problem here.
+
+        **Isolated returns** are birds, insects, rain and dust. Easy to remove, and
+        mostly harmless anyway.
+
+        **Mixed pixels** are the ones that matter. A beam clipping the edge of a stem
+        returns a distance averaged between the stem and whatever is behind it, so the
+        point lands in mid-air along the line of sight. They form a faint halo around
+        every stem, and a circle fitted through that halo comes out **too large**. That
+        is DBH and stem volume biased high, from a source no downstream tuning fixes.
+
+        **Registration ghosts** are the same surface appearing twice, centimetres
+        apart. Neither filter here touches those; they need better registration.
+
+        Note what the filter is used for below. Noise points are excluded from the set
+        that **defines the ground**, because a single return below the true surface
+        drags the cloth down and every height above it inherits the error. They are not
+        deleted from the cloud, so the point-to-point comparison against the course's
+        own `_hnorm` file further down still lines up.
+        """
+    )
+    return
+
+
+@app.cell
+def _(mo):
+    denoise_on = mo.ui.checkbox(value=True, label="exclude noise from the ground surface")
+    denoise_method = mo.ui.dropdown(
+        {"statistical (k nearest)": "statistical", "radius (fixed neighbourhood)": "radius"},
+        value="statistical (k nearest)", label="method",
+    )
+    denoise_k = mo.ui.slider(4, 30, value=8, step=1, label="k neighbours", show_value=True)
+    denoise_sigma = mo.ui.slider(
+        1.0, 4.0, value=2.5, step=0.1, label="reject beyond mean + n sigma", show_value=True
+    )
+    mo.vstack([denoise_on, denoise_method, denoise_k, denoise_sigma])
+    return denoise_k, denoise_method, denoise_on, denoise_sigma
+
+
+@app.cell
+def _(DenoiseParams, denoise, denoise_k, denoise_method, denoise_on, denoise_sigma, mo, np, raw):
+    if not denoise_on.value:
+        keep_clean = np.ones(raw.sizes["point"], bool)
+        _out = mo.md("*Noise filter off: every point counts toward the ground surface.*")
+    else:
+        keep_clean = denoise(
+            raw,
+            DenoiseParams(method=denoise_method.value, k=int(denoise_k.value),
+                          n_sigma=float(denoise_sigma.value)),
+        )
+        _z = raw.z.values
+        _rm = int((~keep_clean).sum())
+        _out = mo.md(
+            f"""
+            Flagged **{_rm:,}** of {len(keep_clean):,} points as noise
+            (**{100 * _rm / max(len(keep_clean), 1):.2f}%**).
+
+            | | kept | flagged |
+            |---|---|---|
+            | highest | {_z[keep_clean].max():.2f} m | {(_z[~keep_clean].max() if _rm else float("nan")):.2f} m |
+            | lowest | {_z[keep_clean].min():.2f} m | {(_z[~keep_clean].min() if _rm else float("nan")):.2f} m |
+
+            Flagged points reaching *below* the kept minimum is the case that matters
+            for this notebook: those are exactly the returns that would pull the cloth
+            under the true ground.
+
+            On the Day 4 plot this became checkable, because two sensors cover it. ALS
+            put the true canopy top at 162.72 m while MLS carried 5,853 points above
+            that height, which nothing in the plot can explain except noise.
+            """
+        )
+    _out
+    return (keep_clean,)
+
+
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
         ## Height normalisation
 
         A DTM from the ground points, subtracted from every Z:
@@ -262,10 +354,12 @@ def _(mo):
 
 
 @app.cell
-def _(dtm_cell, dtm_q, ground, normalize_heights, raw):
+def _(dtm_cell, dtm_q, ground, keep_clean, normalize_heights, raw):
+    # Ground points minus anything flagged as noise: one return below the true
+    # surface is enough to drag the DTM cell down and bias every height above it.
     norm = normalize_heights(
         raw,
-        ground,
+        ground & keep_clean,
         cell=dtm_cell.value,
         quantile=None if dtm_q.value == "min" else dtm_q.value,
     )

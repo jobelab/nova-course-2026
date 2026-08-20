@@ -72,8 +72,10 @@ def _():
         CsfParams,
         GrowParams,
         SeedParams,
+        DenoiseParams,
         chm_segment,
         csf_ground,
+        denoise,
         detect_seeds,
         extract_trees,
         grow_instances,
@@ -186,6 +188,56 @@ def _(mo, np, tree_heights, xyz):
         """
     )
     return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+    ## Noise filtering
+
+    This matters more here than it looks. The seeds come from circles fitted to a
+    cross-section, and **mixed pixels bias those circles outward**: a beam clipping the
+    edge of a stem returns a distance averaged between the stem and whatever is behind
+    it, so the point lands in mid-air just outside the bark. Every stem carries a faint
+    halo of them, and a circle fitted through the halo reports a DBH that is too large.
+    Stem volume goes as the square of that.
+
+    Off by default, because the Day 3 plot is a clean multi-scan TLS and the effect is
+    small. Turn it on and watch the median DBH below: if it moves by more than a few
+    millimetres, the halo was real.
+    """
+    )
+    return
+
+
+@app.cell
+def _(mo):
+    seg_denoise_on = mo.ui.checkbox(value=False, label="filter noise before detecting stems")
+    seg_denoise_sigma = mo.ui.slider(
+        1.0, 4.0, value=2.5, step=0.1, label="reject beyond mean + n sigma", show_value=True
+    )
+    mo.vstack([seg_denoise_on, seg_denoise_sigma])
+    return seg_denoise_on, seg_denoise_sigma
+
+
+@app.cell
+def _(DenoiseParams, denoise, mo, np, seg_denoise_on, seg_denoise_sigma, xyz):
+    if not seg_denoise_on.value:
+        clean_mask = np.ones(len(xyz), bool)
+        _out = mo.md("*Noise filter off.*")
+    else:
+        clean_mask = denoise(
+            xyz, DenoiseParams(method="statistical", k=8,
+                               n_sigma=float(seg_denoise_sigma.value))
+        )
+        _rm = int((~clean_mask).sum())
+        _out = mo.md(
+            f"Removed **{_rm:,}** points (**{100 * _rm / len(xyz):.2f}%**) before stem "
+            "detection. Compare the median DBH below against the filter off."
+        )
+    _out
+    return (clean_mask,)
 
 
 @app.cell
@@ -332,14 +384,15 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(SeedParams, detect_seeds, eps, min_support, slice_hi, slice_lo, xyz):
+def _(SeedParams, clean_mask, detect_seeds, eps, min_support, slice_hi, slice_lo, xyz):
     seed_params = SeedParams(
         slice_lo=slice_lo.value,
         slice_hi=max(slice_hi.value, slice_lo.value + 0.05),
         eps=eps.value,
         min_support=min_support.value,
     )
-    seeds = detect_seeds(xyz, seed_params)
+    # The noise mask is a per-point filter on the slice, like the pre-screen.
+    seeds = detect_seeds(xyz, seed_params, mask=clean_mask)
     return seed_params, seeds
 
 
