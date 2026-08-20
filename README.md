@@ -1,17 +1,23 @@
 # NOVA course 2026 — point cloud tooling
 
-Python reimplementation of the **Day 3** exercises (2026-08-19) from the NOVA PhD
-course *Introduction to Point Cloud Processing for Forest Sciences*, as a set of
-[marimo](https://marimo.io) notebooks and a small library.
+My own take on the problems covered on **Day 3** (2026-08-19) of the NOVA PhD course
+*Introduction to Point Cloud Processing for Forest Sciences*, written as
+[marimo](https://marimo.io) notebooks and a small Python library.
 
-The course demo runs in CloudCompare and the Windows-only `PCT_demo.exe`. These
-notebooks are an **alternative implementation** of the same workflow — CSF ground
-filtering, height normalisation, cross-section stem detection, 3D Dijkstra region
-growing and stem taper reconstruction — in reproducible Python, with every method
-scored against the reference labels that ship with the course data.
+> **This is student work, not course material.** I took the course as a participant.
+> These are **not** the course instructions, and they deliberately do not follow them
+> step for step — the demo runs interactively in CloudCompare and the Windows-only
+> `PCT_demo.exe`, whereas this is an independent implementation in reproducible
+> Python. Where I diverged from the taught approach, or measured something the course
+> did not, that is my own choice and my own responsibility.
+>
+> Nothing here is endorsed by, or speaks for, the course organisers or NOVA. For the
+> actual course content, go to the organisers.
 
-They are not a replacement for the course material and carry no endorsement from the
-course organisers.
+It covers the same ground — CSF ground filtering, height normalisation, cross-section
+stem detection, 3D Dijkstra region growing, stem taper reconstruction — and scores each
+method against the reference labels that ship with the course data, which is the part I
+was most interested in.
 
 **No data is tracked here.** Point clouds (`*.laz`), slides and the `PCT_demo` bundle
 are excluded by `.gitignore`. Re-fetch the course material from the organisers;
@@ -38,7 +44,8 @@ digital photogrammetry: filtering and classification, surface normals and surfac
 models, conditional Euclidean clustering, and segmentation of tree crowns and stems by
 both classical and AI methods, over 3D coordinates, 3D voxels and 2D pixels.
 
-This repository covers only the Day 3 close-range-sensing exercises.
+This repository touches only the Day 3 close-range-sensing material, and only the
+parts I chose to reimplement.
 
 ## About NOVA
 
@@ -67,6 +74,9 @@ More about NOVA: <https://www.lbhi.is/nova>
 Sr. Research Engineer, Department of Earth and Environmental Sciences,
 Lund University, Sweden
 
+Participating in the course as a student; this repository is personal work done
+alongside it, in no official capacity.
+
 ## Acknowledgements
 
 This repository ports, wraps or builds on the work below. **None of these authors
@@ -81,8 +91,10 @@ contributed code here**, and any errors in this implementation are mine alone.
 | [**CloudCompare**](https://www.cloudcompare.org/) and [CloudCompare-PythonRuntime](https://github.com/tmontaigu/CloudCompare-PythonRuntime) | Daniel Girardeau-Montaut; Thomas Montaigu | the host application and its Python runtime |
 | [**marimo**](https://marimo.io) | the marimo developers | the reactive notebook format |
 
-Course material and the Day 3 demo are by the course organisers at SLU; the Day 3
-close-range-sensing session was taught by Tuomas Yrttimaa.
+The course and its Day 3 demo are the work of the organisers at SLU, with the
+close-range-sensing session taught by Tuomas Yrttimaa. The approach implemented here
+was learned from that session; the implementation, and any departures from it, are
+mine.
 
 ## Licence
 

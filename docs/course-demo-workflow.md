@@ -93,9 +93,10 @@ LiDAR processing modules targeting forest and tree analysis". Installed here —
 
 ## How this repo's pipeline compares
 
-`novatrees` reimplements the same workflow in Python. It converged on the identical
-method for Phase 4 before this document was read — **3D Dijkstra region growing from
-stem seeds** — and differs in the following ways.
+`novatrees` is an independent implementation of the same ideas, written by a course
+participant rather than as a course deliverable. It does not follow the demo step for
+step. It did converge on the identical method for Phase 4 before this document was
+read — **3D Dijkstra region growing from stem seeds** — and differs as follows.
 
 | phase | course demo | `novatrees` | note |
 | --- | --- | --- | --- |
