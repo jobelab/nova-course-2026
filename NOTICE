@@ -1,17 +1,20 @@
 NOVA course 2026 — point cloud tooling
-Copyright (c) 2026 José M. Beltrán Abaunza
+Copyright (C) 2026 José M. Beltrán Abaunza
 
-Licensed under the Creative Commons Attribution 4.0 International License
-(CC BY 4.0). See LICENSE for the full legal code, or
-https://creativecommons.org/licenses/by/4.0/
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
 
-Suggested attribution when reusing this work:
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-  Beltrán Abaunza, J. M. (2026). NOVA course 2026 — point cloud tooling.
-  https://github.com/jobelab/nova-course-2026 — CC BY 4.0
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <https://www.gnu.org/licenses/>.
 
 --------------------------------------------------------------------------
-Third-party material
+Third-party material included in this repository
 --------------------------------------------------------------------------
 
 src/novatrees/chm_watershed.py is a Python port of the crown-detection stage
@@ -19,18 +22,23 @@ of Point-Cloud-Tools (PCT):
 
   Yrttimaa, T. (2021). Automatic Point Cloud Processing Tools to Characterize
   Trees (Point-Cloud-Tools). Zenodo. https://doi.org/10.5281/zenodo.5779288
-  Licensed CC BY 4.0.
+  Original licensed CC BY 4.0.
 
   Methods described in:
   Yrttimaa et al. (2019), https://doi.org/10.3390/rs11121423
   Yrttimaa et al. (2020), https://doi.org/10.1016/j.isprsjprs.2020.08.017
 
-That file is a derivative work and remains under CC BY 4.0; this repository
-adopts the same licence so the terms stay compatible and the attribution
-above travels with it.
+On the licence relationship: CC BY 4.0 permits distributing adapted material
+under the adapter's own terms (section 3(a)), provided attribution is given
+and the original licence is identified. This derivative is therefore
+distributed under GPL-3.0-or-later, and the attribution above must be kept
+with any further redistribution. The GPL applies to this port; it does not
+and cannot relicense Yrttimaa's original work, which remains CC BY 4.0 at
+source.
 
-The following are used as dependencies, not included or modified here, and
-are governed by their own licences:
+--------------------------------------------------------------------------
+Dependencies — used, not included or modified
+--------------------------------------------------------------------------
 
   TreeAIBox / TreeisoNet   Natural Resources Canada
   3DFin, dendromatics      the 3DFin developers
@@ -38,5 +46,6 @@ are governed by their own licences:
   CloudCompare and CloudCompare-PythonRuntime
   marimo, laspy, scikit-learn, scipy, matplotlib, xarray and others
 
-No course material, slides or point cloud data are distributed in this
-repository; those remain the property of their respective owners.
+Each is governed by its own licence. No course material, slides or point
+cloud data are distributed in this repository; those remain the property of
+their respective owners.

@@ -1,3 +1,10 @@
+# NOVA course 2026 — point cloud tooling
+# Copyright (C) 2026 José M. Beltrán Abaunza
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# This file is part of a free software project distributed under the GNU General
+# Public License v3 or later. See LICENSE at the repository root.
+
 """CHM watershed tree segmentation — a Python port of the PCT crown detection.
 
 This is the reference method to compare against: Tuomas Yrttimaa's *Point-Cloud-Tools*
@@ -21,8 +28,9 @@ Ported from the MATLAB steps:
     convhull per label, area >= minCrownArea
 
 Original tools by Dr. Tuomas Yrttimaa, University of Eastern Finland, released
-CC BY 4.0. This file is a derivative work and is distributed under the same
-licence; see NOTICE at the repository root. Cite Yrttimaa (2021), https://doi.org/10.5281/zenodo.5779288, and the
+CC BY 4.0. This file is a derivative work, distributed under GPL-3.0-or-later as
+CC BY 4.0 section 3(a) permits, with the upstream attribution preserved. The
+original remains CC BY 4.0 at source. See NOTICE at the repository root. Cite Yrttimaa (2021), https://doi.org/10.5281/zenodo.5779288, and the
 methods papers https://doi.org/10.3390/rs11121423 and
 https://doi.org/10.1016/j.isprsjprs.2020.08.017.
 

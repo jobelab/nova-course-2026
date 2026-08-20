@@ -98,23 +98,31 @@ mine.
 
 ## Licence
 
-[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-**Creative Commons Attribution 4.0 International (CC BY 4.0)** — see [`LICENSE`](LICENSE)
-for the full legal code and [`NOTICE`](NOTICE) for attribution details.
+**GNU General Public License v3.0 or later** — see [`LICENSE`](LICENSE) for the full
+text and [`NOTICE`](NOTICE) for attribution.
 
-You may share and adapt this work, including commercially, provided you give
-appropriate credit, link to the licence, and indicate if changes were made.
+    NOVA course 2026 — point cloud tooling
+    Copyright (C) 2026 José M. Beltrán Abaunza
 
-    Beltrán Abaunza, J. M. (2026). NOVA course 2026 — point cloud tooling.
-    https://github.com/jobelab/nova-course-2026 — CC BY 4.0
+    This program is free software: you can redistribute it and/or modify it under
+    the terms of the GNU General Public License as published by the Free Software
+    Foundation, either version 3 of the License, or (at your option) any later
+    version.
 
-CC BY 4.0 is chosen deliberately rather than a permissive software licence:
-`src/novatrees/chm_watershed.py` is a derivative of Yrttimaa's Point-Cloud-Tools,
-itself CC BY 4.0, so matching it keeps the terms compatible and carries the upstream
-attribution forward. Note that CC licences are written for creative works rather than
-software — if this ever outgrows being course notes, GPL-3.0 would be the closest
-software licence that stays compatible with the CC BY obligation.
+### Why GPL over the CC BY it derives from
+
+`src/novatrees/chm_watershed.py` ports part of Yrttimaa's Point-Cloud-Tools, which is
+CC BY 4.0. CC BY explicitly permits distributing adapted material under the adapter's
+own terms (§3(a)) so long as attribution is given and the original licence identified,
+so a GPL-3.0 derivative is allowed. GPL is the better fit here because this is
+software, and CC licences are not written for code — they say nothing about source
+availability, linking, or patents.
+
+Two things this does **not** do: it does not relicense Yrttimaa's original work, which
+remains CC BY 4.0 at source; and it does not remove the attribution obligation, which
+travels with any redistribution. Both are recorded in [`NOTICE`](NOTICE).
 
 ## Layout
 

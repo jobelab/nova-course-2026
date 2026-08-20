@@ -10,6 +10,9 @@ can be inspected in CloudCompare.
        + 3D Dijkstra        then grow regions along a kNN graph of the points.
 
 Run:  uv run marimo edit notebooks/01_tree_instance_segmentation.py
+
+SPDX-License-Identifier: GPL-3.0-or-later
+Copyright (C) 2026 José M. Beltrán Abaunza
 """
 
 import marimo

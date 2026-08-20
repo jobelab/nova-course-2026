@@ -1,3 +1,10 @@
+# NOVA course 2026 — point cloud tooling
+# Copyright (C) 2026 José M. Beltrán Abaunza
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# This file is part of a free software project distributed under the GNU General
+# Public License v3 or later. See LICENSE at the repository root.
+
 """Cloth Simulation Filter ground classification, and height normalisation.
 
 CSF is available here two ways, and they are the *same* algorithm:
