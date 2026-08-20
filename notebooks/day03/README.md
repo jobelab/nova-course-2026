@@ -99,3 +99,11 @@ field we had ignored longest.
 three reference trees, because two of its stems were closer together than the DBSCAN
 neighbourhood. Filtering the slice on shape and reflectance separates them without
 shrinking the radius, which would fragment single stems instead.
+
+**A taper integral is not a stem volume.** It runs between the first and last
+*accepted* slice, and returns thin with height until slices stop passing the minimum
+point count. The notebook now reports cover, the share of tree height the fit spans,
+and the form factor against the DBH cylinder beside every volume. A boreal conifer
+holds a form factor near 0.45 to 0.50, so a value near 0.25 is the signature of a
+reconstruction that stopped partway rather than a thin tree. Day 4 carries this
+further and reports three volumes per tree instead of one.

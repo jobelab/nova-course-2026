@@ -1197,8 +1197,12 @@ def _(mo):
     | radius tolerance | 0.03 m | higher = accepts noise between neighbouring slices |
     | centre tolerance | 0.06 m | higher = accepts a wandering stem axis |
 
-    From the smoothed curve fall DBH at 1.3 m, merchantable heights, and stem volume
-    by integrating $\pi r(z)^2$.
+    From the smoothed curve fall DBH at 1.3 m, merchantable heights, and volume by
+    integrating $\pi r(z)^2$ **between the first and last accepted slice**. Those
+    limits are not the ground and the tip: returns thin with height until slices stop
+    passing the minimum point count, so the integral covers the part of the stem that
+    was reconstructed and no more. Cover and form factor are reported beside it below,
+    and reading them first is the habit worth forming.
     """)
     return
 
@@ -1381,6 +1385,10 @@ def _(
         dbh_taper = float(np.interp(1.3, _zc2, _dc)) if _zc2.min() <= 1.3 <= _zc2.max() else float("nan")
         stem_volume = float(np.trapezoid(np.pi * (_dc / 2) ** 2, _zc2))
         _seed_dbh = float(tree_info.dbh_m)
+        _H = float(tree_info.height_m)
+        _cover = (_zc2.max() - _zc2.min()) / _H if _H > 0 else float("nan")
+        _cyl = np.pi * (dbh_taper / 2) ** 2 * _H
+        _ff = stem_volume / _cyl if np.isfinite(_cyl) and _cyl > 0 else float("nan")
         mo.md(
             f"""
             **{taper_method.value}**, {len(taper_curve)} accepted slices from
@@ -1391,11 +1399,19 @@ def _(
             | DBH from the taper curve at 1.3 m | **{dbh_taper:.3f} m** |
             | DBH from the cross-section seed | {_seed_dbh:.3f} m |
             | difference | {dbh_taper - _seed_dbh:+.3f} m |
-            | stem volume over the fitted range | **{stem_volume:.3f} m³** |
+            | volume over the fitted range | **{stem_volume:.3f} m³** |
+            | cover, fitted range over tree height | **{100 * _cover:.0f}%** of {_H:.1f} m |
+            | form factor against the DBH cylinder | **{_ff:.2f}** |
 
             The seed DBH comes from one 0.30 m slab; the taper value comes from a smoothed
             fit through many slices, so where they disagree the taper figure is usually the
             one to trust.
+
+            **The volume row is only a total stem volume when cover is near 100 per cent,
+            which it never is here.** A boreal conifer stem holds a form factor near 0.45
+            to 0.50; anything much under that is measuring the missing top, not a thin
+            tree. Day 4 fits an analytic taper and integrates it to the tip to close that
+            gap, and reports both numbers rather than one.
             """
         )
     else:

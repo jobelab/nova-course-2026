@@ -42,6 +42,7 @@ from .extract import (
 from .glossary import lookup as glossary_lookup
 from .glossary import table as glossary_table
 from .inventory import (
+    drop_fragments,
     PlotGeometry,
     als_metrics,
     flag_edge_trees,
@@ -76,6 +77,7 @@ __all__ = [
     "denoise",
     "DenoiseParams",
     "join_sensors",
+    "drop_fragments",
     "match_positions",
     "als_metrics",
     "tree_metrics",

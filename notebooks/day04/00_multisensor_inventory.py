@@ -64,6 +64,12 @@ def _(mo):
     **Position means different things to each sensor.** The ground locates a tree by
     its stem; the air locates it by its canopy apex. Those differ by metres on leaning
     or asymmetric trees, and that offset is a real measurement property, not noise.
+
+    One thing to know before step 5. **Nothing here measures a whole stem.** The taper
+    reconstruction stops where the returns thin out, so the notebook reports three
+    volumes per tree, measured strict, measured relaxed and modelled to the tip, each
+    with the fraction of the tree it actually covers. Picking one and calling it stem
+    volume is the mistake this notebook is arranged to prevent.
     """)
     return
 
@@ -216,7 +222,31 @@ def _(mo):
 
     Volume is the quantity ALS cannot measure, so it is the reason the ground clouds are
     here. It comes from the taper reconstruction: RANSAC circles up the stem, consistency
-    filtering, then a smoothed curve integrated as $V = \int \pi r(z)^2\,dz$.
+    filtering, then a curve integrated as $V = \int_{z_0}^{z_1} \pi r(z)^2\,dz$.
+
+    ### Read the limits before the number
+
+    $z_0$ and $z_1$ are the first and last **accepted** slice, not the ground and the
+    tip. Returns per stem thin with height until slices fall below `min_points` and the
+    chain stops, typically in the lower canopy: on this plot the strict settings cover
+    16 to 44 per cent of tree height. That integral is a partial stem volume, and
+    reporting it as stem volume is simply wrong.
+
+    So three numbers are computed per tree rather than one, and they are meant to be
+    read together:
+
+    | column | integrated over | what it is |
+    | --- | --- | --- |
+    | `vol_measured_strict_m3` | accepted slices, PCT thresholds | measured, partial, nothing extrapolated |
+    | `vol_measured_relaxed_m3` | accepted slices, loosened thresholds | measured, partial, reaches higher, noisier |
+    | `vol_model_relaxed_m3` | $0$ to $H$ | Kozak fitted then integrated whole, so extrapolated above the slices |
+
+    Each measured column carries its own `cover_*` = $(z_1 - z_0)/H$. Without it the
+    number cannot be interpreted at all.
+
+    The check that catches this failure is the **form factor**, volume over the
+    cylinder $\pi (D_{1.3}/2)^2 H$. Boreal conifer stems sit near 0.45 to 0.50. Near
+    0.25 means the reconstruction stopped halfway, not that the tree is thin.
 
     Both TLS and MLS are run, and where they disagree that disagreement is the honest
     error bar on the whole exercise. Agreement between two independent instruments is
@@ -231,15 +261,29 @@ def _(mo):
     vol_min_pts = mo.ui.slider(
         200, 5000, value=800, step=100, label="minimum stem points per tree", show_value=True
     )
-    mo.vstack([vol_min_pts, vol_run])
-    return vol_min_pts, vol_run
+    # Which of the three goes forward into the join. There is no default that is
+    # right for every purpose: the measured columns are what the scanner saw, the
+    # model column is the only one that estimates a whole stem.
+    vol_choice = mo.ui.dropdown(
+        {
+            "model, relaxed fit (whole stem, extrapolated)": "vol_model_relaxed_m3",
+            "model, strict fit (whole stem, extrapolated)": "vol_model_strict_m3",
+            "measured, relaxed (partial, reaches higher)": "vol_measured_relaxed_m3",
+            "measured, strict (partial, PCT thresholds)": "vol_measured_strict_m3",
+        },
+        value="model, relaxed fit (whole stem, extrapolated)",
+        label="volume carried into step 6",
+    )
+    mo.vstack([vol_min_pts, vol_choice, vol_run])
+    return vol_choice, vol_min_pts, vol_run
 
 
 @app.cell
-def _(TaperParams, mo, np, pd, runs, taper_curve, vol_min_pts, vol_run):
+def _(TaperParams, mo, np, pd, runs, vol_choice, vol_min_pts, vol_run):
     mo.stop(not vol_run.value, mo.md("*Press the button to reconstruct stem taper.*"))
 
     from novatrees import semantic_labels
+    from novatrees.taper import VOLUME_COLUMNS, volume_variants
 
     volumes = {}
     for _sensor in ("TLS", "MLS"):
@@ -255,25 +299,144 @@ def _(TaperParams, mo, np, pd, runs, taper_curve, vol_min_pts, vol_run):
             if _sel.sum() < vol_min_pts.value:
                 continue
             _h = float(_xyz[_r.labels == _k][:, 2].max())
-            _t = taper_curve(_xyz[_sel], TaperParams(model="kozak"), total_height=_h)
-            if not np.isfinite(_t.dbh):
+            # Reconstructs twice, strict and relaxed, and integrates both the
+            # measured range and the fitted model. See novatrees.taper.
+            _row = volume_variants(_xyz[_sel], total_height=_h,
+                                   p=TaperParams(model="kozak"), tree_id=_k + 1)
+            if not np.isfinite(_row["dbh_strict_m"]):
                 continue
-            _rows.append({
-                "treeID": _k + 1,
-                "x": float(_r.seeds[_k, 0]), "y": float(_r.seeds[_k, 1]),
-                "dbh_m": _t.dbh, "h_total_m": _h,
-                "h_stem_m": _t.stats.get("height_stem", float("nan")),
-                "volume_m3": _t.volume,
-                "slices_ok": _t.stats.get("n_accepted", 0),
-            })
-        volumes[_sensor] = pd.DataFrame(_rows)
+            _row["x"] = float(_r.seeds[_k, 0])
+            _row["y"] = float(_r.seeds[_k, 1])
+            _rows.append(_row)
+        _df = pd.DataFrame(_rows, columns=VOLUME_COLUMNS + ["x", "y"])
+        # Downstream cells read one column. Which one is the reader's choice, and
+        # the alias keeps that choice visible rather than buried in the join.
+        _df["volume_m3"] = _df[vol_choice.value]
+        _df["dbh_m"] = _df["dbh_strict_m"]
+        _df["h_total_m"] = _df["height_m"]
+        volumes[_sensor] = _df.rename(columns={"tree_id": "treeID"})
 
     mo.md(" ".join(
-        f"**{_k}**: {len(_v)} trees with a reconstructed taper, "
-        f"median volume {_v.volume_m3.median():.3f} m3."
+        f"**{_k}**: {len(_v)} trees reconstructed, median {vol_choice.value} "
+        f"{_v.volume_m3.median():.3f} m3."
         for _k, _v in volumes.items()
     ) or "No volumes reconstructed.")
     return (volumes,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### The three answers, side by side
+
+    Read the `cover` columns first. They say how much of each stem the measured
+    columns actually span, and therefore how much of the model column is
+    extrapolation. The form factors say whether any of it is believable.
+    """)
+    return
+
+
+@app.cell
+def _(mo, pd, volumes):
+    mo.stop(not volumes, mo.md("*Stem volumes are needed first.*"))
+
+    _rows = []
+    for _s, _v in volumes.items():
+        _rows.append({
+            "sensor": _s,
+            "trees": len(_v),
+            "measured strict (m3)": _v.vol_measured_strict_m3.median(),
+            "cover strict": _v.cover_strict.median(),
+            "measured relaxed (m3)": _v.vol_measured_relaxed_m3.median(),
+            "cover relaxed": _v.cover_relaxed.median(),
+            "model relaxed (m3)": _v.vol_model_relaxed_m3.median(),
+            "cylinder (m3)": _v.vol_cylinder_m3.median(),
+            "f measured strict": _v.ff_measured_strict.median(),
+            "f measured relaxed": _v.ff_measured_relaxed.median(),
+            "f model relaxed": _v.ff_model_relaxed.median(),
+        })
+    _tab = pd.DataFrame(_rows).round(3)
+
+    mo.vstack([
+        mo.ui.table(_tab, selection=None),
+        mo.md(
+            """
+            Medians, so a single failed tree does not move them.
+
+            What to look for. **Cover rising** from strict to relaxed is the relaxed
+            settings buying reach. **Measured volume rising with it** is volume that
+            was there all along and the strict thresholds refused to integrate.
+            **The model column above both** is expected, since it includes the stem
+            above the last accepted slice, and it is only trustworthy to the extent
+            its form factor lands in the 0.45 to 0.50 range a boreal conifer keeps.
+
+            A form factor near 0.25 on a measured column is not a finding about the
+            trees. It is the arithmetic of integrating a third of a stem.
+            """
+        ),
+    ])
+    return
+
+
+@app.cell
+def _(alt, mo, pd, volumes):
+    mo.stop(not volumes, mo.md("*Stem volumes are needed first.*"))
+
+    _long = pd.concat([
+        pd.DataFrame({
+            "sensor": _s, "tree": _v.treeID, "height_m": _v.height_m,
+            "reach_m": _v[f"z_top_{_tag}_m"], "cover": _v[f"cover_{_tag}"],
+            "form factor": _v[f"ff_measured_{_tag}"], "settings": _tag,
+        })
+        for _s, _v in volumes.items() for _tag in ("strict", "relaxed")
+    ], ignore_index=True).dropna(subset=["reach_m"])
+
+    _reach = (
+        alt.Chart(_long).mark_circle(size=60, opacity=0.7)
+        .encode(x=alt.X("height_m:Q", title="tree height (m)"),
+                y=alt.Y("reach_m:Q", title="highest accepted slice (m)"),
+                color=alt.Color("settings:N", title=None),
+                shape=alt.Shape("sensor:N", title=None),
+                tooltip=["sensor", "tree", "height_m", "reach_m", "cover"])
+        .properties(width=330, height=300, title="how far up the reconstruction got")
+    )
+    _diag = (
+        alt.Chart(pd.DataFrame({"h": [0, float(_long.height_m.max())]}))
+        .mark_line(color="crimson", strokeDash=[4, 4]).encode(x="h:Q", y="h:Q")
+    )
+    _ff = (
+        alt.Chart(_long.dropna(subset=["form factor"]))
+        .mark_circle(size=60, opacity=0.7)
+        .encode(x=alt.X("cover:Q", title="cover, fitted range over tree height"),
+                y=alt.Y("form factor:Q", title="form factor of the measured volume",
+                        scale=alt.Scale(domain=[0, 0.8])),
+                color=alt.Color("settings:N", title=None),
+                shape=alt.Shape("sensor:N", title=None),
+                tooltip=["sensor", "tree", "cover", "form factor"])
+        .properties(width=330, height=300, title="form factor against cover")
+    )
+    _band = (
+        alt.Chart(pd.DataFrame({"lo": [0.45], "hi": [0.50]}))
+        .mark_rect(opacity=0.15, color="seagreen").encode(y="lo:Q", y2="hi:Q")
+    )
+
+    mo.vstack([
+        alt.hconcat(_reach + _diag, _ff + _band),
+        mo.md(
+            """
+            **Left.** Every point below the dashed 1:1 line is stem the reconstruction
+            never reached. The strict series sits far below it; the relaxed series
+            climbs toward it. The gap is the part of the volume that only a fitted
+            taper can supply.
+
+            **Right.** The green band is where a boreal conifer stem's form factor
+            belongs. Measured form factor rises with cover, meeting the band only as
+            cover approaches one, which is the same fact seen from the other side: a
+            low form factor here is a short integral, not a thin tree.
+            """
+        ),
+    ])
+    return
 
 
 @app.cell(hide_code=True)
@@ -370,10 +533,14 @@ def _(drop_edge, ground_ref, join_sensors, match_dist, mo, runs, volumes):
     _als = runs.get(("ALS", "heuristic"))
     mo.stop(_als is None or isinstance(_als, Exception), mo.md("*The ALS run is needed first.*"))
 
+    from novatrees import drop_fragments
+
     _g = volumes[ground_ref.value]
-    _a = _als.trees
-    if drop_edge.value and "edge_tree" in _a:
-        _a = _a[~_a.edge_tree]
+    # Watershed on a CHM makes more objects than there are trees, and the slivers
+    # are positions, so they win nearest-neighbour matches and drag nonsense
+    # heights into the table. Dropping them took the matched height RMSE from
+    # 10.88 m to 2.09 m.
+    _a = drop_fragments(_als.trees, drop_edge=bool(drop_edge.value))
 
     joined = join_sensors(_g, _a, max_distance=float(match_dist.value))
     _at = joined.attrs
@@ -410,7 +577,11 @@ def _(mo):
 def _(joined, mo):
     mo.stop(joined.empty, mo.md("*Nothing matched.*"))
     _cols = [c for c in (
-        "treeID_ground", "volume_m3_ground", "dbh_m_ground", "h_total_m_ground",
+        "treeID_ground", "volume_m3_ground",
+        "vol_measured_strict_m3_ground", "cover_strict_ground",
+        "vol_measured_relaxed_m3_ground", "cover_relaxed_ground",
+        "vol_model_relaxed_m3_ground", "ff_model_relaxed_ground",
+        "dbh_m_ground", "h_total_m_ground",
         "h_p99_air", "h_max_air", "crown_area_m2_air", "crown_volume_m3_air",
         "h_p50_air", "h_p95_air", "frac_above_mean_air", "n_points_air", "distance",
     ) if c in joined.columns]
@@ -418,6 +589,8 @@ def _(joined, mo):
         mo.ui.table(joined[_cols].round(3), selection=None),
         mo.md(
             "Ground-derived volume on the left, ALS-derived metrics on the right. "
+            "All three volume variants are kept in the row, not just the chosen one, "
+            "so any regression fitted downstream has to say which it used. "
             "**This is where the exercise stops.** The regression that would upscale "
             "volume from the airborne metrics is tomorrow's work, and fitting it on "
             f"{len(joined)} trees from one plot would in any case be a demonstration "

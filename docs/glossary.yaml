@@ -209,6 +209,37 @@ terms:
     name: Mean Squared Error
     group: metrics
     note: Loss function used by the TreeisoNet offset-regression models.
+  form factor:
+    name: stem form factor (f)
+    group: metrics
+    note: >-
+      Stem volume divided by the cylinder that DBH and total height would give,
+      f = V / (pi (D/2)^2 H). Boreal conifers sit near 0.45 to 0.50, so it is the
+      cheapest check on any volume number here: a value near 0.25 means the taper
+      reconstruction covered only part of the stem, not that the tree is thin.
+  cover:
+    name: taper cover fraction
+    group: metrics
+    note: >-
+      The share of tree height the accepted taper slices actually span,
+      (z1 - z0) / H. Reported beside every measured volume, because a measured
+      volume without it cannot be told apart from a total stem volume. On this plot
+      the strict settings cover 16 to 44 per cent.
+  taper:
+    name: stem taper
+    group: metrics
+    note: >-
+      How stem diameter falls with height, d(z). Reconstructed here as RANSAC
+      circles slice by slice, then optionally fitted with an analytic function so it
+      can be extrapolated above the last usable slice.
+  Kozak:
+    name: Kozak variable-exponent taper
+    group: metrics
+    note: >-
+      A taper function whose exponent varies with relative height, so one form fits
+      butt swell, the merchantable stem and the tip. Used here reduced to four
+      coefficients, since the published nine are fitted across a population rather
+      than one tree. Kozak 2004.
   ECTS:
     name: European Credit Transfer and Accumulation System
     group: metrics

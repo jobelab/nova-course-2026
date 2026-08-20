@@ -199,7 +199,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"wrote {len(table)} rows   -> {table_out}")
 
     if a.taper:
-        from .taper import TaperParams, taper_curve
+        from .taper import VOLUME_COLUMNS, TaperParams, volume_variants
 
         t = time.time()
         rows = []
@@ -207,22 +207,21 @@ def main(argv: list[str] | None = None) -> int:
             sel = (res.labels == k) & (semantic == 1)
             if sel.sum() < TaperParams.min_points:
                 continue
-            r = taper_curve(xyz[sel], TaperParams())
-            rows.append(
-                {
-                    "treeID": k + 1,
-                    "dbh_taper_m": r.dbh,
-                    "dbh_seed_m": float(seeds[k, 2]),
-                    "volume_m3": r.volume,
-                    "slices": r.stats.get("n_slices", 0),
-                    "accepted": r.stats.get("n_accepted", 0),
-                }
-            )
+            # Three volumes rather than one: measured strict, measured relaxed and
+            # the Kozak model integrated to the tip, each with its cover fraction.
+            # A single "volume_m3" column hid the fact that the integral only spans
+            # the reconstructed part of the stem. See novatrees.taper.
+            height = float(xyz[res.labels == k][:, 2].max())
+            row = volume_variants(xyz[sel], total_height=height,
+                                  p=TaperParams(model="kozak"), tree_id=k + 1)
+            row["dbh_seed_m"] = float(seeds[k, 2])
+            rows.append(row)
         if rows:
             import pandas as pd
 
             taper_out = outdir / f"{stem}_taper.csv"
-            pd.DataFrame(rows).to_csv(taper_out, index=False)
+            pd.DataFrame(rows, columns=VOLUME_COLUMNS + ["dbh_seed_m"]).to_csv(
+                taper_out, index=False)
             print(f"wrote {len(rows)} taper curves -> {taper_out} ({time.time() - t:.1f}s)")
 
     if a.extract:

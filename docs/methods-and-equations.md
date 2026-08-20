@@ -320,6 +320,35 @@ then smoothed or fitted with an analytic form. Volume follows by integration:
 
 $$V = \int_{z_0}^{z_1} \pi \left( \frac{d(z)}{2} \right)^{2} dz$$
 
+**The limits are the whole problem.** $z_0$ and $z_1$ are the first and last
+*accepted* slice, not the ground and the tip. On these clouds the accepted range
+spans 16 to 44 per cent of tree height, because returns per stem thin with height
+until slices fall below `min_points` and the chain stops in the lower canopy. So
+this integral is a partial stem volume, and calling it stem volume was wrong.
+
+`novatrees.taper.volume_variants` therefore reports three numbers per tree rather
+than one:
+
+| column | limits | what it is |
+| --- | --- | --- |
+| `vol_measured_strict_m3` | accepted slices, PCT thresholds | measured, partial, nothing extrapolated |
+| `vol_measured_relaxed_m3` | accepted slices, `TaperParams.relaxed()` | measured, partial, reaches higher, noisier fits |
+| `vol_model_*_m3` | $0$ to $H$ | the fitted Kozak curve integrated whole, so extrapolated wherever the slices did not reach |
+
+Each carries its own `cover_*` = $(z_1 - z_0)/H$, without which the measured
+columns cannot be read at all.
+
+The yardstick that makes them comparable is the form factor, volume over the
+cylinder that DBH and height would give:
+
+$$f = \frac{V}{\pi (D_{1.3}/2)^2 H}$$
+
+A boreal conifer stem sits near $f = 0.45$ to $0.50$. A value near 0.25 is not a
+thin tree, it is a reconstruction that stopped halfway; a value above 0.55 is a
+model that extrapolated itself too fat. The form factor is a diagnostic here, not
+a result: it is the fastest way to catch the failure above, which is exactly how
+that failure was found.
+
 The Kozak form keeps a power of $X$ whose exponent varies with relative height:
 
 $$d(h) = D \cdot X^{\,b_1 z^2 + b_2 \ln(z + 0.001) + b_3 \sqrt{z} + b_4 e^{z}},

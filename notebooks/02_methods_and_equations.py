@@ -505,6 +505,55 @@ def _(mo):
 @app.cell
 def _(mo):
     mo.md(r"""
+    ## Stem taper, volume, and the limits of the integral
+
+    Circles are fitted per slice by RANSAC, checked against the last accepted slice,
+    and integrated:
+
+    $$V = \int_{z_0}^{z_1} \pi \left( \frac{d(z)}{2} \right)^{2} dz$$
+
+    **$z_0$ and $z_1$ are the first and last accepted slice, not the ground and the
+    tip.** Returns per stem thin with height until slices fall below the minimum
+    point count and the chain stops, usually in the lower canopy. Measured here, the
+    strict thresholds span 16 to 44 per cent of tree height, so this integral returns
+    a *partial* stem volume. Nothing in the formula announces that, which is why the
+    number was believed longer than it should have been.
+
+    An analytic taper is what allows the missing part to be estimated. The Kozak form
+    keeps a power of $X$ whose exponent varies with relative height:
+
+    $$d(h) = D \cdot X^{\,b_1 z^2 + b_2 \ln(z + 0.001) + b_3 \sqrt{z} + b_4 e^{z}},
+    \qquad X = \frac{1 - \sqrt{z}}{1 - \sqrt{p}}, \quad z = \frac{h}{H},
+    \quad p = \frac{1.3}{H}$$
+
+    reduced to four coefficients, since the published nine-coefficient version is
+    fitted across a population rather than one stem. $X \to 0$ as $h \to H$, so the
+    curve closes to zero diameter at the tip and $\int_0^H$ is well posed. It is
+    still extrapolation above $z_1$.
+
+    ### Three answers, and the diagnostic that separates them
+
+    | | integrated over | claim |
+    | --- | --- | --- |
+    | measured, strict | $[z_0, z_1]$ at PCT thresholds | what the scanner saw |
+    | measured, relaxed | $[z_0', z_1']$, loosened thresholds | more of what it saw, less precisely |
+    | model | $[0, H]$ | the whole stem, part of it predicted |
+
+    Cover, $(z_1 - z_0)/H$, travels with the measured columns. The form factor
+
+    $$f = \frac{V}{\pi \left( D_{1.3} / 2 \right)^{2} H}$$
+
+    travels with all of them. A boreal conifer stem holds $f \approx 0.45$ to $0.50$.
+    Values near $0.25$ do not describe thin trees; they describe an integral that
+    stopped halfway, which is exactly how the defect above was caught. Reading $f$
+    before reading $V$ costs nothing and would have caught it immediately.
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
     ---
 
     ### Sources
@@ -512,6 +561,7 @@ def _(mo):
     - CSF - Zhang W. et al. (2016), [Remote Sensing 8(6):501](https://doi.org/10.3390/rs8060501)
     - Taubin fit - Taubin G. (1991), *IEEE PAMI* 13(11)
     - DBSCAN - Ester M. et al. (1996), *KDD-96*
+    - Kozak taper - Kozak A. (2004), *Forestry Chronicle* 80(4):507-515
     - PCT - Yrttimaa T. (2021), [zenodo.5779288](https://doi.org/10.5281/zenodo.5779288);
       [Yrttimaa et al. 2019](https://doi.org/10.3390/rs11121423),
       [2020](https://doi.org/10.1016/j.isprsjprs.2020.08.017)

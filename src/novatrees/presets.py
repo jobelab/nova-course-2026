@@ -54,6 +54,11 @@ class SensorPreset:
     grow: GrowParams
     score: StemScoreParams
     chm: ChmParams
+    # Per-sensor starting point for the taper. `run_sensor` does not consume it,
+    # because volume is computed per tree afterwards rather than inside the run, and
+    # the Day 4 comparison deliberately passes PCT's own defaults for all three
+    # sensors so that the strict column means the same thing everywhere. Pass this
+    # instead when the question is what one sensor can do at its best.
     taper: TaperParams
     denoise: DenoiseParams = field(default_factory=DenoiseParams)
     # TreeAIBox weights for the learned detector, and whether that model set has a

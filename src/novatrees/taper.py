@@ -9,7 +9,16 @@
 
 Step up the stem, fit a circle to each horizontal slice, throw away the fits that
 disagree with their neighbours, and smooth what survives into a taper curve
-`d(z)`. From that fall DBH, merchantable heights and stem volume.
+`d(z)`. From that fall DBH, merchantable heights and volume.
+
+**Volume is the one that needs care.** The integral runs between the first and last
+*accepted* slice, not the ground and the tip, and returns thin with height until
+slices stop passing `min_points`. Measured here, the strict thresholds span 16 to 44
+per cent of tree height, so the integral is a partial stem volume that nothing in its
+formula announces. `volume_variants` reports it beside a relaxed-threshold version and
+a Kozak fit integrated to the tip, each with its cover fraction and form factor. Read
+the form factor first: a boreal conifer holds 0.45 to 0.50, so 0.25 means a short
+integral rather than a thin tree.
 
 Defaults follow the PCT demo's Phase 5. Each parameter trades detail against
 robustness, and the docstring on `TaperParams` says which way.
@@ -43,6 +52,8 @@ __all__ = [
     "slice_fits",
     "taper_curve",
     "fit_taper_model",
+    "volume_variants",
+    "VOLUME_COLUMNS",
 ]
 
 SMOOTHERS = ("cubic spline", "moving median", "monotonic", "none")
@@ -82,14 +93,58 @@ class TaperParams:
     min_occupancy: float = 0.0  # 0 disables; 0.5 is a reasonable filter
     min_axis_ratio: float = 0.0  # 0 disables; 0.6 rejects badly non-round slices
 
+    def relaxed(self) -> "TaperParams":
+        """The same settings, loosened so the reconstruction reaches further up.
+
+        The defaults are PCT's, and PCT is a TLS tool: 100 points in a 0.10 m slice
+        is easy at 300,000 points per square metre and impossible on MLS returns
+        eight metres up. That threshold, not the tree, is what ends most
+        reconstructions early, so this trades per-slice precision for reach:
+        thicker slices gather more points, a lower floor accepts them, and wider
+        tolerances let the chain continue past one thin band.
+
+        Diameters from here are noisier. Use it to see how much stem the strict
+        settings were missing, not as a replacement for them.
+        """
+        from dataclasses import replace
+
+        return replace(
+            self,
+            slice_thickness=max(self.slice_thickness * 2, 0.20),
+            vertical_step=max(self.vertical_step * 2.5, 0.20),
+            min_points=max(int(self.min_points * 0.15), 15),
+            distance_threshold=self.distance_threshold * 1.5,
+            radius_tolerance=self.radius_tolerance * 3,
+            centre_tolerance=self.centre_tolerance * 2.5,
+        )
+
 
 @dataclass
 class TaperResult:
     fits: object  # DataFrame: every slice attempted, with ok/why
     curve: object  # DataFrame: accepted slices, smoothed
     dbh: float  # diameter at 1.3 m, from the smoothed curve
-    volume: float  # integral of pi r^2 dz over the fitted range
+    volume: float  # alias of volume_measured, kept for older callers
     stats: dict = field(default_factory=dict)
+
+    # Three answers to "what is the stem volume", which are not the same number.
+    volume_measured: float = float("nan")  # integrated over the reconstructed range only
+    volume_model: float = float("nan")  # analytic taper extrapolated to full height
+    volume_cylinder: float = float("nan")  # pi r^2 H, the upper bound a stem never reaches
+    covered_fraction: float = float("nan")  # how much of the tree the reconstruction spans
+
+    @property
+    def form_factor_measured(self) -> float:
+        """Measured volume over the DBH-by-height cylinder.
+
+        A boreal conifer stem normally lands near 0.45 to 0.50. A much lower value
+        does not mean a thin tree, it means the reconstruction did not reach the top.
+        """
+        return self.volume_measured / self.volume_cylinder if self.volume_cylinder else float("nan")
+
+    @property
+    def form_factor_model(self) -> float:
+        return self.volume_model / self.volume_cylinder if self.volume_cylinder else float("nan")
 
 
 def ransac_circle(P: np.ndarray, iterations: int, distance_threshold: float, rng, params=None):
@@ -247,20 +302,61 @@ def taper_curve(
         if predict is not None:
             curve["d_model"] = predict(z)
 
+    # 1. MEASURED: integrate only where slices were actually accepted. This is the
+    #    honest number, and it is a *partial* stem volume whenever the reconstruction
+    #    stops below the crown, which on thinning returns is most of the time.
     if predict is not None:
         grid = np.linspace(z.min(), z.max(), max(len(z) * 4, 50))
         dm = np.clip(predict(grid), 0, None)
         dbh = float(predict(np.array([1.3]))[0]) if height > 1.4 else float("nan")
-        volume = float(np.trapezoid(np.pi * (dm / 2) ** 2, grid))
+        volume_measured = float(np.trapezoid(np.pi * (dm / 2) ** 2, grid))
     else:
         dbh = float(np.interp(1.3, z, d)) if z.min() <= 1.3 <= z.max() else float("nan")
-        volume = float(np.trapezoid(np.pi * (d / 2) ** 2, z))
+        volume_measured = float(np.trapezoid(np.pi * (d / 2) ** 2, z))
+
+    # 2. MODEL: extrapolate the analytic taper over the whole tree. Kozak's form goes
+    #    to zero diameter at the tip by construction, so the integral is well posed.
+    #    It is still extrapolation: on a stem reconstructed to a third of its height,
+    #    two thirds of this number was never measured. covered_fraction says how much.
+    volume_model = float("nan")
+    model_capped = float("nan")
+    if predict is not None and height > 1.4 and np.isfinite(dbh) and dbh > 0:
+        # Extrapolate upward from the lowest accepted slice, never downward past it.
+        # Kozak's exponent carries a log term, so as relative height goes to zero the
+        # predicted diameter can run away by orders of magnitude. Below the lowest
+        # slice the honest assumption is a cylinder at the diameter last measured,
+        # which understates butt swell slightly and cannot explode.
+        z0 = float(z.min())
+        full = np.linspace(z0, height * 0.999, 400)
+        dfull = np.nan_to_num(predict(full), nan=0.0, posinf=0.0, neginf=0.0)
+        cap = 2.5 * dbh  # no stem is two and a half times its own DBH
+        model_capped = float(np.mean(dfull > cap))
+        dfull = np.clip(dfull, 0.0, cap)
+        # A stem cannot widen with height. Imposing it kills the residual runaway
+        # and costs nothing on a fit that was already behaving.
+        dfull = np.minimum.accumulate(dfull)
+        if model_capped <= 0.10:
+            volume_model = float(np.trapezoid(np.pi * (dfull / 2) ** 2, full))
+            volume_model += float(np.pi * (dfull[0] / 2) ** 2 * z0)  # stump section
+
+    # 3. CYLINDER: pi r^2 H at DBH. Not an estimate of the stem, but the yardstick
+    #    the forestry form factor is defined against, so it makes the other two
+    #    readable at a glance.
+    volume_cylinder = (
+        float(np.pi * (dbh / 2) ** 2 * height) if np.isfinite(dbh) and height > 0 else float("nan")
+    )
+    covered = float((z.max() - z.min()) / height) if height > 0 else float("nan")
+    volume = volume_measured
 
     return TaperResult(
         fits=fits,
         curve=curve,
         dbh=dbh,
         volume=volume,
+        volume_measured=volume_measured,
+        volume_model=volume_model,
+        volume_cylinder=volume_cylinder,
+        covered_fraction=covered,
         stats={
             "n_slices": int(len(fits)),
             "n_accepted": int(len(good)),
@@ -268,6 +364,12 @@ def taper_curve(
             "z_min": float(z.min()),
             "z_max": float(z.max()),
             "method": p.method,
+            "volume_measured": volume_measured,
+            "volume_model": volume_model,
+            "volume_cylinder": volume_cylinder,
+            "covered_fraction": covered,
+            "model_capped_fraction": model_capped,
+            "dbh_extrapolated": bool(not (z.min() <= 1.3 <= z.max())),
             "height_total": height,
             "height_stem": float(z.max() - z.min()),
             "stem_top": float(z.max()),
@@ -384,3 +486,72 @@ def fit_taper_model(z: np.ndarray, d: np.ndarray, H: float, p: TaperParams):
             "model": "spline", "ok": True, "rmse": rmse}
 
     return None, {"model": p.model, "ok": False}
+
+
+# --------------------------------------------------------------------------- #
+# The three ways to answer "what is the stem volume"
+# --------------------------------------------------------------------------- #
+
+# Column order for the per-tree volume table. Kept here so the notebook, the CLI
+# and the Day 4 script all produce the same frame.
+VOLUME_COLUMNS = [
+    "tree_id", "n_points", "height_m", "dbh_strict_m", "dbh_relaxed_m",
+    "vol_measured_strict_m3", "cover_strict", "z_top_strict_m",
+    "vol_measured_relaxed_m3", "cover_relaxed", "z_top_relaxed_m",
+    "vol_model_strict_m3", "vol_model_relaxed_m3",
+    "vol_cylinder_m3", "ff_measured_strict", "ff_measured_relaxed",
+    "ff_model_strict", "ff_model_relaxed",
+]
+
+
+def volume_variants(points, total_height: float, p: TaperParams | None = None,
+                    tree_id: int | None = None) -> dict:
+    """Reconstruct one stem three ways and return every number side by side.
+
+    There is no single stem volume to report here, because the reconstruction never
+    reaches the top of the tree and the three honest responses to that disagree:
+
+    1. **measured, strict** - integrate only where slices were accepted, at PCT's
+       TLS settings. Nothing extrapolated, and a *partial* volume: read it with
+       `cover_strict`, the fraction of tree height it spans.
+    2. **measured, relaxed** - the same integral after `TaperParams.relaxed()`
+       loosens the thresholds that were ending the chain early. Reaches higher,
+       fits are noisier, still partial.
+    3. **model** - the fitted Kozak curve integrated from the ground to the tip.
+       Complete by construction, and extrapolated over whatever the measurement
+       did not cover, so it is a prediction rather than a measurement.
+
+    The cylinder pi r^2 H and the four form factors are the yardstick that makes
+    them comparable: a boreal conifer stem sits near 0.45 to 0.50, so a form factor
+    near 0.25 is the signature of a reconstruction that stopped halfway, and one
+    above 0.55 is a model that has extrapolated itself too fat.
+    """
+    base = p or TaperParams()
+    if base.model == "none":
+        from dataclasses import replace
+
+        base = replace(base, model="kozak")
+
+    P = _xyz(points)
+    row = {c: float("nan") for c in VOLUME_COLUMNS}
+    row["tree_id"] = tree_id
+    row["n_points"] = int(len(P))
+    row["height_m"] = float(total_height)
+
+    for tag, params in (("strict", base), ("relaxed", base.relaxed())):
+        try:
+            r = taper_curve(P, params, total_height=total_height)
+        except Exception:
+            continue
+        if not len(r.curve):
+            continue
+        row[f"dbh_{tag}_m"] = r.dbh
+        row[f"vol_measured_{tag}_m3"] = r.volume_measured
+        row[f"vol_model_{tag}_m3"] = r.volume_model
+        row[f"cover_{tag}"] = r.covered_fraction
+        row[f"z_top_{tag}_m"] = r.stats.get("stem_top", float("nan"))
+        row[f"ff_measured_{tag}"] = r.form_factor_measured
+        row[f"ff_model_{tag}"] = r.form_factor_model
+        if tag == "strict":
+            row["vol_cylinder_m3"] = r.volume_cylinder
+    return row

@@ -1,8 +1,9 @@
 # NOVA course 2026 - point cloud tooling
 
-My own take on the problems covered on **Day 3** (2026-08-19) of the NOVA PhD course
-*Introduction to Point Cloud Processing for Forest Sciences*, written as
-[marimo](https://marimo.io) notebooks and a small Python library.
+My own take on the problems covered on **Day 3** (2026-08-19) and **Day 4**
+(2026-08-20) of the NOVA PhD course *Introduction to Point Cloud Processing for Forest
+Sciences*, written as [marimo](https://marimo.io) notebooks and a small Python
+library.
 
 > **This is student work, not course material.** I took the course as a participant.
 > These are **not** the course instructions, and they deliberately do not follow them
@@ -15,9 +16,9 @@ My own take on the problems covered on **Day 3** (2026-08-19) of the NOVA PhD co
 > actual course content, go to the organisers.
 
 It covers the same ground - CSF ground filtering, height normalisation, cross-section
-stem detection, 3D Dijkstra region growing, stem taper reconstruction - and scores each
-method against the reference labels that ship with the course data, which is the part I
-was most interested in.
+stem detection, 3D Dijkstra region growing, stem taper reconstruction, and on Day 4 the
+same plot from three platforms at once - and scores each method against the reference
+labels that ship with the course data, which is the part I was most interested in.
 
 **No data is tracked here.** Point clouds (`*.laz`), slides and the `PCT_demo` bundle
 are excluded by `.gitignore`. Re-fetch the course material from the organisers;
@@ -44,8 +45,8 @@ digital photogrammetry: filtering and classification, surface normals and surfac
 models, conditional Euclidean clustering, and segmentation of tree crowns and stems by
 both classical and AI methods, over 3D coordinates, 3D voxels and 2D pixels.
 
-This repository touches only the Day 3 close-range-sensing material, and only the
-parts I chose to reimplement.
+This repository touches the Day 3 close-range-sensing material and the Day 4
+multi-sensor exercise, and only the parts I chose to reimplement.
 
 ## About NOVA
 
@@ -254,9 +255,19 @@ arrays; xarray is the container, not the maths.
    ends where the measurements stop.
 6. **Taper and stem volume** (`novatrees.taper`) - RANSAC circles per slice, consistency
    filtering, then a smoother or an analytic form (Kozak, polynomial, spline), giving
-   DBH, heights and volume by integration.
+   DBH, heights and volume by integration. `volume_variants` returns **three** volumes
+   per tree, not one, for the reason below.
 7. **Per-tree metrics and cross-sensor matching** (`novatrees.inventory`) - the Day 4
    objective, joining ground-derived volume to airborne metrics.
+
+**A taper integral is not a stem volume.** Its limits are the first and last
+*accepted* slice, and returns thin with height until slices stop passing the minimum
+point count, so on these clouds the strict settings span 16 to 44 per cent of tree
+height. Reporting that as stem volume put the form factor at 0.25 where a boreal
+conifer holds 0.45 to 0.50. `volume_variants` therefore reports the measured integral
+at strict thresholds, the measured integral at relaxed ones, and the fitted Kozak
+curve integrated from ground to tip, each with its cover fraction and form factor, so
+the reader chooses rather than inherits an assumption.
 
 **Large merged instances are a seeding failure, not a growing failure.** The
 biggest predicted tree on this plot swallows two reference trees almost entirely,
@@ -281,12 +292,16 @@ ground, and labels bleed across the plot.
 | `chm_watershed` | the top-down alternative, ported from Yrttimaa's PCT |
 | `extract` | semantic classes, stem-axis tracking, one file per tree |
 | `stemgeom` | sector occupancy, ellipse fitting, fork detection |
-| `taper` | RANSAC slice fits, taper models, stem volume |
+| `taper` | RANSAC slice fits, taper models, the three volume variants |
 | `evaluate` | instance scoring, IoU matching, attribute errors |
-| `inventory` | per-tree metrics, circular plot geometry, cross-sensor matching and join |
+| `inventory` | per-tree metrics, circular plot geometry, fragment filtering, cross-sensor matching and join |
 | `presets` | per-sensor parameters for TLS, MLS and ALS |
 | `workflow` | `run_sensor`: the whole sequence for one cloud in one call |
 | `treeaibox` | the learned alternative, driving TreeAIBox models on CPU |
+| `pcf_bridge` | runs the earlier course package `pcf` side by side, where it is available |
+| `glossary` | the acronym table in `docs/glossary.yaml`, loadable in a notebook |
+| `io` | LAS/LAZ writing, used by the per-tree extractor and the CLI |
+| `cli` | `novatrees` on the command line: detect, grow, taper, extract |
 
 ## State of the tooling, 2026-08-20
 
@@ -327,6 +342,18 @@ point-level metric this data cannot measure.
 **Stem masks bound the taper more than the geometry does.** Trees fail taper
 reconstruction because their stem classification is contaminated, not because the
 fitting is wrong. Axis tracking helped; better stem classification would help more.
+
+**A stem volume from these clouds is part measurement, part model.** The strict
+reconstruction reaches a median 30 per cent of tree height on MLS; loosening the
+thresholds takes it to 75 per cent, and the rest comes from a fitted Kozak curve. The
+three are reported separately rather than merged, and the fitted part is refused
+outright when the curve misbehaves. Nothing here measures a whole stem, and anything
+claiming to is extrapolating.
+
+Two sensors and two detectors agree on this: the raw volumes differ by a factor of
+three between runs, while the form factors land at 0.44 to 0.47 relaxed and 0.50 to
+0.53 modelled. The ALS agrees independently, correlating with the modelled volume at
++0.79 against +0.59 for the strict one.
 
 **The ellipse cannot measure lean.** The geometry is right, but at the lean angles
 present here the signal is about 50 times below the ovality of a real stem, so
