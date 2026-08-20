@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+title: NOVA course 2026 — point cloud tooling
+message: >-
+  If you use this software or its documentation, please cite it using the
+  metadata below.
+type: software
+authors:
+  - given-names: José M.
+    family-names: Beltrán Abaunza
+    affiliation: >-
+      Department of Earth and Environmental Sciences, Lund University, Sweden
+    website: https://github.com/jobelab
+repository-code: https://github.com/jobelab/nova-course-2026
+abstract: >-
+  Python reimplementation of a tree detection and segmentation workflow for
+  terrestrial laser scanning point clouds: Cloth Simulation Filter ground
+  classification, height normalisation, cross-section stem detection with a
+  weighted verticality/reflectance screen, 3D Dijkstra region growing for tree
+  instance labelling, and RANSAC stem taper reconstruction. Written as marimo
+  notebooks and a small library, with every method scored against reference
+  labels. Independent student work produced alongside the NOVA PhD course
+  "Introduction to Point Cloud Processing for Forest Sciences".
+keywords:
+  - point cloud
+  - terrestrial laser scanning
+  - forest inventory
+  - tree segmentation
+  - instance segmentation
+  - stem taper
+  - LiDAR
+  - open science
+license: GPL-3.0-or-later
+date-released: '2026-08-20'

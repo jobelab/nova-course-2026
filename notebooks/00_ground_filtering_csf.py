@@ -7,7 +7,7 @@ against the CloudCompare qCSF plugin.
 Run:  uv run marimo edit notebooks/00_ground_filtering_csf.py
 
 SPDX-License-Identifier: GPL-3.0-or-later
-Copyright (C) 2026 José M. Beltrán Abaunza
+Author: José M. Beltrán Abaunza, Lund University
 """
 
 import marimo

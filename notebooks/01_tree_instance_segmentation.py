@@ -12,7 +12,7 @@ can be inspected in CloudCompare.
 Run:  uv run marimo edit notebooks/01_tree_instance_segmentation.py
 
 SPDX-License-Identifier: GPL-3.0-or-later
-Copyright (C) 2026 José M. Beltrán Abaunza
+Author: José M. Beltrán Abaunza, Lund University
 """
 
 import marimo

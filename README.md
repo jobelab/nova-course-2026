@@ -68,14 +68,18 @@ Member universities:
 
 More about NOVA: <https://www.lbhi.is/nova>
 
-## Maintainer
+## Author
 
 **José M. Beltrán Abaunza, PhD** — [@jobelab](https://github.com/jobelab)
 Sr. Research Engineer, Department of Earth and Environmental Sciences,
 Lund University, Sweden
 
-Participating in the course as a student; this repository is personal work done
-alongside it, in no official capacity.
+Main author and maintainer. Participating in the course as a student; this repository
+is personal work done alongside it, in no official capacity.
+
+**Contributors:** none yet. Issues, corrections and pull requests are welcome — this is
+open science, and the measurements here would benefit from more eyes on them. Anyone
+who contributes will be listed here and in [`NOTICE`](NOTICE).
 
 ## Acknowledgements
 
@@ -96,20 +100,46 @@ close-range-sensing session taught by Tuomas Yrttimaa. The approach implemented 
 was learned from that session; the implementation, and any departures from it, are
 mine.
 
+## Citation
+
+Chicago (author-date):
+
+> Beltrán Abaunza, José M. 2026. "NOVA Course 2026 — Point Cloud Tooling."
+> Lund University. https://github.com/jobelab/nova-course-2026.
+
+BibTeX:
+
+```bibtex
+@software{beltranabaunza_2026_novapointcloud,
+  author  = {Beltr{\'a}n Abaunza, Jos{\'e} M.},
+  title   = {{NOVA} course 2026 --- point cloud tooling},
+  year    = {2026},
+  url     = {https://github.com/jobelab/nova-course-2026},
+  license = {GPL-3.0-or-later},
+  note    = {Department of Earth and Environmental Sciences,
+             Lund University, Sweden}
+}
+```
+
+[`CITATION.cff`](CITATION.cff) carries the same metadata in machine-readable form, so
+GitHub shows a **Cite this repository** button and Zenodo can pick it up if this is
+ever archived with a DOI.
+
+If you cite the methods rather than this implementation, cite the original authors in
+[Acknowledgements](#acknowledgements) instead — the ideas are theirs.
+
 ## Licence
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-**GNU General Public License v3.0 or later** — see [`LICENSE`](LICENSE) for the full
-text and [`NOTICE`](NOTICE) for attribution.
+**GNU General Public License v3.0 or later** (SPDX: `GPL-3.0-or-later`) — see
+[`LICENSE`](LICENSE) for the full text and [`NOTICE`](NOTICE) for authorship and
+attribution.
 
-    NOVA course 2026 — point cloud tooling
-    Copyright (C) 2026 José M. Beltrán Abaunza
-
-    This program is free software: you can redistribute it and/or modify it under
-    the terms of the GNU General Public License as published by the Free Software
-    Foundation, either version 3 of the License, or (at your option) any later
-    version.
+Released as open science: free to read, run, adapt and build on, with the same freedoms
+required of anything derived from it. Source files carry an SPDX identifier and an
+author line rather than a copyright banner — the licence is what governs reuse, and the
+authorship is what should be cited.
 
 ### Why GPL over the CC BY it derives from
 

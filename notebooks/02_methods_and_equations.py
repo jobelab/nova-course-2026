@@ -7,7 +7,7 @@ report.
 Run:  uv run marimo edit notebooks/02_methods_and_equations.py
 
 SPDX-License-Identifier: GPL-3.0-or-later
-Copyright (C) 2026 José M. Beltrán Abaunza
+Author: José M. Beltrán Abaunza, Lund University
 """
 
 import marimo

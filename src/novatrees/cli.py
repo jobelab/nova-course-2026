@@ -1,5 +1,5 @@
 # NOVA course 2026 — point cloud tooling
-# Copyright (C) 2026 José M. Beltrán Abaunza
+# Author: José M. Beltrán Abaunza, Lund University
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 # This file is part of a free software project distributed under the GNU General
