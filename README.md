@@ -1,11 +1,94 @@
 # NOVA course 2026 — point cloud tooling
 
-Working notes and tooling for the NOVA 2026 course, on WSL2 / Ubuntu 24.04.
+Python reimplementation of the **Day 3** exercises (2026-08-19) from the NOVA PhD
+course *Introduction to Point Cloud Processing for Forest Sciences*, as a set of
+[marimo](https://marimo.io) notebooks and a small library.
 
-**No data is tracked here.** Point clouds (`*.laz`), course slides and the
-`PCT_demo` bundle are deliberately excluded by `.gitignore` — see the global
-convention of keeping git to source, docs and configuration. Re-fetch the course
-material from the organisers; regenerate derived products with the scripts here.
+The course demo runs in CloudCompare and the Windows-only `PCT_demo.exe`. These
+notebooks are an **alternative implementation** of the same workflow — CSF ground
+filtering, height normalisation, cross-section stem detection, 3D Dijkstra region
+growing and stem taper reconstruction — in reproducible Python, with every method
+scored against the reference labels that ship with the course data.
+
+They are not a replacement for the course material and carry no endorsement from the
+course organisers.
+
+**No data is tracked here.** Point clouds (`*.laz`), slides and the `PCT_demo` bundle
+are excluded by `.gitignore`. Re-fetch the course material from the organisers;
+regenerate derived products with the scripts here.
+
+## The course
+
+**Introduction to Point Cloud Processing for Forest Sciences** — SLU course code
+[P000158](https://www.slu.se/en/student-web/studies/courses-and-programmes/course-search/kurser/i/introduction-to-point-cloud-processing-for-forest-sciences/).
+
+| | |
+| --- | --- |
+| Organised by | Swedish University of Agricultural Sciences (SLU), Department of Forest Resource Management |
+| Location | Flämslätt and Remningstorp, Sweden, plus digital meetings |
+| Level | Postgraduate / doctoral, third cycle (EQF level 8) |
+| Credits | 3 ECTS (NOVA listing) · 4.5 Hp (SLU syllabus) |
+| Term | 2026-05-18 to 2026-09-30 |
+| Teaching | Blended, in person and online |
+| Language | English |
+| Course coordinator | Eva Lindberg |
+
+The course covers processing of high-resolution point clouds from laser scanning and
+digital photogrammetry: filtering and classification, surface normals and surface
+models, conditional Euclidean clustering, and segmentation of tree crowns and stems by
+both classical and AI methods, over 3D coordinates, 3D voxels and 2D pixels.
+
+This repository covers only the Day 3 close-range-sensing exercises.
+
+## About NOVA
+
+The **Nordic Forestry, Veterinary and Agricultural University Network (NOVA)** is a
+university cooperation supporting the understanding of major global challenges in a
+Nordic context. It provides PhD-level courses in agricultural, forestry and veterinary
+sciences, and supports doctoral students, post-graduate veterinary specialisation
+students and NOVA scientists in building international scientific networks.
+
+Member universities:
+
+| | |
+| --- | --- |
+| **SLU** | Sveriges lantbruksuniversitet — Swedish University of Agricultural Sciences, Sweden |
+| **NMBU** | Norges miljø- og biovitenskapelige universitet — Norwegian University of Life Sciences, Norway |
+| **LBHÍ** | Landbúnaðarháskóli Íslands — Agricultural University of Iceland, Iceland |
+| **UEF** | Itä-Suomen Yliopisto, School of Forest Sciences — University of Eastern Finland |
+| **UH-V** | Helsingin yliopisto, Eläinlääketieteellinen tiedekunta — University of Helsinki, Faculty of Veterinary Medicine, Finland |
+| **UH-AF** | Helsingin yliopisto, Maatalous-metsätieteellinen tiedekunta — University of Helsinki, Faculty of Agriculture and Forestry, Finland |
+
+More about NOVA: <https://www.lbhi.is/nova>
+
+## Maintainer
+
+**José M. Beltrán Abaunza, PhD** — [@jobelab](https://github.com/jobelab)
+Sr. Research Engineer, Department of Earth and Environmental Sciences,
+Lund University, Sweden
+
+## Acknowledgements
+
+This repository ports, wraps or builds on the work below. **None of these authors
+contributed code here**, and any errors in this implementation are mine alone.
+
+| work | authors | how it is used |
+| --- | --- | --- |
+| [**Point-Cloud-Tools (PCT)**](https://github.com/tuomasyr/Point-Cloud-Tools) | Dr. Tuomas Yrttimaa, University of Eastern Finland | `novatrees.chm_watershed` is a Python port of the crown-detection stage. CC BY 4.0. Cite [Yrttimaa 2021](https://doi.org/10.5281/zenodo.5779288), [Yrttimaa et al. 2019](https://doi.org/10.3390/rs11121423), [2020](https://doi.org/10.1016/j.isprsjprs.2020.08.017) |
+| [**TreeAIBox / TreeisoNet**](https://github.com/NRCan/TreeAIBox) | Zhouxin Xi & Dani Degenhardt, Canadian Forest Service, Natural Resources Canada | driven directly for learned stem classification and tree location. [Xi & Degenhardt 2025](https://www.sciencedirect.com/science/article/pii/S266739322500002X) |
+| [**3DFin**](https://github.com/3DFin/3DFin) and [**dendromatics**](https://github.com/3DFin/dendromatics) | the 3DFin developers | third-party forest inventory, and a better answer than ours for tilted stems |
+| [**CSF**](https://github.com/jianboqi/CSF) | Wuming Zhang, Jianbo Qi et al. | ground filtering. [Zhang et al. 2016](https://doi.org/10.3390/rs8060501) |
+| [**CloudCompare**](https://www.cloudcompare.org/) and [CloudCompare-PythonRuntime](https://github.com/tmontaigu/CloudCompare-PythonRuntime) | Daniel Girardeau-Montaut; Thomas Montaigu | the host application and its Python runtime |
+| [**marimo**](https://marimo.io) | the marimo developers | the reactive notebook format |
+
+Course material and the Day 3 demo are by the course organisers at SLU; the Day 3
+close-range-sensing session was taught by Tuomas Yrttimaa.
+
+## Licence
+
+Not yet chosen — **treat this as all rights reserved until one is added**. Note that
+`src/novatrees/chm_watershed.py` is a derivative of CC BY 4.0 material, so whatever
+licence is adopted must remain compatible with that and preserve the attribution above.
 
 ## Layout
 
