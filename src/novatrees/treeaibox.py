@@ -61,6 +61,14 @@ class TreeAIBoxConfig:
     models_dir: Path = Path("models")
     threads: int = 8
     use_cuda: bool = False
+    # Which weights to use. The defaults are the TLS boreal pair, which suit a
+    # ground-based scan of this forest. ALS needs different models entirely, and the
+    # only ones published are trained on reclamation sites: see presets.ALS.
+    stemcls: str = STEMCLS
+    treeloc: str = TREELOC
+    # ALS has no stem classification stage in the released model set, so the
+    # detector runs on the whole cloud rather than on stem points.
+    stem_stage: bool = True
 
 
 def _weight_name(model: str) -> str:
@@ -103,9 +111,9 @@ def stem_classification(cloud, cfg: TreeAIBoxConfig = TreeAIBoxConfig()) -> np.n
 
     pcd = _xyz(cloud)
     out = filterPoints(
-        str(conf_dir / f"{STEMCLS}.json"),
+        str(conf_dir / f"{cfg.stemcls}.json"),
         pcd,
-        str(ensure_model(STEMCLS, cfg)),
+        str(ensure_model(cfg.stemcls, cfg)),
         if_bottom_only=False,
         use_efficient=True,
         use_cuda=cfg.use_cuda,
@@ -130,11 +138,11 @@ def tree_locations(cloud, stem_mask: np.ndarray, cfg: TreeAIBoxConfig = TreeAIBo
         return np.empty((0, 3))
 
     tops = treeLoc(
-        str(conf_dir / f"{TREELOC}.json"),
+        str(conf_dir / f"{cfg.treeloc}.json"),
         stems,
-        str(ensure_model(TREELOC, cfg)),
+        str(ensure_model(cfg.treeloc, cfg)),
         use_cuda=cfg.use_cuda,
-        if_stem=True,  # selects the linear_pred head the released weights carry
+        if_stem=cfg.stem_stage,  # if_stem selects the linear_pred head in the weights
     )
     return np.asarray(tops) if tops is not None else np.empty((0, 3))
 
@@ -152,7 +160,11 @@ def treeaibox_seeds(
     `novatrees.extract`, never for the segmentation itself.
     """
     t0 = time.time()
-    stem_mask = stem_classification(cloud, cfg)
+    if cfg.stem_stage:
+        stem_mask = stem_classification(cloud, cfg)
+    else:
+        # No stem stage for this model set: the detector sees the whole cloud.
+        stem_mask = np.ones(len(_xyz(cloud)), bool)
     t1 = time.time()
     if verbose:
         print(f"stem classification: {t1 - t0:.1f}s, {stem_mask.sum():,} stem points")

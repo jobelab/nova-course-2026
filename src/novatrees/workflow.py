@@ -124,7 +124,10 @@ def run_sensor(
         import pathlib
 
         seeds, _stem, _tim = treeaibox_seeds(
-            norm_xyz, TreeAIBoxConfig(models_dir=pathlib.Path("models")), verbose=verbose
+            norm_xyz,
+            TreeAIBoxConfig(models_dir=pathlib.Path("models"), stemcls=p.dl_stemcls,
+                            treeloc=p.dl_treeloc, stem_stage=p.dl_stem_stage),
+            verbose=verbose,
         )
     elif p.seed_method == "chm":
         res = chm_segment(norm_xyz, p.chm)

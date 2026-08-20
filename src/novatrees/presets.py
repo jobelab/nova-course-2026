@@ -56,6 +56,11 @@ class SensorPreset:
     chm: ChmParams
     taper: TaperParams
     denoise: DenoiseParams = field(default_factory=DenoiseParams)
+    # TreeAIBox weights for the learned detector, and whether that model set has a
+    # stem-classification stage before tree location.
+    dl_stemcls: str = "treeisonet_tls_boreal_stemcls_esegformer3D_128_4cm(GPU3GB)"
+    dl_treeloc: str = "treeisonet_tls_boreal_treeloc_esegformer3D_128_10cm(GPU3GB)"
+    dl_stem_stage: bool = True
     max_points: int | None = None  # decimate on load; None reads everything
     notes: str = ""
 
@@ -121,6 +126,12 @@ ALS = SensorPreset(
     taper=TaperParams(min_points=40, slice_thickness=0.50, vertical_step=0.50),
     # Airborne returns are sparse; a harsh filter deletes real canopy.
     denoise=DenoiseParams(method='statistical', k=6, n_sigma=3.0),
+    # The only published ALS models are trained on reclamation sites, not boreal
+    # forest, and there is no ALS stem classifier at all. Running them here is a
+    # domain-transfer test, not a like-for-like comparison.
+    dl_stemcls="treeisonet_als_reclamation_treeloc_esegformer3D_128_10cm(GPU4GB)",
+    dl_treeloc="treeisonet_als_reclamation_treeloc_esegformer3D_128_10cm(GPU4GB)",
+    dl_stem_stage=False,
     max_points=None,
     notes="From above. No usable stem returns under canopy, so cross-section seeding "
           "has nothing to find and CHM watershed is the only route. Expect suppressed "

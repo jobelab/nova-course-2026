@@ -33,8 +33,7 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     # Plot 167 from three sensors
 
     One plot, three viewpoints, and the reason the exercise is worth doing: **no single
@@ -65,8 +64,7 @@ def _(mo):
     **Position means different things to each sensor.** The ground locates a tree by
     its stem; the air locates it by its canopy apex. Those differ by metres on leaning
     or asymmetric trees, and that offset is a real measurement property, not noise.
-    """
-    )
+    """)
     return
 
 
@@ -98,14 +96,8 @@ def _():
     }
     OUTDIR = REPO / "out" / "day04"
     return (
-        ALS,
         CLOUDS,
-        DATA,
-        MLS,
         OUTDIR,
-        Path,
-        REPO,
-        TLS,
         TaperParams,
         alt,
         join_sensors,
@@ -130,8 +122,7 @@ def _(CLOUDS, mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ## Controls
 
     Decimation is not optional for the TLS: 290 M points is 6.5 GB of coordinates on a
@@ -142,8 +133,7 @@ def _(mo):
     and tree-location models, which suit this forest. On ALS the only models available
     are trained on **reclamation sites**, so that run is a domain-transfer test rather
     than a fair comparison, and it is labelled as such wherever its numbers appear.
-    """
-    )
+    """)
     return
 
 
@@ -182,7 +172,9 @@ def _(CLOUDS, detectors, max_pts, mo, run_all, run_sensor):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## Steps 1 to 4: preprocessing and detection, all sensors""")
+    mo.md(r"""
+    ## Steps 1 to 4: preprocessing and detection, all sensors
+    """)
     return
 
 
@@ -214,13 +206,12 @@ def _(mo, pd, runs):
             """
         ),
     ])
-    return (summary,)
+    return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ## Step 5: stem volume, from both ground sensors
 
     Volume is the quantity ALS cannot measure, so it is the reason the ground clouds are
@@ -230,8 +221,7 @@ def _(mo):
     Both TLS and MLS are run, and where they disagree that disagreement is the honest
     error bar on the whole exercise. Agreement between two independent instruments is
     worth more than either one's internal fit statistics.
-    """
-    )
+    """)
     return
 
 
@@ -288,15 +278,13 @@ def _(TaperParams, mo, np, pd, runs, taper_curve, vol_min_pts, vol_run):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ### Do the two ground sensors agree?
 
     Matched stem by stem. Systematic offset between them is more informative than
     scatter: MLS sees fewer returns per stem, so if its diameters run consistently
     larger, the mixed-pixel halo is the first thing to suspect.
-    """
-    )
+    """)
     return
 
 
@@ -352,8 +340,7 @@ def _(alt, match_positions, mo, np, pd, volumes):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ## Step 6: match ground to air, and the objective
 
     Ground trees carry stem volume; ALS trees carry the metrics that exist everywhere
@@ -362,8 +349,7 @@ def _(mo):
     Watch the **match rate** more than the offsets. A high rate with large offsets is a
     usable dataset with a known bias; a low rate means the two sensors disagree about
     how many trees exist, and no regression fitted on the survivors will fix that.
-    """
-    )
+    """)
     return
 
 
@@ -414,7 +400,9 @@ def _(drop_edge, ground_ref, join_sensors, match_dist, mo, runs, volumes):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### The objective: one row per tree""")
+    mo.md(r"""
+    ### The objective: one row per tree
+    """)
     return
 
 
@@ -441,14 +429,12 @@ def _(joined, mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ### Is there a relationship worth modelling?
 
     Not a fit, just a look. If ALS metrics carry no signal about stem volume here, that
     is worth knowing before tomorrow.
-    """
-    )
+    """)
     return
 
 
@@ -484,7 +470,9 @@ def _(alt, joined, mo, np):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## Export""")
+    mo.md(r"""
+    ## Export
+    """)
     return
 
 
