@@ -14,8 +14,8 @@ the three. Being ratios over the band sum they are invariant to exposure, gain a
 any illumination scaling that hits all channels alike, so they are valid on raw DN
 and need no radiometric calibration. For the drone RGB clouds - LAS point format 2,
 unambiguous R/G/B - that means an index that no missing processing report can
-invalidate. `gcc` is the standard phenocam greenness index, which makes a
-crown-level GCC from a drone directly comparable with a tower phenocam.
+invalidate. `gcc` is the conventional greenness index for RGB imagery, defined
+over R+G+B.
 
 **Normalised differences** (`normalised_difference`) are the NDVI/NDRE/GNDVI form.
 They also survive uncalibrated DN as long as the two bands share a gain, but on the
@@ -66,9 +66,9 @@ MS_ORTHO_BANDS = ("green", "red", "red_edge", "nir")
 RGB = ("red", "green", "blue")
 
 #: Channel order for chromatic coordinates on the multispectral band set, i.e.
-#: ``G / (G + R + RE)`` and its two siblings. These are **not** phenocam GCC: there
-#: is no blue band, so the denominator differs and the numbers are not comparable
-#: with an RGB-derived GCC. Report them by their denominator, not as "GCC".
+#: ``G / (G + R + RE)`` and its two siblings. These are **not** GCC: GCC is defined
+#: over R+G+B and there is no blue band here, so the denominator differs and the
+#: numbers are not comparable with an RGB-derived GCC. Report them by their denominator, not as "GCC".
 MS_VISIBLE = ("green", "red", "red_edge")
 
 
@@ -110,8 +110,8 @@ def chromatic_coordinates(
 
     With ``channels`` as R, G, B the columns are RCC, GCC, BCC and they sum to 1.
     The function does not care how many channels there are, but note that
-    chromatic coordinates over a non-RGB band set are **not** phenocam GCC: name the
-    denominator explicitly when reporting them.
+    chromatic coordinates over a non-RGB band set are **not** GCC as conventionally
+    defined: name the denominator explicitly when reporting them.
     """
     x = np.asarray(channels, dtype=np.float64)
     total = x.sum(axis=1)

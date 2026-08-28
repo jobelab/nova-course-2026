@@ -201,10 +201,7 @@ def _(mo):
     **This is a result, not a curiosity.** If greenness is to be compared across
     flights, the band set decides how much the flight plan matters: a G/R/RE/NIR index
     is far more robust to view angle than an RGB one. It also means GCC from an RGB drone cloud is **not** directly comparable with GCC
-    from a differently-flown survey. Nor is it numerically comparable with tower
-    phenocam GCC: a phenocam holds camera, settings and viewpoint fixed, whereas drone
-    RGB passes through per-flight white balance and per-chunk colour adjustment. The
-    two are the same *quantity*, not the same *number*, without cross-calibration.
+    from a differently flown survey without accounting for geometry.
 
     ### What this still does not do
 

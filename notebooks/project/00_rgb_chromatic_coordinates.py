@@ -10,11 +10,9 @@ for two reasons that have nothing to do with convenience:
        these products are calibrated reflectance is the one open question the missing
        Metashape report could not be worked around - and GCC does not care.
 
-GCC is also the standard phenocam greenness index, so a crown-level GCC from a drone
-measures the same quantity a tower phenocam does. It is not the same *number*: a
-phenocam fixes camera, settings and viewpoint, while drone RGB passes through
-per-flight white balance and Metashape's per-chunk colour adjustment. Comparing them
-numerically needs cross-calibration.
+GCC is the conventional greenness index for RGB imagery, defined over R+G+B. What it
+gets compared against here is the laser scanning over the same plot, since TLS, MLS
+and the helicopter ALS all cover plot 167 and all record intensity.
 
 SPDX-License-Identifier: GPL-3.0-or-later
 Author: José M. Beltrán-Abaunza (jose.beltran@mgeo.lu.se), Lund University
@@ -189,7 +187,8 @@ def _(mo, ms_stats, percentiles, rgb_stats):
         "### Chromatic coordinates\n\n"
         + table(rgb_stats, "R+G+B")
         + "\n\n**On the multispectral band set** - the same arithmetic, a different "
-        "denominator. These are *not* phenocam GCC: there is no blue band, so name "
+        "denominator. These are *not* GCC, which is defined over R+G+B: there is no "
+        "blue band here, so name "
         "them by their denominator and never compare the numbers directly with the "
         "table above.\n\n"
         + table(ms_stats, "G+R+RE")
