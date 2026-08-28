@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "plot20m",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::3006" } },
+"features": [
+{ "type": "Feature", "properties": { "TRAKT": 167.0, "PLOT": 1.0, "X": 420407.63101900002, "Y": 6481815.1357730003, "Z": 137.642399 }, "geometry": { "type": "Point", "coordinates": [ 420407.631, 6481815.136 ] } }
+]
+}
