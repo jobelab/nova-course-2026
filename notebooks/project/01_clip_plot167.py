@@ -7,7 +7,7 @@ were not looking at the same ground. This notebook removes that difference by
 clipping all four clouds to the same 20 m circle and re-running the arithmetic.
 
 SPDX-License-Identifier: GPL-3.0-or-later
-Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University
+Author: José M. Beltrán-Abaunza (jose.beltran@mgeo.lu.se), Lund University
 
 Run:  uv run marimo edit notebooks/project/01_clip_plot167.py --watch
 """

@@ -10,7 +10,7 @@ Whether any of this is where the course goes next is unknown at the time of writ
 Run:  uv run marimo edit notebooks/day04/01_upscaling_regression.py --watch
 
 SPDX-License-Identifier: GPL-3.0-or-later
-Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University
+Author: José M. Beltrán-Abaunza (jose.beltran@mgeo.lu.se), Lund University
 """
 
 import marimo

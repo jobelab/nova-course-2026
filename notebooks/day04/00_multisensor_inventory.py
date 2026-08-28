@@ -13,7 +13,7 @@ Objective: a data frame with ground-derived stem volume beside ALS-derived metri
 The regression that would upscale one from the other is deliberately not fitted here.
 
 SPDX-License-Identifier: GPL-3.0-or-later
-Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University
+Author: José M. Beltrán-Abaunza (jose.beltran@mgeo.lu.se), Lund University
 
 Run:  uv run marimo edit notebooks/day04/00_multisensor_inventory.py --watch
 """

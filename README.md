@@ -107,7 +107,7 @@ More about NOVA: <https://www.lbhi.is/nova>
 ## Author
 
 **José M. Beltrán-Abaunza, PhD**
-[![ORCID](https://img.shields.io/badge/ORCID-0000--0003--3777--6788-a6ce39?logo=orcid&logoColor=white)](https://orcid.org/0000-0003-3777-6788)
+[![Email](https://img.shields.io/badge/Email-jose.beltran%40mgeo.lu.se-0072c6?logo=maildotru&logoColor=white)](mailto:jose.beltran@mgeo.lu.se)
 [![GitHub](https://img.shields.io/badge/GitHub-jobelab-181717?logo=github)](https://github.com/jobelab)
 
 Sr. Research Engineer, Department of Earth and Environmental Sciences,

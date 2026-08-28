@@ -17,7 +17,7 @@ per-flight white balance and Metashape's per-chunk colour adjustment. Comparing 
 numerically needs cross-calibration.
 
 SPDX-License-Identifier: GPL-3.0-or-later
-Author: José M. Beltrán-Abaunza (ORCID 0000-0003-3777-6788), Lund University
+Author: José M. Beltrán-Abaunza (jose.beltran@mgeo.lu.se), Lund University
 
 Run:  uv run marimo edit notebooks/project/00_rgb_chromatic_coordinates.py --watch
 """
