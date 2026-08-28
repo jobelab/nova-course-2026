@@ -41,15 +41,17 @@ __all__ = [
 
 #: What the LAS colour slots actually hold on the 4-band multispectral clouds.
 #:
-#: The payload is a 4-band **G / R / RedEdge / NIR** camera - no blue. Metashape maps
-#: those into the R/G/B/NIR slots of LAS point format 8 **by name where a name fits**,
-#: so red is red and green is green; only the ``blue`` slot is a stand-in, and it
-#: carries **red edge**.
+#: The payload is a **DJI Mavic 3 Multispectral**: four single-band cameras at green
+#: 550 nm, red 650 nm, red edge 730 nm and near infrared 860 nm, with **no blue band**.
+#: Metashape maps those into the R/G/B/NIR slots of LAS point format 8 **by name where
+#: a name fits**, so red is red and green is green; only the ``blue`` slot is a
+#: stand-in, and it carries **red edge**.
 #:
-#: Established from per-slot means over the whole cloud: the ``red`` slot is the
-#: darkest (10,605) and the ``green`` slot is half again as bright (15,910), which is
-#: chlorophyll absorption and only holds if the slot names are honest. Under any
-#: swapped reading the red band would be brighter than green, which no vegetation is.
+#: Two independent routes agree on this. The instrument fixes the band order. And a
+#: gain-independent test on the data confirms the visible pair: correlating
+#: ``b1/(b1+b2)`` against ``G/(G+R)`` from the unambiguous RGB orthomosaic gives
+#: +0.663 over 1.77 M pixels, so band 1 is green and band 2 is red. The data alone
+#: could not separate red edge from near infrared; the camera does.
 MS_SLOTS = {"red": "red", "green": "green", "blue": "red_edge", "nir": "nir"}
 
 #: Band order **in the orthomosaic**, which is *not* the LAS slot order.
@@ -59,7 +61,7 @@ MS_SLOTS = {"red": "red", "green": "green", "blue": "red_edge", "nir": "nir"}
 #: (raster band means 11,055 / 7,333 / 13,706 / 12,373 - band 2 darkest, so band 2 is
 #: red - against cloud slot means 10,605 / 15,910 / 19,198 / 17,740). Sampling the
 #: orthomosaic and joining it to the cloud without this mapping silently swaps red
-#: and green.
+#: and green, and nothing looks wrong because both are plausible visible bands.
 MS_ORTHO_BANDS = ("green", "red", "red_edge", "nir")
 
 #: Channel order for RGB chromatic coordinates - the columns are RCC, GCC, BCC.
