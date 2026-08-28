@@ -47,11 +47,22 @@ __all__ = [
 #: a name fits**, so red is red and green is green; only the ``blue`` slot is a
 #: stand-in, and it carries **red edge**.
 #:
-#: Two independent routes agree on this. The instrument fixes the band order. And a
-#: gain-independent test on the data confirms the visible pair: correlating
-#: ``b1/(b1+b2)`` against ``G/(G+R)`` from the unambiguous RGB orthomosaic gives
-#: +0.663 over 1.77 M pixels, so band 1 is green and band 2 is red. The data alone
-#: could not separate red edge from near infrared; the camera does.
+#: Three routes agree. The instrument fixes the band identities. A gain-independent
+#: test against the unambiguous RGB orthomosaic confirms the visible pair:
+#: ``corr[b1/(b1+b2), G/(G+R)] = +0.663`` over 1.77 M pixels, so band 1 is green and
+#: band 2 is red. And sampling the orthomosaic at each cloud point, keeping the
+#: highest point per pixel and correlating chromatic coordinates over 2.56 M pairs,
+#: recovers the whole permutation between the two products:
+#:
+#:     LAS red -> ortho band 2   r 0.813   margin +0.276
+#:     LAS green -> ortho band 1   r 0.723   margin +0.214
+#:     LAS blue -> ortho band 3   r 0.677   margin +0.415
+#:     LAS nir -> ortho band 4   r 0.776   margin +0.502
+#:
+#: Brightness has to be divided out first: on raw values, shading dominates and the
+#: permutation does not separate. Note what each route settles. The correlations tie
+#: the two *products* together; only the camera says which band is red edge and which
+#: is near infrared, since the two behave almost identically here.
 MS_SLOTS = {"red": "red", "green": "green", "blue": "red_edge", "nir": "nir"}
 
 #: Band order **in the orthomosaic**, which is *not* the LAS slot order.
