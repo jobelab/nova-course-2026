@@ -155,3 +155,42 @@ def normalised(path, dtm, zoff=0.0, target=2_000_000, radius=PLOT_R):
     d = read_sample(path, target=target, centre=(CX, CY), radius=radius)
     Q = np.column_stack([d["x"], d["y"], d["z"] + zoff])
     return np.column_stack([Q[:, 0], Q[:, 1], normalize_against(Q, dtm)])
+
+
+def cache(name: str, build, fmt: str = "csv", rebuild: bool = False):
+    """Return a cached result, computing it with `build()` only when missing.
+
+    The analyses behind the later chapters take one to four minutes each, mostly in
+    chunked reads over multi-gigabyte clouds. Caching is what lets a notebook open in
+    a second on the second run, which is the difference between a notebook that gets
+    reopened and one that does not.
+
+    `fmt` is "csv" for a DataFrame or "npz" for a dict of arrays.
+    """
+    OUT.mkdir(parents=True, exist_ok=True)
+    path = OUT / f"{name}.{fmt}"
+    if path.exists() and not rebuild:
+        if fmt == "csv":
+            import pandas as pd
+            return pd.read_csv(path)
+        z = np.load(path, allow_pickle=False)
+        return {k: z[k] for k in z.files}
+    obj = build()
+    if fmt == "csv":
+        obj.to_csv(path, index=False)
+    else:
+        np.savez_compressed(path, **obj)
+    return obj
+
+
+def notebook_setup():
+    """Put `scripts/project` on the path so a notebook can import this module.
+
+    Notebooks live in notebooks/project and the shared setup lives in scripts/project.
+    Rather than duplicate it, each notebook calls this first. One source of truth for
+    the plot geometry, the terrain and the memory-safe readers.
+    """
+    import sys
+    p = str(ROOT / "scripts" / "project")
+    if p not in sys.path:
+        sys.path.insert(0, p)

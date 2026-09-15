@@ -1,15 +1,9 @@
-"""Individual project, step 5: crown level aggregation, and what colour says about species.
+"""Individual project, step 5: crown level aggregation, and colour against species.
 
-Everything so far has been per point or per plot. This notebook aggregates to the crown,
-which is the unit an inventory actually reports, and then asks two questions the earlier
-stages could not answer.
+Interactive. Crowns come from `analysis.crowns()`, cached to out/project. Pick an index
+and the separation is recomputed live.
 
-First, does flight geometry change an index on the *same tree*? Comparing plot means
-confounds the acquisition with which surfaces each one happened to sample. Pairing crowns
-between acquisitions removes that.
-
-Second, do crown level indices separate Scots pine from Norway spruce, and does the
-multispectral camera do it better than plain RGB?
+A narrative-only copy is in `narrative/`.
 
 SPDX-License-Identifier: GPL-3.0-or-later
 Author: José M. Beltrán-Abaunza (jose.beltran@mgeo.lu.se), Lund University
@@ -30,142 +24,156 @@ def _():
     return (mo,)
 
 
+@app.cell
+def _():
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts" / "project"))
+    import numpy as np
+    from scipy import stats
+    from scipy.optimize import linear_sum_assignment
+
+    import analysis as A
+
+    CT = A.crowns()
+    CLOUDS = ["Nadir_RGB", "Oblique_RGB", "Nadir_MS", "Oblique_MS"]
+
+    def paired(a, b, tol=1.5):
+        qa, qb = CT[CT.cloud == a], CT[CT.cloud == b]
+        xa, xb = qa[["x", "y"]].to_numpy(), qb[["x", "y"]].to_numpy()
+        cost = np.linalg.norm(xa[:, None, :] - xb[None, :, :], axis=2)
+        i, j = linear_sum_assignment(cost)
+        k = cost[i, j] <= tol
+        return qa.iloc[i[k]].reset_index(drop=True), qb.iloc[j[k]].reset_index(drop=True)
+
+    def auc(sub, col):
+        p_, s_ = sub[sub.species == 1][col].dropna(), sub[sub.species == 2][col].dropna()
+        if len(p_) < 3 or len(s_) < 3:
+            return float("nan"), len(sub)
+        u = stats.mannwhitneyu(s_, p_).statistic
+        return u / (len(s_) * len(p_)), len(sub)
+
+    return A, CLOUDS, CT, auc, linear_sum_assignment, np, paired, stats
+
+
 @app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    # From points to trees
+def _(CT, mo):
+    mo.md(
+        f"""
+        # From points to trees
 
-    Crowns come from the watershed segmentation of the previous notebook, keeping any
-    crown with at least 30 points. Each one carries its area from the labelled raster,
-    its height as the 95th percentile of its points, and the median of every colour index
-    over its points. A median rather than a mean, because a crown edge picks up
-    background and a single bright pixel should not move the tree.
-
-    Crowns are then paired between acquisitions by position, one-to-one at 1.5 m, and
-    joined to the 74 field stems at 2.0 m.
-    """)
+        {len(CT)} crowns across four acquisitions, each carrying its area from the
+        labelled raster, its height as the 95th percentile of its points, and the median
+        of every colour index over its points. A median rather than a mean, because a
+        crown edge picks up background and one bright pixel should not move the tree.
+        """
+    )
     return
 
 
 @app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ## Results as measured
+def _(CLOUDS, CT, mo):
+    size_rows = [
+        f"| `{c}` | {len(CT[CT.cloud==c])} | {CT[CT.cloud==c].area.median():.1f} m² | "
+        f"{CT[CT.cloud==c].h95.median():.2f} m |" for c in CLOUDS]
+    mo.md("### Crowns delineated\n\n| cloud | crowns | median area | median h95 |\n"
+          "|---|---:|---:|---:|\n" + "\n".join(size_rows)
+          + "\n\n**Oblique crowns come out about a third larger and there are fewer of "
+            "them.** That is the mechanism behind the lower oblique detection rate: "
+            "off-nadir views smear the apex, neighbouring crowns merge, and the watershed "
+            "returns fewer, fatter basins.")
+    return
 
-    ### Crowns delineated
 
-    | cloud | crowns | median area | median h95 |
-    |---|---:|---:|---:|
-    | `Nadir_RGB` | 56 | 16.7 m² | 22.50 m |
-    | `Oblique_RGB` | 49 | 22.0 m² | 22.44 m |
-    | `Nadir_MS` | 53 | 19.6 m² | 22.30 m |
-    | `Oblique_MS` | 46 | 24.2 m² | 22.86 m |
+@app.cell(hide_code=True)
+def _(mo, np, paired):
+    pair_rows = []
+    for pa, pb, plabel in (("Nadir_RGB", "Oblique_RGB", "RGB"),
+                           ("Nadir_MS", "Oblique_MS", "multispectral")):
+        px, py = paired(pa, pb)
+        cells = []
+        for pcol in ("G", "h95", "area"):
+            d = px[pcol].to_numpy() - py[pcol].to_numpy()
+            cells.append(f"{np.median(d):+.4f} [{np.percentile(d,25):+.4f}, "
+                         f"{np.percentile(d,75):+.4f}]")
+        pair_rows.append(f"| {plabel} | {len(px)} | " + " | ".join(cells) + " |")
+    mo.md("### The same tree, seen twice\n\nNadir minus oblique, median with the "
+          "interquartile range.\n\n| pair | crowns | G share | h95 (m) | crown area (m²) |\n"
+          "|---|---:|---:|---:|---:|\n" + "\n".join(pair_rows)
+          + "\n\nThe RGB difference survives the pairing, so it is a property of how each "
+            "acquisition sees a given tree rather than of which trees each one sampled. "
+            "The multispectral set, which has no blue band, moves less and the other way. "
+            "**Height transfers between geometries; crown area does not.**")
+    return
 
-    **Oblique crowns come out about a third larger and there are fewer of them.** That is
-    the mechanism behind the detection result in the previous notebook: off-nadir views
-    smear the crown apex, neighbouring crowns merge rather than separate, and the
-    watershed returns fewer, fatter basins. It is the blur visible in the plan views,
-    now with a number on it.
 
-    ### The same tree, seen twice
+@app.cell
+def _(CLOUDS, CT, mo):
+    cloud_pick = mo.ui.dropdown(CLOUDS, value="Nadir_RGB", label="cloud")
+    band_only = mo.ui.checkbox(value=True, label="restrict to the middle DBH quartiles")
+    mo.hstack([cloud_pick, band_only], justify="start", gap=2)
+    return band_only, cloud_pick
 
-    Paired crowns, nadir minus oblique:
 
-    | pair | crowns | G share | h95 | crown area |
-    |---|---:|---:|---:|---:|
-    | RGB | 48 | **+0.0106** [+0.0073, +0.0147] | +0.10 m [-0.05, +0.22] | -1.8 m² [-4.1, +0.2] |
-    | multispectral | 42 | **-0.0051** [-0.0067, -0.0032] | -0.16 m [-0.31, -0.04] | -2.0 m² [-5.7, +1.1] |
+@app.cell(hide_code=True)
+def _(CT, auc, band_only, cloud_pick, mo):
+    sel = CT[(CT.cloud == cloud_pick.value) & (CT.species > 0)]
+    if band_only.value:
+        blo, bhi = sel.dbh.quantile(.25), sel.dbh.quantile(.75)
+        sel = sel[(sel.dbh >= blo) & (sel.dbh <= bhi)]
+    idx_cols = (["NDVI", "NDRE", "GNDVI", "G"] if cloud_pick.value.endswith("MS")
+                else ["GCC", "RCC", "BCC"])
+    auc_rows = []
+    for icol in idx_cols:
+        a, n = auc(sel, icol)
+        strength = abs(a - 0.5) * 2
+        auc_rows.append(f"| {icol} | {a:.3f} | {strength:.2f} | {n} |")
+    mo.md(
+        f"### Species separation, {cloud_pick.value}"
+        + (" (size controlled)" if band_only.value else "")
+        + "\n\nAUC is the probability a random spruce scores above a random pine. 0.5 is "
+          "no information, and a value below 0.5 separates equally well with the sign "
+          "reversed, which is why the strength column takes the distance from 0.5.\n\n"
+          "| index | AUC | strength | n |\n|---|---:|---:|---:|\n" + "\n".join(auc_rows)
+    )
+    return
 
-    Median with the interquartile range in brackets.
 
-    **The RGB difference survives the pairing.** At plot level the clipped nadir minus
-    oblique difference in GCC was +0.0140; per crown it is +0.0106, with an
-    interquartile range that never crosses zero. So roughly three quarters of the
-    plot level difference is a property of how each acquisition sees a given tree, and
-    only the remainder was composition. This is the tightest version of the RQ1 result
-    the data can give.
+@app.cell(hide_code=True)
+def _(CT, mo):
+    corr = CT[(CT.cloud == "Nadir_RGB") & (CT.species > 0)]
+    mo.md(
+        f"""
+        ### Crown metrics against field DBH
 
-    **The multispectral difference is small and points the other way**, -0.0051 against
-    +0.0106, on the same trees over the same three days. A band set without blue is not
-    merely less sensitive to flight geometry here; it does not track the RGB effect at
-    all.
+        | | Pearson r with DBH |
+        |---|---:|
+        | crown area | **{corr.area.corr(corr.dbh):+.3f}** |
+        | crown h95 | {corr.h95.corr(corr.dbh):+.3f} |
+        | GCC | {corr.GCC.corr(corr.dbh):+.3f} |
 
-    **Height barely moves**, 0.10 and 0.16 m on trees of 22 m. Canopy height transfers
-    between flight geometries. Detection and crown area do not.
+        Crown area predicts stem diameter better than height does, which is awkward
+        because area is also the metric most disturbed by flight geometry.
 
-    ### Crown metrics against field DBH
+        Greenness falls with size, and the spruce here are smaller. That is why the size
+        control above matters: tick it off and the separation is partly a size effect;
+        leave it on and what remains is the species. **Unlike the apparent species effect
+        in detection, this one survives.**
 
-    53 crowns joined to surveyed stems:
+        **An uncalibrated 20 MP RGB camera matches the four band multispectral payload**
+        at separating these two species. Given the cost difference, that is the
+        practically interesting result.
 
-    | | Pearson r with DBH |
-    |---|---:|
-    | crown area | **+0.686** |
-    | crown h95 | +0.497 |
+        ### What this does not settle
 
-    Crown area is the better predictor of stem diameter, which is worth knowing given
-    that area is also the metric most disturbed by flight geometry.
-
-    ### Species separation
-
-    AUC is the probability that a randomly chosen spruce scores above a randomly chosen
-    pine. 0.5 is no information, 1.0 is perfect separation, and values below 0.5 mean
-    the index separates just as well with the sign reversed. It is scale free, so
-    indices with different ranges compare directly. "Band" restricts to the middle two
-    DBH quartiles, which is the size control.
-
-    | cloud | index | AUC | n | AUC in band | n |
-    |---|---|---:|---:|---:|---:|
-    | `Nadir_RGB` | **GCC** | **0.978** | 53 | **0.954** | 27 |
-    | `Nadir_RGB` | RCC | 0.684 | 53 | 0.638 | 27 |
-    | `Nadir_RGB` | BCC | 0.042 | 53 | 0.092 | 27 |
-    | `Oblique_RGB` | **GCC** | **0.996** | 48 | **0.981** | 24 |
-    | `Oblique_RGB` | RCC | 0.430 | 48 | 0.537 | 24 |
-    | `Oblique_RGB` | BCC | 0.062 | 48 | 0.009 | 24 |
-    | `Nadir_MS` | NDVI | 0.932 | 49 | 0.897 | 25 |
-    | `Nadir_MS` | NDRE | 0.862 | 49 | 0.801 | 25 |
-    | `Nadir_MS` | GNDVI | 0.852 | 49 | 0.757 | 25 |
-    | `Nadir_MS` | G/(G+R+RE) | 0.723 | 49 | 0.868 | 25 |
-    | `Oblique_MS` | NDVI | 0.963 | 45 | 0.956 | 23 |
-    | `Oblique_MS` | **NDRE** | **0.973** | 45 | **0.989** | 23 |
-    | `Oblique_MS` | GNDVI | 0.929 | 45 | 0.939 | 23 |
-    | `Oblique_MS` | G/(G+R+RE) | 0.610 | 45 | 0.844 | 23 |
-
-    **Spruce crowns are greener than pine crowns, and the separation is close to
-    complete.** Spruce sits higher in GCC, NDVI, NDRE and GNDVI, and lower in BCC, in
-    every acquisition.
-
-    **It is not a size effect.** Greenness does correlate with size, negatively: GCC
-    against DBH is r = -0.345 and against h95 is r = -0.409, and the spruce on this plot
-    are smaller. But restricting to the middle DBH quartiles, where pine and spruce
-    medians are 28.2 and 26.0 cm, the separation holds at AUC 0.954 and the difference is
-    if anything cleaner. That is the opposite of the detection result in the previous
-    notebook, where the apparent species effect vanished under the same control.
-
-    **The plain RGB camera does this at least as well as the multispectral one.** GCC
-    reaches 0.954 and 0.981 in band, against 0.897 for nadir NDVI and 0.989 for oblique
-    NDRE. A 20 MP RGB camera with an uncalibrated ratio index matches a four band
-    multispectral payload at separating these two species. An earlier reading here was
-    wrong and worth recording: comparing GCC against the multispectral `G/(G+R+RE)` made
-    the multispectral camera look far worse, but that index ignores NIR, which is the
-    band the camera exists for. Tested on NDVI and NDRE it is competitive.
-
-    **BCC is the mirror of GCC**, AUC 0.042 and 0.062, which is 0.958 and 0.938 with the
-    sign reversed. Pine crowns are bluer. That is the expected difference between the
-    grey green needles of Scots pine and the darker, denser foliage of Norway spruce, and
-    it is also a reminder that GCC and BCC are not independent evidence: they come from
-    the same three channels and one is largely the complement of the other.
-
-    ### What this does not settle
-
-    Two species, one plot, about 50 crowns, and a two class problem is the easiest
-    separation there is. The spruce are the minority class in every split and number
-    only 8 to 10 within the DBH band. There is no held out plot, so nothing here is
-    validated outside the data it was measured on, and an AUC near 1.0 on a sample this
-    size should be read as "these two species are clearly different here", not as an
-    expected accuracy for a classifier. The species labels are from the 2011 survey.
-    Illumination and view angle effects are uncorrected, and although both species are
-    mixed through the plot rather than segregated, that has not been tested.
-    """)
+        Two species, one plot, about 50 crowns, spruce the minority class with 8 to 10
+        within the DBH band, and no held out plot. An AUC near 1.0 on that sample says
+        these two species are clearly different here, not that a classifier would
+        generalise. GCC and BCC come from the same three channels and are near mirrors of
+        each other, so they are not independent evidence.
+        """
+    )
     return
 
 

@@ -1,9 +1,17 @@
 # Analysis scripts
 
-These reproduce every number in the project notebooks and the report. The notebooks
-carry the narrative and the recorded results; these scripts carry the computation.
+One source of truth for the computation.
 
-Run them from the repository root:
+`analysis.py` holds the analyses as cached functions. The scripts here call them and
+print; the notebooks in `notebooks/project/` call the same functions and render. Nothing
+heavy is duplicated between them, and because every function caches to `out/project/`,
+the first caller pays the cost and everything after opens immediately.
+
+    warm_cache.py     build every cached artefact once, then nothing recomputes
+    _common.py        plot geometry, terrain, memory-safe readers
+    analysis.py       detections(), crowns(), stems(), taper(), heights()
+
+Run the scripts from the repository root:
 
     uv run python scripts/project/01_terrain.py
     uv run python scripts/project/02_detection.py
@@ -11,8 +19,21 @@ Run them from the repository root:
     uv run python scripts/project/04_stems_dbh.py
     uv run python scripts/project/05_taper_volume.py
 
-`01_terrain.py` builds the terrain model and caches it to `out/project/dtm.npz`;
-the others load that cache, so run it first.
+The first run of any of these builds what it needs and caches it. To pay that cost once
+and up front instead:
+
+    uv run python scripts/project/warm_cache.py
+
+Delete a file in `out/project/` to force that step to recompute, or pass `rebuild=True`
+to the function. `out/` is not versioned, so a fresh clone rebuilds from the clouds.
+
+## Notebooks
+
+`notebooks/project/` holds the interactive chapters, which import `analysis` and render
+its output with live controls. `notebooks/project/narrative/` keeps read-only copies of
+the four chapters that were originally written as narrative: they open in a second, need
+no data at all, and are the right thing to hand someone who wants to read the findings
+rather than rerun them.
 
 ## Data
 
