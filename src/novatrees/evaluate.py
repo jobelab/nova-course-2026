@@ -105,6 +105,50 @@ def instance_scores(pred: np.ndarray, ref: np.ndarray, iou_threshold: float = 0.
     }
 
 
+def match_positions(
+    detected: np.ndarray, reference: np.ndarray, tol: float = 2.0
+) -> dict:
+    """One-to-one matching of detected tree positions to reference stems, in XY.
+
+    `pipeline.match_reference` asks each side for its nearest neighbour on the other,
+    independently. That is fine when the tolerance is small next to the spacing and
+    misleading when it is not: on plot 167 the stems are 4.12 m apart on average, so a
+    3 m tolerance lets a single treetop claim two stems, and recall climbs above what
+    the number of detections can honestly support. Here 49 detections scored a recall
+    of 0.865 against 74 stems, which is 64 stems matched by 49 tops.
+
+    This solves the assignment instead, so every detection is spent at most once.
+    Pairs further apart than `tol` are dropped after the assignment rather than
+    forbidden during it, which keeps the cost matrix dense and the result optimal for
+    the pairs that survive.
+    """
+    from scipy.optimize import linear_sum_assignment
+
+    det = np.asarray(detected, dtype=np.float64)[:, :2]
+    ref = np.asarray(reference, dtype=np.float64)[:, :2]
+    out = {"n_detected": len(det), "n_reference": len(ref)}
+    if len(det) == 0 or len(ref) == 0:
+        return {**out, "matched": 0, "recall": 0.0, "precision": 0.0, "f1": 0.0}
+
+    cost = np.linalg.norm(det[:, None, :] - ref[None, :, :], axis=2)
+    di, ri = linear_sum_assignment(cost)
+    d = cost[di, ri]
+    keep = d <= tol
+    matched = int(keep.sum())
+    recall = matched / len(ref)
+    precision = matched / len(det)
+    f1 = 0.0 if matched == 0 else 2 * recall * precision / (recall + precision)
+    return {
+        **out,
+        "matched": matched,
+        "recall": recall,
+        "precision": precision,
+        "f1": f1,
+        "median_offset": float(np.median(d[keep])) if matched else float("nan"),
+        "rmse_offset": float(np.sqrt((d[keep] ** 2).mean())) if matched else float("nan"),
+    }
+
+
 def confusion_pairs(scores: dict, top: int = 10) -> list[tuple[int, int, float]]:
     """The `top` best-matched (pred, ref, IoU) triples, for eyeballing."""
     return sorted(scores.get("pairs", []), key=lambda t: -t[2])[:top]
