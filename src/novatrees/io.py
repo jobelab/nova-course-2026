@@ -14,13 +14,71 @@ from pathlib import Path
 import laspy
 import numpy as np
 
-__all__ = ["read_xyz", "write_labelled", "write_seeds"]
+__all__ = ["read_sample", "read_xyz", "write_labelled", "write_seeds"]
 
 
 def read_xyz(path: str | Path) -> np.ndarray:
     """Read a LAS/LAZ file as an (n, 3) float64 array of scaled coordinates."""
     f = laspy.read(str(path))
     return np.c_[f.x, f.y, f.z]
+
+
+def read_sample(
+    path: str | Path,
+    target: int = 2_000_000,
+    centre: tuple[float, float] | None = None,
+    radius: float | None = None,
+    fields: tuple[str, ...] = (),
+    chunk: int = 2_000_000,
+    seed: int = 0,
+) -> dict[str, np.ndarray]:
+    """Read an even random sample of a cloud without ever holding it whole.
+
+    Returns `x`, `y`, `z` plus any extra `fields` (`intensity`, `red`, ...).
+
+    The keep probability is worked out from the header before the loop and applied
+    inside it, so peak memory is set by `target` rather than by the file. That
+    distinction matters more than it looks: `Plot_167_TLS_GroundZero.laz` holds 290
+    million points in a 30 by 30 m box, and the 20 m plot circle is larger than that
+    box, so clipping to the plot discards almost nothing. Accumulating first and
+    thinning afterwards exhausts memory on a 15 GB machine.
+
+    When `centre` and `radius` are given, the in-circle fraction is estimated from the
+    header bounding box so that roughly `target` points survive the filter rather than
+    `target` times that fraction.
+    """
+    import laspy
+
+    rng = np.random.default_rng(seed)
+    out: dict[str, list[np.ndarray]] = {k: [] for k in ("x", "y", "z", *fields)}
+    n_seen = 0
+    with laspy.open(str(path)) as f:
+        n_total = f.header.point_count
+        frac = 1.0
+        if radius is not None:
+            mins, maxs = f.header.mins, f.header.maxs
+            box = max((maxs[0] - mins[0]) * (maxs[1] - mins[1]), 1e-9)
+            frac = min(1.0, (np.pi * radius * radius) / box)
+        p = min(1.0, target / max(n_total * frac, 1.0))
+        for pts in f.chunk_iterator(chunk):
+            x, y = np.asarray(pts.x), np.asarray(pts.y)
+            keep = rng.random(len(x)) < p
+            if centre is not None and radius is not None:
+                keep &= (x - centre[0]) ** 2 + (y - centre[1]) ** 2 <= radius * radius
+            if not keep.any():
+                continue
+            n_seen += int(keep.sum())
+            out["x"].append(x[keep])
+            out["y"].append(y[keep])
+            out["z"].append(np.asarray(pts.z)[keep])
+            for k in fields:
+                out[k].append(np.asarray(getattr(pts, k))[keep].astype(np.float64))
+            del x, y, keep
+    got = {k: (np.concatenate(v) if v else np.empty(0)) for k, v in out.items()}
+    got["_kept"] = n_seen
+    got["_total"] = n_total
+    got["_p"] = p
+    return got
 
 
 def write_labelled(
