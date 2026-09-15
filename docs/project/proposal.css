@@ -1,0 +1,33 @@
+@page { size: A4; margin: 22mm 20mm 20mm 20mm;
+  @bottom-center { content: counter(page) " / " counter(pages);
+    font: 8.5pt "DejaVu Sans", sans-serif; color: #667; } }
+html { font-size: 10.5pt; }
+body { font-family: "DejaVu Serif", Georgia, serif; line-height: 1.42; color: #16181d;
+  hyphens: auto; text-align: justify; }
+h1.title { font-family: "DejaVu Sans", sans-serif; font-size: 19pt; line-height: 1.2;
+  margin: 0 0 4pt 0; color: #0f1115; text-align: left; border: 0; }
+p.author, p.date { font-family: "DejaVu Sans", sans-serif; font-size: 9.5pt;
+  color: #4a5160; margin: 0 0 2pt 0; text-align: left; }
+p.date { margin-bottom: 16pt; padding-bottom: 10pt; border-bottom: 1.5pt solid #2f6f4f; }
+h1 { font-family: "DejaVu Sans", sans-serif; font-size: 12.5pt; margin: 15pt 0 5pt;
+  color: #2f6f4f; border-bottom: 0.6pt solid #cfd8d2; padding-bottom: 2pt;
+  text-align: left; break-after: avoid; }
+h2 { font-family: "DejaVu Sans", sans-serif; font-size: 10.5pt; margin: 11pt 0 3pt;
+  color: #24303a; text-align: left; break-after: avoid; }
+p { margin: 0 0 5pt; }
+table { border-collapse: collapse; width: 100%; margin: 6pt 0 9pt;
+  font-family: "DejaVu Sans", sans-serif; font-size: 8.4pt; break-inside: avoid; }
+th { text-align: left; border-bottom: 0.8pt solid #2f6f4f; padding: 3pt 5pt 3pt 0;
+  color: #24303a; }
+td { border-bottom: 0.4pt solid #e2e6e9; padding: 2.6pt 5pt 2.6pt 0; vertical-align: top; }
+code { font-family: "DejaVu Sans Mono", monospace; font-size: 0.86em; color: #1f3d5c; }
+strong { color: #0f1115; }
+ol, ul { margin: 0 0 6pt; padding-left: 16pt; }
+li { margin-bottom: 2.5pt; }
+em { color: #3a424e; }
+blockquote { margin: 0; }
+figure { margin: 10pt 0 12pt; break-inside: avoid; text-align: center; }
+figure img { max-width: 100%; height: auto; }
+figcaption { font-family: "DejaVu Sans", sans-serif; font-size: 7.6pt; line-height: 1.32;
+  color: #3a424e; text-align: left; margin-top: 4pt; }
+figcaption strong { color: #2f6f4f; }
