@@ -25,11 +25,11 @@ NOVA 2026, Point cloud processing for forestry &nbsp;·&nbsp; individual project
 
 ## Photogrammetry sees the canopy and nothing under it
 
-![](figures/fig3_drone_cross_sections.png)
+![](figures/slide/fig3_drone_cross_sections.png)
 
 ## The lasers see what the drone cannot
 
-![](figures/fig4_lidar_cross_sections.png)
+![](figures/slide/fig4_lidar_cross_sections.png)
 
 ## The same stand, four different forests
 
@@ -133,7 +133,7 @@ Pairing the **same crown** between acquisitions removes that.
 
 ![](figures/fig8_dbh_and_form.png)
 
-<p class="sub">TLS diameter against a contemporaneous list: bias -1.26 cm, RMSE 1.30 cm. Against the 2011 survey the bias is +3.65 cm, and median plot DBH grew 5.5 cm in those fifteen years. Form factor 0.454, in the boreal band, but it rises with how much of the tree was reconstructed.</p>
+<p class="sub">Against a contemporaneous list: bias -1.26 cm, RMSE 1.30 cm. The +3.65 cm offset against the 2011 survey is fifteen years of growth. Form factor 0.454 sits in the boreal band, but rises with how much of the tree was reconstructed.</p>
 
 ## The fusion argument I expected, tested and lost
 
