@@ -455,6 +455,10 @@ height model routes falls to 0.78 to 0.91, mostly from treetops near the box edg
 stem lies just outside it. (The MLS canopy height model whole-plot value is 0.552 from the
 current cache; finding 9 listed 0.566 for it.)
 
+The same problem was in Figure 6 (detection by DBH quartile), where the MLS bars were
+scored against all 74 stems. Scored on the 50 stems in its box, MLS detects 27, 33, 69 and
+69 % by quartile instead of 21, 22, 56 and 58 %. The figure is regenerated.
+
 **Lesson.** When instruments cover different areas, compare them on the common area. A
 difference in coverage can look like a difference in quality.
 

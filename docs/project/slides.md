@@ -138,7 +138,7 @@ The drone clouds have **no ground** to check against.
 
 ![](figures/fig6_detection_by_dbh.png)
 
-<p class="sub">Precision is above 0.92 over each cloud's own coverage. Recall is limited by suppressed trees under the canopy, so stem counts are underestimated.</p>
+<p class="sub">MLS is scored on its own 30 by 30 m box. Precision is above 0.92 over each cloud's own coverage. Recall is limited by suppressed trees under the canopy, so stem counts are underestimated.</p>
 
 ## RQ5: stem diameter only from below
 

@@ -52,22 +52,30 @@ fig.tight_layout(pad=0.6); fig.savefig(F / "fig5_vertical_profiles.png", dpi=220
 plt.close(fig); print("fig5")
 
 # --- Figure 6: detection rate by DBH quartile, from the cache -------------------
+# The ground scanners are scored only on the stems inside the 30 by 30 m box they
+# cover. Scoring them over the whole plot counts 24 stems they never saw as misses
+# (finding 18). The drone and ALS cover the whole plot and are scored on all 74 stems.
 TOPS = A.detections()
 qs = np.quantile(DBH, [0, .25, .5, .75, 1.0])
+cls = np.clip(np.searchsorted(qs[1:-1], DBH, side="right"), 0, 3)
+in_box = C.in_box(REF[:, 0], REF[:, 1])
 rates = {}
 for name in ORDER:
     q = TOPS[(TOPS.cloud == name) & (np.isclose(TOPS.sep, 1.5))][["x", "y"]].to_numpy()
-    cost = np.linalg.norm(q[:, None, :] - REF[None, :, :], axis=2)
+    scored = in_box if name in ("TLS", "MLS") else np.ones(len(REF), bool)
+    cost = np.linalg.norm(q[:, None, :] - REF[scored][None, :, :], axis=2)
     i, j = linear_sum_assignment(cost)
     ok = cost[i, j] <= 2.0
-    hit = np.zeros(len(REF), bool); hit[j[ok]] = True
-    cls = np.clip(np.searchsorted(qs[1:-1], DBH, side="right"), 0, 3)
-    rates[name] = [100 * hit[cls == k].mean() for k in range(4)]
+    hit = np.zeros(scored.sum(), bool); hit[j[ok]] = True
+    c = cls[scored]
+    rates[name] = [100 * hit[c == k].mean() for k in range(4)]
 
+LABEL = {n: n.replace("_", " ") for n in ORDER}
+LABEL["MLS"] = "MLS (its 30 by 30 m box)"
 fig, a = plt.subplots(figsize=(5.4, 3.0))
 w = 0.16
 for i, (n, v) in enumerate(rates.items()):
-    a.bar(np.arange(4) + i * w - 2 * w, v, w, color=INK[n], label=n.replace("_", " "))
+    a.bar(np.arange(4) + i * w - 2 * w, v, w, color=INK[n], label=LABEL[n])
 a.set_xticks(np.arange(4))
 a.set_xticklabels([f"{qs[i]:.0f}-{qs[i+1]:.0f}" for i in range(4)])
 a.set_xlabel("field DBH quartile (cm)"); a.set_ylabel("stems detected (%)")

@@ -213,7 +213,7 @@ TLS and MLS clouds gives the best result.
 For TLS the method matters more than the sensor: inside the box the same cloud gives F1
 0.610 from a canopy height model and 0.800 from a stem slice.
 
-![**Figure 6.** Detection rate by field DBH quartile.](figures/fig6_detection_by_dbh.png)
+![**Figure 6.** Detection rate by field DBH quartile, from the canopy height model detections. The drone clouds and ALS are scored on all 74 stems; MLS only on the 50 stems inside the 30 by 30 m box it covers.](figures/fig6_detection_by_dbh.png)
 
 Over each cloud's own coverage precision is above 0.92, so the limit is recall. (Inside
 the box, precision of the canopy height model routes drops to 0.78 to 0.91, mostly from
