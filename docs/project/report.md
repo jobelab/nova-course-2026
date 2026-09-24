@@ -31,25 +31,31 @@ My main results:
 
 ## 1.1 Background
 
-Airborne laser scanning (ALS) has been used operationally in forest inventory since 2002,
-when the area-based approach was introduced in Norway (SLU, 2016). Point clouds can also be
-made from overlapping images by image matching. They give canopy heights in the same way
-as laser data, but less information about forest density, so estimates of timber volume
-are worse (SLU, 2016). A drone makes such a photogrammetric cloud cheap to collect over a
-single stand.
+Forest point clouds are made in two ways: by laser scanning, which measures the range to
+each target, and by digital photogrammetry, which reconstructs 3D points by matching
+overlapping images (Lindberg, 2026; Bohlin, 2026). Airborne laser scanning (ALS) has been
+used operationally in forest inventory since 2002, when the area-based approach was
+introduced in Norway (SLU, 2016). Image-matching point clouds give canopy heights in the
+same way as laser data, but less information about forest density, so estimates of timber
+volume are worse (SLU, 2016). A drone makes such a photogrammetric cloud cheap to collect
+over a single stand.
 
 Ground-based scanners see the forest from below. Terrestrial laser scanning (TLS) is
-precise but suffers from occlusion, and mobile laser scanning (MLS) is faster but gives
-noisier data (Holvoet et al., 2025; Liang et al., 2016). Stems can be found in these
-clouds by fitting circles to thin horizontal slices and following them upward (Yrttimaa,
-2026). The platforms trade coverage for resolution: ALS covers large areas at lower
-resolution, and ground-based scanning small areas at high resolution (NOVA 2026, Day 4
-lecture). As a benchmark, Liang et al. (2016) give typical field inventory requirements of
-0 to 2 cm for DBH and 0.5 m for tree height.
+precise but suffers from occlusion, and mobile laser scanning (MLS) is faster but less
+accurate (Liang et al., 2016; Holvoet et al., 2025; Yrttimaa, 2026a). Stems can be found in
+these clouds by fitting circles to thin horizontal slices and following them upward
+(Olofsson et al., 2014; Yrttimaa, 2026b). The platforms trade coverage for resolution: ALS
+covers large areas at lower resolution, and ground-based scanning small areas at high
+resolution (de Paula Pires, 2026a). A canopy height model only sees the top surface, so
+trees below the canopy are hidden from methods that use it (de Paula Pires, 2026b). As a
+benchmark, Liang et al. (2016) give typical field inventory requirements of 0 to 2 cm for
+DBH and 0.5 m for tree height.
 
-Plot 167 at Remningstorp was recorded with all of these: four drone flights, TLS, MLS,
-helicopter ALS and a field survey. This makes it possible to compare, on the same trees,
-what each instrument can measure.
+Remningstorp is a long-term test site where single-tree detection, TLS stem measurement
+and MLS tree detection have been studied before (Vauhkonen et al., 2012; Olofsson et al.,
+2014; de Paula Pires et al., 2022). Plot 167 was recorded with all of the instruments
+above: four drone flights, TLS, MLS, helicopter ALS and a field survey. This makes it
+possible to compare, on the same trees, what each instrument can measure.
 
 ## 1.2 Aim and objectives
 
@@ -103,7 +109,7 @@ report comes from the scripts in the repository.
 - **Tree detection.** I found treetops with a marker-controlled watershed on a canopy
   height model and matched them one to one with the field stems within 2.0 m. For TLS and
   MLS I also detected stems directly from a breast-height slice.
-- **Stems.** I fitted circles to the breast-height slices with RANSAC and kept only stems
+- **Stems.** Following Olofsson et al. (2014), I fitted circles to the breast-height slices with RANSAC and kept only stems
   with enough arc coverage and vertical continuity. I then followed each stem upward to
   get its taper and volume.
 
@@ -189,7 +195,8 @@ canopy height model and 0.800 from a stem slice.
 
 Precision is above 0.92 everywhere, so the limit is recall. Figure 6 shows why: almost all
 large trees are found, and about two thirds of the smallest are missed. These are
-suppressed trees under the canopy. So stem counts are underestimated, while dominant
+suppressed trees under the canopy, which a canopy height model cannot see (de Paula Pires,
+2026b). So stem counts are underestimated, while dominant
 height is nearly complete.
 
 ## 3.5 Stems and volume (RQ5)
@@ -264,6 +271,21 @@ provenance are documented in the repository.
 
 # References
 
+Bohlin, J. (2026). Aerial images and digital photogrammetry. Lecture, NOVA course 2026:
+Introduction to point cloud processing for forest sciences, 26 May 2026.
+
+de Paula Pires, R. (2026a). Laser scanning-based forest inventory. Lecture, NOVA course
+2026: Introduction to point cloud processing for forest sciences.
+
+de Paula Pires, R. (2026b). Lecture 3: Segmentation of LiDAR point clouds. Finding
+individual objects in ALS, UAV and TLS data. Lecture, NOVA course 2026: Introduction to
+point cloud processing for forest sciences.
+
+de Paula Pires, R., Olofsson, K., Persson, H., Lindberg, E. and Holmgren, J. (2022).
+Individual tree detection and estimation of stem attributes with mobile laser scanning
+along boreal forest roads. *ISPRS Journal of Photogrammetry and Remote Sensing* 187, 211
+to 224. https://doi.org/10.1016/j.isprsjprs.2022.03.004
+
 Holvoet, J., Eichhorn, M.P., Giannetti, F., Kükenbrink, D., Liang, X., Mokroš, M., Novotný,
 J., Pitkänen, T.P., Puliti, S., Skudnik, M., Stereńczak, K., Terryn, L., Vega, C. and
 Torresan, C. (2025). Terrestrial and mobile laser scanning for national forest
@@ -275,13 +297,24 @@ H., Jaakkola, A., Guan, F., Holopainen, M. and Vastaranta, M. (2016). Terrestria
 scanning in forest inventories. *ISPRS Journal of Photogrammetry and Remote Sensing* 115,
 63 to 77. https://doi.org/10.1016/j.isprsjprs.2016.01.006
 
-NOVA 2026, Day 4 lecture. Laser scanning-based forest inventory. Course lecture, NOVA:
-Introduction to point cloud processing for forest sciences, 2026.
+Lindberg, E. (2026). Basics of laser scanning. Lecture, NOVA course 2026: Introduction to
+point cloud processing for forest sciences, 26 May 2026.
+
+Olofsson, K., Holmgren, J. and Olsson, H. (2014). Tree stem and height measurements using
+terrestrial laser scanning and the RANSAC algorithm. *Remote Sensing* 6(5), 4323 to 4344.
+https://doi.org/10.3390/rs6054323
 
 SLU (2016). *Remote sensing of forests*, version 1.0. Skogshushållningsserien
 compendium, Department of Forest Resource Management, Swedish University of Agricultural
 Sciences, Umeå.
 
-Yrttimaa, T. (2026). Computational approaches for detecting trees and reconstructing stem
-surface. Course lecture, NOVA: Introduction to point cloud processing for forest sciences,
-2026.
+Vauhkonen, J., Ene, L., Gupta, S., Heinzel, J., Holmgren, J., Pitkänen, J., et al.
+(2012). Comparative testing of single-tree detection algorithms under different types of
+forest. *Forestry* 85(1), 27 to 40. https://doi.org/10.1093/forestry/cpr051
+
+Yrttimaa, T. (2026a). Introduction to close-range laser scanning techniques. Lecture, NOVA
+course 2026: Introduction to point cloud processing for forest sciences, 26 May 2026.
+
+Yrttimaa, T. (2026b). Computational approaches for detecting trees and reconstructing stem
+surface. Lecture, NOVA course 2026: Introduction to point cloud processing for forest
+sciences, August 2026.
