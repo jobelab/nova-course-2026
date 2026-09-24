@@ -7,7 +7,6 @@ Sources for the three deliverables of the NOVA 2026 individual project on plot 1
 | `proposal.md` | research questions and methods, the first submission |
 | `report.md` | the written report, focused on RQ4 and RQ5 as the course teachers advised |
 | `slides.md` | the 20 minute presentation, 14 slides, focused on RQ4 and RQ5 |
-| `PRESENTATION_PROMPT.md` | a prompt for building a more visual version of the talk |
 | `FINDINGS.md` | running log of every finding, with what each does not settle |
 | `figures/` | all eight figures (`fig7_species.png` is no longer used, since the spectral questions were dropped) |
 

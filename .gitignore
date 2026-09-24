@@ -45,3 +45,6 @@ models/
 [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9]*-*.txt
 *conversation-export*.txt
 claude-export-*.txt
+
+# Working prompt for the talk; kept with the deliverables, not versioned
+docs/project/PRESENTATION_PROMPT.md
