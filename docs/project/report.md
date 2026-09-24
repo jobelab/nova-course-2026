@@ -22,7 +22,8 @@ My main results:
   changes by only 0.1 to 0.2 m.
 - The drone sees only the top of the canopy. It matches the helicopter lidar on canopy
   height (p95 23.6 to 23.8 m against 23.77 m) and on tree detection (F1 0.815 against
-  0.794), but it sees no ground and no stems.
+  0.794 over the whole plot), but it sees no ground and no stems. Where all instruments
+  have data, detecting stems directly in the TLS and MLS clouds works best (F1 0.800).
 - Stem diameter can only be measured from below, to 1.3 cm RMSE with TLS.
 - The largest error I found was a 2.089 m vertical offset between the helicopter lidar
   and the mobile scanner. It would have made every drone tree height 2.089 m too tall, and
@@ -178,6 +179,9 @@ against 16.7 m²), because the side views widen and blur the crown edge.
 
 ## 3.4 Tree detection (RQ4, RQ5)
 
+I scored detection in two ways. Over the whole plot, against all 74 stems, for the clouds
+that cover it (drone and ALS):
+
 | cloud | tops | recall | precision | F1 |
 |---|---:|---:|---:|---:|
 | `Nadir_RGB` | 56 | 0.716 | 0.946 | **0.815** |
@@ -185,20 +189,35 @@ against 16.7 m²), because the side views widen and blur the crown edge.
 | `Nadir_MS` | 53 | 0.662 | 0.925 | 0.772 |
 | `Oblique_MS` | 46 | 0.608 | 0.978 | 0.750 |
 | ALS | 52 | 0.676 | 0.962 | 0.794 |
-| TLS, canopy height model | 32 | 0.405 | 0.938 | 0.566 |
+
+And inside the 30 by 30 m box, against the 50 stems there, where every instrument has
+data. This is the fair comparison between the drone and the ground scanners:
+
+| cloud | tops | recall | precision | F1 |
+|---|---:|---:|---:|---:|
+| `Nadir_RGB` | 34 | 0.620 | 0.912 | 0.738 |
+| `Oblique_RGB` | 33 | 0.600 | 0.909 | 0.723 |
+| `Nadir_MS` | 35 | 0.620 | 0.886 | 0.729 |
+| `Oblique_MS` | 29 | 0.520 | 0.897 | 0.658 |
+| ALS | 34 | 0.580 | 0.853 | 0.690 |
+| TLS, canopy height model | 32 | 0.500 | 0.781 | 0.610 |
+| MLS, canopy height model | 31 | 0.500 | 0.806 | 0.617 |
 | TLS, stem slice | 35 | 0.680 | 0.971 | **0.800** |
 | MLS, stem slice | 33 | 0.660 | 1.000 | 0.795 |
 
-Nadir beats oblique with both cameras, even though oblique has 26 to 45 % more points. The
-larger, blurred oblique crowns merge neighbouring trees. The drone does as well as the
-helicopter lidar.
+Nadir beats oblique with both cameras in both scorings, even though oblique has 26 to 45 %
+more points. The larger, blurred oblique crowns merge neighbouring trees. The drone does
+at least as well as the helicopter lidar. Inside the box, detecting stems directly in the
+TLS and MLS clouds gives the best result.
 
-For TLS the method matters more than the sensor: the same cloud gives F1 0.566 from a
-canopy height model and 0.800 from a stem slice.
+For TLS the method matters more than the sensor: inside the box the same cloud gives F1
+0.610 from a canopy height model and 0.800 from a stem slice.
 
 ![**Figure 6.** Detection rate by field DBH quartile.](figures/fig6_detection_by_dbh.png)
 
-Precision is above 0.92 everywhere, so the limit is recall. Figure 6 shows why: almost all
+Over each cloud's own coverage precision is above 0.92, so the limit is recall. (Inside
+the box, precision of the canopy height model routes drops to 0.78 to 0.91, mostly from
+treetops near the box edge whose stem lies just outside it.) Figure 6 shows why: almost all
 large trees are found, and about two thirds of the smallest are missed. These are
 suppressed trees under the canopy, which a canopy height model cannot see (de Paula Pires,
 2026b). So stem counts are underestimated, while dominant
@@ -238,7 +257,7 @@ information.
 
 | attribute | drone (from above) | TLS / MLS (from below) |
 |---|---|---|
-| tree detection | F1 0.815 | F1 0.800 / 0.795 |
+| tree detection (inside the box) | F1 0.738 | F1 0.800 / 0.795 (stem slice) |
 | canopy height | same as ALS (p95 within 0.2 m) | underestimated |
 | crown area | yes, but depends on flight | no |
 | stem diameter | no | RMSE 1.3 cm |
@@ -247,6 +266,14 @@ information.
 The TLS diameter error of 1.3 cm is within the 0 to 2 cm that Liang et al. (2016) give
 as a typical requirement for DBH. The drone results agree with SLU (2016): image-based
 clouds give canopy height but not what lies below it.
+
+**Compare instruments on the same area.** My first version scored the TLS canopy height
+model against all 74 stems, including the 24 outside the area TLS covers, and compared
+TLS scored inside the box with the drone scored over the whole plot. That made TLS look
+worse (F1 0.566) and the drone look equal to the ground scanners. Scoring every
+instrument inside the common box gave 0.610 for the TLS canopy height model and showed
+that stem detection from below is the best route where it has data. A difference in
+coverage can look like a difference in quality.
 
 **Checks between instruments are necessary.** The 2.089 m offset was invisible inside any
 single dataset.

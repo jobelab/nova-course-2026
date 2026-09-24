@@ -301,7 +301,9 @@ The loose fit produced diameters with no relationship to the field measurement a
 That is not a precision problem; it is measuring the cluster instead of the stem.
 
 Scored over the box, the stem route reaches **F1 0.800 for TLS and 0.795 for MLS**,
-against 0.566 for the canopy height model on the same clouds. The method has to change
+against 0.566 for the canopy height model on the same clouds. *(Corrected in finding 18:
+that 0.566 was scored over the whole plot; inside the box it is 0.610 for TLS and 0.617
+for MLS.)* The method has to change
 with the sensor, which is the Day 3 result reappearing from the other side. Recall near
 0.68 is occlusion, which no fit improves.
 
@@ -317,12 +319,12 @@ r = 0.999 says the pipeline reproduces another processing of the same data.
 
 | attribute | from above | from below |
 |---|---|---|
-| tree detection | F1 0.815 drone, 0.794 ALS | F1 0.800 TLS, 0.795 MLS |
+| tree detection (box) | F1 0.738 drone, 0.690 ALS | F1 0.800 TLS, 0.795 MLS |
 | canopy height | p95 transfers between geometries | poorly, canopy under-sampled |
 | crown area | r = +0.686 with DBH | no |
 | **stem diameter** | **not at all** | **RMSE 1.3 cm** |
 
-Detection is a draw across viewpoints. Everything else splits by what the instrument can
+Detection was first read as a draw across viewpoints; finding 18 corrects this. Everything else splits by what the instrument can
 see, and the split is not about quality: the drone cannot measure a diameter because it
 never sees a stem, and the TLS cannot give a canopy height because it barely sees the top.
 
@@ -423,6 +425,38 @@ files. Everything in this document is measured from the data.
   Vauhkonen et al. (2012), de Paula Pires et al. (2022), and the lectures by Lindberg,
   Bohlin, Yrttimaa and de Paula Pires. The TLS diameter RMSE of 1.3 cm is within the
   0 to 2 cm DBH requirement given by Liang et al. (2016).
+
+## 18. An unfair detection comparison, and the lesson from it (2026-09-24)
+
+The TLS canopy height model F1 of 0.566 was scored against all 74 stems, including the 24
+outside the 30 by 30 m box where TLS has no data, while the TLS stem slice (0.800) was
+scored inside the box. The drone (0.815) and ALS (0.794) were also scored over the whole
+plot. Re-scored from the cached detections, every instrument inside the box against the
+50 stems there:
+
+| cloud | tops | matched | recall | precision | F1, box | F1, whole plot |
+|---|---:|---:|---:|---:|---:|---:|
+| `Nadir_RGB` | 34 | 31 | 0.620 | 0.912 | 0.738 | 0.815 |
+| `Oblique_RGB` | 33 | 30 | 0.600 | 0.909 | 0.723 | 0.780 |
+| `Nadir_MS` | 35 | 31 | 0.620 | 0.886 | 0.729 | 0.772 |
+| `Oblique_MS` | 29 | 26 | 0.520 | 0.897 | 0.658 | 0.750 |
+| ALS | 34 | 29 | 0.580 | 0.853 | 0.690 | 0.794 |
+| TLS, canopy height model | 32 | 25 | 0.500 | 0.781 | **0.610** | 0.566 |
+| MLS, canopy height model | 31 | 25 | 0.500 | 0.806 | 0.617 | 0.552 |
+| TLS, stem slice | 35 | 34 | 0.680 | 0.971 | **0.800** | |
+| MLS, stem slice | 33 | 33 | 0.660 | 1.000 | 0.795 | |
+
+Same best separation per cloud as before, 2.0 m one-to-one matching, the reference limited
+to the box. What holds: nadir beats oblique, the drone does at least as well as ALS, and
+for TLS the stem route beats the canopy height model. What changes: detection is not a
+draw across viewpoints. Where every instrument has data, stem detection from below is
+best (0.80 against 0.74 for the best drone cloud). Inside the box precision of the canopy
+height model routes falls to 0.78 to 0.91, mostly from treetops near the box edge whose
+stem lies just outside it. (The MLS canopy height model whole-plot value is 0.552 from the
+current cache; finding 9 listed 0.566 for it.)
+
+**Lesson.** When instruments cover different areas, compare them on the common area. A
+difference in coverage can look like a difference in quality.
 
 ## Open questions put to the course teachers
 

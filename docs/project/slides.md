@@ -113,20 +113,23 @@ The drone clouds have **no ground** to check against.
 <div class="two">
 <div>
 
-| cloud | F1 |
-|---|---:|
-| Nadir RGB | **0.815** |
-| Oblique RGB | 0.780 |
-| ALS helicopter | 0.794 |
-| TLS, canopy height model | 0.566 |
-| TLS, stem slice | **0.800** |
+| F1 | whole plot | 30 by 30 m box |
+|---|---:|---:|
+| Nadir RGB | **0.815** | 0.738 |
+| Oblique RGB | 0.780 | 0.723 |
+| ALS helicopter | 0.794 | 0.690 |
+| TLS, canopy height model | | 0.610 |
+| TLS, stem slice | | **0.800** |
 
 </div>
 <div>
 
 - **Nadir beats oblique**, despite fewer points
-- **The drone equals the helicopter lidar**
-- For TLS, **the method matters**: 0.566 vs 0.800
+- **The drone does at least as well as the helicopter lidar**
+- Where all have data, **stem detection from below is best**
+- For TLS, **the method matters**: 0.610 vs 0.800
+
+<p class="sub">Lesson learned: my first comparison scored TLS on the box and the drone on the whole plot. Instruments covering different areas must be compared on the common area.</p>
 
 </div>
 </div>
@@ -135,7 +138,7 @@ The drone clouds have **no ground** to check against.
 
 ![](figures/fig6_detection_by_dbh.png)
 
-<p class="sub">Precision is above 0.92 everywhere. Recall is limited by suppressed trees under the canopy, so stem counts are underestimated.</p>
+<p class="sub">Precision is above 0.92 over each cloud's own coverage. Recall is limited by suppressed trees under the canopy, so stem counts are underestimated.</p>
 
 ## RQ5: stem diameter only from below
 
@@ -172,7 +175,7 @@ What the drone adds is **coverage**: TLS and MLS miss **28 %** of the plot.
 
 | | drone | TLS / MLS |
 |---|---|---|
-| detection | 0.815 | 0.800 / 0.795 |
+| detection (box) | 0.738 | 0.800 / 0.795 |
 | canopy height | yes | under-sampled |
 | crown area | depends on flight | no |
 | stem diameter | **no** | **1.3 cm** |
