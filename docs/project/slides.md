@@ -7,12 +7,40 @@
 NOVA 2026, Point cloud processing for forestry &nbsp;·&nbsp; individual project</p>
 :::
 
-## My two questions
+## Background
+
+<div class="two">
+<div>
+
+<p class="colhead">From above</p>
+
+- **ALS** has been used in forest inventory since 2002
+- **Drone photogrammetry** is cheap and gives canopy height, but less information on forest density than laser
+- A canopy height model **only sees the top surface**
+
+</div>
+<div>
+
+<p class="colhead">From below</p>
+
+- **TLS** is precise but suffers from occlusion
+- **MLS** is faster but less accurate
+- Stems are found by **fitting circles to slices**
+- Typical requirement: DBH within **0 to 2 cm**
+
+</div>
+</div>
+
+<p class="sub">SLU (2016); Liang et al. (2016); Holvoet et al. (2025); Olofsson et al. (2014); course lectures by Lindberg, Bohlin, Yrttimaa and de Paula Pires (2026).</p>
+
+## Aim and questions
+
+<p class="lead">My aim: find out what a drone point cloud can measure on a forest plot, and how that depends on the flight.</p>
 
 - **RQ4.** How does flight geometry change the reconstructed canopy, and do tree attributes follow?
 - **RQ5.** What can a drone cloud measure compared with laser scanning and the field data?
 
-<p class="sub">Plot 167, Remningstorp. Four drone clouds (nadir and oblique, RGB and multispectral), TLS, MLS and helicopter ALS, and 74 field-surveyed stems. The spectral questions RQ1 to RQ3 are left out for this course.</p>
+<p class="sub">Plot 167, Remningstorp, a long-term remote sensing test site. Four drone clouds (nadir and oblique, RGB and multispectral), TLS, MLS and helicopter ALS, and 74 field-surveyed stems. The spectral questions RQ1 to RQ3 are left out for this course.</p>
 
 ## One plot, seven acquisitions
 
@@ -166,7 +194,7 @@ What the drone adds is **coverage**: TLS and MLS miss **28 %** of the plot.
 <div class="two">
 <div>
 
-### Limits
+<p class="colhead">Limits</p>
 
 - Field survey is from **2011**
 - Detection tuned on the same reference
@@ -175,7 +203,7 @@ What the drone adds is **coverage**: TLS and MLS miss **28 %** of the plot.
 </div>
 <div>
 
-### Assumption
+<p class="colhead">Assumption</p>
 
 The nadir and oblique flights were flown **on the same day or at most one day apart**.
 

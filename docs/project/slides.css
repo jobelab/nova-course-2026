@@ -30,7 +30,9 @@ section.level2 > p:only-of-type > img { max-height: 132mm; }
 section.level2 > p:not(:only-of-type) > img { max-height: 106mm; }
 .lead { font-size: 1.15rem; line-height: 1.35; color: #2b3a45; }
 .big { font-size: 2.6rem; color: #14532d; font-weight: 700; line-height: 1.05; }
-.two { display: flex; gap: 10mm; } .two > div { flex: 1; }
+.two { display: table; table-layout: fixed; width: 100%; }
+.two > div { display: table-cell; width: 50%; vertical-align: top; padding-right: 10mm; }
+.two > div:last-child { padding-right: 0; }
 .sub { font-size: 0.82rem; color: #5a6b76; line-height: 1.4; }
 .title h1 { font-size: 2.7rem; margin-bottom: 6mm; }
 section.level2::after { content: counter(page); position: absolute; bottom: 6mm;
@@ -39,3 +41,4 @@ section.level3::after { content: none; }
 
 /* pandoc -s emits a title block; the title slide provides its own. */
 #title-block-header { display: none; }
+.colhead { font-size: 1.0rem; margin: 0 0 2mm; color: #2b3a45; font-weight: 600; }
