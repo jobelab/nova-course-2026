@@ -1,5 +1,5 @@
 ::: {.title}
-# How much of a forest measurement belongs to the forest?
+# What a drone point cloud can measure on a forest plot
 
 <p class="lead">One plot. Seven point clouds. Seventy-four surveyed stems.</p>
 
@@ -7,93 +7,80 @@
 NOVA 2026, Point cloud processing for forestry &nbsp;·&nbsp; individual project</p>
 :::
 
-## The question
+## My two questions
 
-<p class="lead">Every forest attribute we derive is a measurement of two things at once: the forest, and the instrument that looked at it.</p>
+- **RQ4.** How does flight geometry change the reconstructed canopy, and do tree attributes follow?
+- **RQ5.** What can a drone cloud measure compared with laser scanning and the field data?
 
-- Plot 167 at Remningstorp is covered by **four drone acquisitions**, nadir and oblique, RGB and multispectral
-- Plus **TLS, MLS and helicopter ALS** over the same trees
-- Plus **74 stems surveyed in the field**, with diameter and species
-
-**So for once we can ask which is which.**
-
-<p class="sub">And the answer turns out to depend entirely on which attribute you mean.</p>
+<p class="sub">Plot 167, Remningstorp. Four drone clouds (nadir and oblique, RGB and multispectral), TLS, MLS and helicopter ALS, and 74 field-surveyed stems. The spectral questions RQ1 to RQ3 are left out for this course.</p>
 
 ## One plot, seven acquisitions
 
 ![](figures/fig1_plot_context.png)
 
-## Photogrammetry sees the canopy and nothing under it
+## The drone sees only the canopy surface
 
 ![](figures/slide/fig3_drone_cross_sections.png)
+
+<p class="sub">No ground and almost nothing below 15 m.</p>
 
 ## The lasers see what the drone cannot
 
 ![](figures/slide/fig4_lidar_cross_sections.png)
 
-## The same stand, four different forests
+<p class="sub">TLS and MLS see stems and ground. The helicopter sees canopy and ground.</p>
+
+## Same trees, very different clouds
 
 ![](figures/fig5_vertical_profiles.png)
 
-<p class="sub">Median return height: 1.29 m from TLS, 5.94 m from MLS, 17.50 m from ALS, about 20 m from every drone cloud.</p>
+<p class="sub">Median return height: 1.3 m TLS, 5.9 m MLS, 17.5 m ALS, about 20 m drone. Canopy p95: 23.6 to 23.8 m drone, 23.77 m ALS.</p>
 
-## The error nothing in the drone data could reveal
+## An error only a second instrument could find
 
 <div class="two">
 <div>
 
-### ALS terrain against MLS ground control
-
-| | median | RMSE |
+| ALS terrain vs MLS ground | median | RMSE |
 |---|---:|---:|
 | before | +2.089 m | 2.100 m |
-| after one constant | +0.000 m | **0.079 m** |
+| after one constant | 0.000 m | **0.079 m** |
 
-<p class="sub">513,390 control points. p05 to p95 spans 0.25 m before correction, so it is a shift, not scatter.</p>
+<p class="sub">513,390 MLS ground points.</p>
 
 </div>
 <div>
 
 <p class="big">2.089 m</p>
 
-Every drone-derived tree height would have been that much **too tall**.
+Every drone tree height would have been that much **too tall**.
 
-The drone clouds hold **no ground of their own** to disagree with.
-
-**Cross-instrument checks are not optional.**
+The drone clouds have **no ground** to check against.
 
 </div>
 </div>
 
-## Flight geometry changes an index on the same tree
+## RQ4: flight geometry changes crowns, not heights
 
 <div class="two">
 <div>
 
-Comparing plot means confounds the acquisition with **which surfaces it sampled**.
-
-Pairing the **same crown** between acquisitions removes that.
-
-| pair | crowns | nadir minus oblique |
+| nadir minus oblique | RGB | MS |
 |---|---:|---:|
-| RGB | 48 | **+0.0106** [+0.0073, +0.0147] |
-| multispectral | 42 | **-0.0051** [-0.0067, -0.0032] |
+| tree height | +0.10 m | -0.16 m |
+| crown area | -1.8 m² | -2.0 m² |
 
 </div>
 <div>
 
-### What moves and what does not
-
-- **Canopy height: +0.10 m** on 22 m trees. It transfers.
-- **Crown area: oblique is a third larger**, 22.0 against 16.7 m²
-- The multispectral set has **no blue band** and barely moves
-
-<p class="sub">Land cover was eliminated by clipping. View geometry, illumination and per-flight processing remain confounded, because the flight dates are not in the data.</p>
+- **Height transfers**: 0.1 to 0.2 m on 22 m trees
+- **Oblique crowns are a third larger**: 22.0 vs 16.7 m²
+- Oblique has **26 to 45 % more points**
 
 </div>
 </div>
 
-## Detection: nadir wins, and the method must match the sensor
+## RQ4 and RQ5: tree detection
 
 <div class="two">
 <div>
@@ -104,114 +91,97 @@ Pairing the **same crown** between acquisitions removes that.
 | Oblique RGB | 0.780 |
 | ALS helicopter | 0.794 |
 | TLS, canopy height model | 0.566 |
-| **TLS, stem cross-section** | **0.800** |
+| TLS, stem slice | **0.800** |
 
 </div>
 <div>
 
-### Two results worth pausing on
-
-- **Oblique carries 26 to 45 % more points and finds fewer trees.** Off-nadir smears the crown apex. *More points are not more information.*
-- **The same TLS cloud scores 0.566 or 0.800** depending only on the method. A canopy height model throws away everything a ground scanner is good at.
+- **Nadir beats oblique**, despite fewer points
+- **The drone equals the helicopter lidar**
+- For TLS, **the method matters**: 0.566 vs 0.800
 
 </div>
 </div>
 
-## Recall is limited by tree size, not by sensor
+## Small trees are missed by every sensor
 
 ![](figures/fig6_detection_by_dbh.png)
 
-<p class="sub">A recall of 0.72 is not missing a quarter of the forest. It is finding almost every canopy tree and none of the suppressed ones. Size-dependent under-count for stem number; near complete for dominant height.</p>
+<p class="sub">Precision is above 0.92 everywhere. Recall is limited by suppressed trees under the canopy, so stem counts are underestimated.</p>
 
-## Colour separates the two species
-
-![](figures/fig7_species.png)
-
-<p class="sub">AUC in the middle DBH quartiles, so size is controlled: GCC 0.954 and 0.981, multispectral NDVI 0.897 and NDRE 0.989. An uncalibrated 20 MP RGB camera matches the four-band payload.</p>
-
-## Diameter only from below, and the offset is the forest growing
+## RQ5: stem diameter only from below
 
 ![](figures/fig8_dbh_and_form.png)
 
-<p class="sub">Against a contemporaneous list: bias -1.26 cm, RMSE 1.30 cm. The +3.65 cm offset against the 2011 survey is fifteen years of growth. Form factor 0.454 sits in the boreal band, but rises with how much of the tree was reconstructed.</p>
+<p class="sub">TLS against a contemporaneous list: RMSE 1.30 cm. The +3.65 cm bias against the 2011 survey is mostly growth. The drone cannot measure diameter at all.</p>
 
-## The fusion argument I expected, tested and lost
+## Volume did not need the drone
 
 <div class="two">
 <div>
 
-**The claim:** stem volume needs both viewpoints. Diameter only from below, treetop only from above.
+I expected volume to need both views: diameter from below, treetop from above.
 
-**The test:** reconstruct the same 21 stems with and without the drone height.
-
-| | with drone | without |
+| 21 stems | with drone height | without |
 |---|---:|---:|
-| measured volume | 0.847 m³ | 0.847 m³ |
+| volume | 0.847 m³ | 0.847 m³ |
 | form factor | 0.462 | 0.452 |
 
 </div>
 <div>
 
-### Why it failed
+TLS already reconstructs **86 %** of these trees.
 
-The TLS already reconstructs **86 %** of these trees, so its own upper extent is a fine proxy for the top.
-
-### What the drone does contribute
-
-**Coverage.** TLS and MLS cover 900 m² of a 1256 m² plot. **28 % of the plot has no ground-based data at all.**
-
-<p class="sub">That is an argument about where the instrument was, not about what it could see from there.</p>
+What the drone adds is **coverage**: TLS and MLS miss **28 %** of the plot.
 
 </div>
 </div>
 
-## What I would tell a forest inventory
+## What each instrument can measure
 
 <div class="two">
 <div>
 
-| attribute | from above | from below |
+| | drone | TLS / MLS |
 |---|---|---|
-| detection | 0.815 | 0.800 |
-| canopy height | yes | poorly |
-| crown area | yes | no |
-| **stem diameter** | **no** | **1.3 cm** |
+| detection | 0.815 | 0.800 / 0.795 |
+| canopy height | yes | under-sampled |
+| crown area | depends on flight | no |
+| stem diameter | **no** | **1.3 cm** |
+| ground | no | yes |
 
 </div>
 <div>
 
-1. **Canopy height is robust. Crown area, detection and colour are not.**
-2. **Detection bias is size-dependent**, so stem counts need correcting and dominant height does not.
-3. **Uncalibrated RGB matches multispectral** for separating these two species.
-4. **The largest error I found was invisible inside any single dataset.**
+1. Drone canopy height is **robust** and matches ALS.
+2. **Nadir** is better for crowns and detection.
+3. Stems and ground need **lidar from below**.
+4. **Check heights against a second instrument.**
 
 </div>
 </div>
 
-## Honest limits, and one open question
+## Limits and assumption
 
 <div class="two">
 <div>
 
 ### Limits
 
-- Field reference is **2011**, scans are 2021 onwards
-- Detection tuned on the reference it is scored against
-- Species: **two species, one plot, ~50 crowns**, spruce the minority
-- Stem volume has **no field reference at all**
+- Field survey is from **2011**
+- Detection tuned on the same reference
+- No field reference for volume
 
 </div>
 <div>
 
-### The open question
+### Assumption
 
-**When were the two drone flights flown?**
+The nadir and oblique flights were flown **on the same day or at most one day apart**.
 
-The file dates are when Metashape wrote the products. The flight dates are not in the data.
+So the trees and the season are the same, and the differences are mainly **view geometry**. Light and processing could still differ.
 
-If nadir and oblique flew on **different days**, then illumination differs and the geometry result stays confounded. If the **same day**, it becomes a clean result.
-
-<p class="sub">Code, notebooks and figures: github.com/jobelab/nova-course-2026 &nbsp;·&nbsp; GPL-3.0-or-later</p>
+<p class="sub">Code and figures: github.com/jobelab/nova-course-2026</p>
 
 </div>
 </div>
