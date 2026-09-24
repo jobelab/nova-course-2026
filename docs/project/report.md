@@ -51,8 +51,11 @@ trees below the canopy are hidden from methods that use it (de Paula Pires, 2026
 benchmark, Liang et al. (2016) give typical field inventory requirements of 0 to 2 cm for
 DBH and 0.5 m for tree height.
 
-Remningstorp is a long-term test site where single-tree detection, TLS stem measurement
-and MLS tree detection have been studied before (Vauhkonen et al., 2012; Olofsson et al.,
+Remningstorp, in Västergötland, is owned by Hildur & Sven Wingquists stiftelse för
+skogsvetenskaplig forskning, a foundation set up in 1946 to keep the estate as a forest
+laboratory, and is managed by Skogssällskapet (Skogssällskapet, n.d.). SLU has used it as
+a long-term test site, where single-tree detection, TLS stem measurement and MLS tree
+detection have been studied before (Vauhkonen et al., 2012; Olofsson et al.,
 2014; de Paula Pires et al., 2022). Plot 167 was recorded with all of the instruments
 above: four drone flights, TLS, MLS, helicopter ALS and a field survey. This makes it
 possible to compare, on the same trees, what each instrument can measure.
@@ -303,6 +306,10 @@ point cloud processing for forest sciences, 26 May 2026.
 Olofsson, K., Holmgren, J. and Olsson, H. (2014). Tree stem and height measurements using
 terrestrial laser scanning and the RANSAC algorithm. *Remote Sensing* 6(5), 4323 to 4344.
 https://doi.org/10.3390/rs6054323
+
+Skogssällskapet (n.d.). Hildur & Sven Wingquists stiftelse för skogsvetenskaplig
+forskning. https://www.skogssallskapet.se/narstaende-stiftelser/hildur--sven-wingquists-stiftelse-for-skogsvetenskaplig-forskning.html
+(accessed 24 September 2026).
 
 SLU (2016). *Remote sensing of forests*, version 1.0. Skogshushållningsserien
 compendium, Department of Forest Resource Management, Swedish University of Agricultural

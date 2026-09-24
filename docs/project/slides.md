@@ -40,7 +40,7 @@ NOVA 2026, Point cloud processing for forestry &nbsp;·&nbsp; individual project
 - **RQ4.** How does flight geometry change the reconstructed canopy, and do tree attributes follow?
 - **RQ5.** What can a drone cloud measure compared with laser scanning and the field data?
 
-<p class="sub">Plot 167, Remningstorp, a long-term remote sensing test site. Four drone clouds (nadir and oblique, RGB and multispectral), TLS, MLS and helicopter ALS, and 74 field-surveyed stems. The spectral questions RQ1 to RQ3 are left out for this course.</p>
+<p class="sub">Plot 167, Remningstorp: owned by Hildur &amp; Sven Wingquists stiftelse, managed by Skogssällskapet, and a long-term SLU test site. Four drone clouds (nadir and oblique, RGB and multispectral), TLS, MLS and helicopter ALS, and 74 field-surveyed stems. The spectral questions RQ1 to RQ3 are left out for this course.</p>
 
 ## One plot, seven acquisitions
 
