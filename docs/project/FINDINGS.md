@@ -2,7 +2,7 @@
 
 **NOVA 2026 individual project, plot 167, Remningstorp**
 José M. Beltrán-Abaunza (jose.beltran@mgeo.lu.se), Lund University
-Running record, last updated 2026-09-15.
+Running record, last updated 2026-09-24.
 
 This is the working log of what has actually been established, with the evidence for
 each item and an honest note on what it does not settle. The research questions and
@@ -29,6 +29,8 @@ Mavic 3 Multispectral**: green 550 nm, red 650 nm, red edge 730 nm, near infrare
 no blue band, alongside a 20 MP RGB camera.
 
 **Not settled:** the flight dates. The file dates are when Metashape wrote the products.
+Since 2026-09-24 the report assumes the nadir and oblique flights were flown on the same
+day or at most one day apart (see finding 17).
 
 ## 2. The raster and the point cloud order their bands differently
 
@@ -95,7 +97,9 @@ whatever is driving it.
 comparison eliminates. **View geometry**, **illumination** (the products were written three
 days apart and the flight dates are unrecorded) and **radiometric processing** (per-flight
 white balance and per-chunk colour adjustment) remain confounded. The honest claim is that
-the acquisitions differ, not why.
+the acquisitions differ, not why. Under the flight-date assumption adopted on 2026-09-24
+(finding 17), illumination between days drops out as a large factor, but light within a
+day and per-flight processing remain.
 
 ## 5. Photogrammetry reconstructs the canopy and nothing beneath it
 
@@ -397,16 +401,42 @@ files. Everything in this document is measured from the data.
 
 ---
 
+## 17. Refocus on RQ4 and RQ5, and what changed in the final documents (2026-09-24)
+
+- **Scope.** The course teachers advised focusing on the point cloud questions, RQ4 and
+  RQ5. The spectral findings (2, 3, 4, 11 and 12) stay in this log but are no longer in the
+  report or the slides.
+- **Flight dates.** Still not in the data. The final documents assume the nadir and
+  oblique flights were flown on the same day or at most one day apart, so the trees and
+  the season are the same, and the nadir against oblique differences are read as mainly
+  view geometry. Light and processing could still differ between flights.
+- **Point counts checked.** Clipped to the plot, the oblique clouds hold 1,079,832 against
+  745,114 points for RGB (+45 %) and 372,359 against 295,497 for multispectral (+26 %),
+  which confirms the "26 to 45 % more points" in finding 9. The 1,017,198 for
+  `Oblique_RGB` in finding 8 is a different count of the same cloud and was not used for
+  this ratio.
+- **Site.** Remningstorp is owned by Hildur & Sven Wingquists stiftelse för
+  skogsvetenskaplig forskning (set up in 1946), managed by Skogssällskapet, and used by
+  SLU as a long-term test site.
+- **Literature.** The report background now rests on the course literature and lectures:
+  SLU (2016), Liang et al. (2016), Holvoet et al. (2025), Olofsson et al. (2014),
+  Vauhkonen et al. (2012), de Paula Pires et al. (2022), and the lectures by Lindberg,
+  Bohlin, Yrttimaa and de Paula Pires. The TLS diameter RMSE of 1.3 cm is within the
+  0 to 2 cm DBH requirement given by Liang et al. (2016).
+
 ## Open questions put to the course teachers
 
 1. **When were the two UAV flights flown?** Decides whether the difference in finding 4
-   can be read as view geometry or stays confounded with illumination.
+   can be read as view geometry or stays confounded with illumination. *Handled by
+   assumption since 2026-09-24 (finding 17): at most one day apart.*
 2. Is the multispectral orthomosaic raw digital numbers or calibrated reflectance?
+   *No longer needed for the final report, which leaves out the spectral questions.*
 3. Flight height, overlap, and oblique camera tilt.
 4. Georeferencing method and its accuracy, which bears directly on finding 6.
 5. Is the Metashape processing report available?
 
-## Next
+## Status
 
-Outlier filtering, the canopy height model, tree detection and crown segmentation, crown
-level aggregation, then the RQ4 and RQ5 comparisons against the field tree list.
+The analysis is complete. The final report (11 pages) and the slides (15) cover RQ4 and
+RQ5 and are in this folder, with the sources mirrored to `docs/project/` in the
+repository. What remains is the oral presentation.
