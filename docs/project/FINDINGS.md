@@ -404,8 +404,8 @@ files. Everything in this document is measured from the data.
 ## 17. Refocus on RQ4 and RQ5, and what changed in the final documents (2026-09-24)
 
 - **Scope.** The course teachers advised focusing on the point cloud questions, RQ4 and
-  RQ5. The spectral findings (2, 3, 4, 11 and 12) stay in this log but are no longer in the
-  report or the slides.
+  RQ5. The spectral findings (2, 3, 4, 11 and 12) stay in this log. In the report they
+  are summarised in Appendix A, with the species figure; the slides leave them out.
 - **Flight dates.** Still not in the data. The final documents assume the nadir and
   oblique flights were flown on the same day or at most one day apart, so the trees and
   the season are the same, and the nadir against oblique differences are read as mainly
@@ -437,6 +437,6 @@ files. Everything in this document is measured from the data.
 
 ## Status
 
-The analysis is complete. The final report (11 pages) and the slides (15) cover RQ4 and
-RQ5 and are in this folder, with the sources mirrored to `docs/project/` in the
+The analysis is complete. The final report (13 pages, with RQ1 to RQ3 in Appendix A) and the slides
+(15) cover RQ4 and RQ5 and are in this folder, with the sources mirrored to `docs/project/` in the
 repository. What remains is the oral presentation.

@@ -12,7 +12,7 @@ been surveyed in the field.
 Following the course teachers' advice, this report covers the two point cloud questions
 of my proposal. RQ4 asks how flight geometry changes the reconstructed canopy. RQ5 asks
 what a drone cloud can measure compared with laser scanning and the field data. The three
-spectral questions (RQ1 to RQ3) are left out.
+spectral questions (RQ1 to RQ3) are summarised in Appendix A.
 
 My main results:
 
@@ -65,7 +65,8 @@ possible to compare, on the same trees, what each instrument can measure.
 My aim is to find out what a drone photogrammetric point cloud can measure on a forest
 plot, and how this depends on the flight, by comparing it with laser scanning and field
 data on the same trees. Following the course teachers' advice, I focus on the two point
-cloud questions of my proposal:
+cloud questions of my proposal (the spectral questions RQ1 to RQ3 are summarised in
+Appendix A):
 
 1. **RQ4.** How does flight geometry (nadir against oblique) change the reconstructed
    canopy surface, and do tree height, crown area and tree detection follow?
@@ -325,3 +326,80 @@ course 2026: Introduction to point cloud processing for forest sciences, 26 May 
 Yrttimaa, T. (2026b). Computational approaches for detecting trees and reconstructing stem
 surface. Lecture, NOVA course 2026: Introduction to point cloud processing for forest
 sciences, August 2026.
+
+<div style="break-before: page"></div>
+
+# Appendix A. Results for the spectral questions (RQ1 to RQ3)
+
+These questions were part of my proposal but are outside the focus of the course, so I
+summarise them here only briefly.
+
+**RQ1.** Does UAV flight geometry change canopy colour metrics over a fixed plot?
+
+**RQ2.** Does the spectral band set decide how sensitive a greenness index is to
+acquisition geometry?
+
+**RQ3.** Can canopy greenness be derived from radiometrically uncalibrated clouds?
+
+## A.1 Reading the multispectral bands
+
+Nothing in the delivered files says which channel is which, so I worked it out from the
+data. Correlating chromatic coordinates between the orthomosaic and the cloud over 2.56
+million point pairs recovered the band order; the camera's fixed band order settled red
+edge against near infrared.
+
+| | channel 1 | 2 | 3 | 4 |
+|---|---|---|---|---|
+| orthomosaic | green | red | red edge | NIR |
+| point cloud LAS slot | red | green | red edge | NIR |
+
+The two products order their first two bands differently. Joining them without knowing
+this silently swaps red and green.
+
+## A.2 Greenness without calibration (RQ3)
+
+Yes. I used chromatic coordinates (each band divided by the band sum), which cancel any
+constant scaling of the channels and therefore work on raw digital numbers. Over 282
+million points, green was above red above blue, with a green share (GCC) of 0.41 to 0.43
+in the RGB clouds, as expected for a closed conifer canopy in summer. The values can be
+compared within this dataset but not with published reflectance values: the scene-mean
+NDVI is about 0.27, where calibrated forest NDVI is usually 0.7 to 0.9.
+
+## A.3 Flight geometry and colour (RQ1, RQ2)
+
+Nadir and oblique differ in colour, and the difference is almost entirely blue: the blue
+share rises from 0.2058 to 0.2499 in the oblique RGB cloud. Clipping both clouds to the
+plot leaves the shift unchanged (+0.0441 against +0.0435), so it is not land cover.
+Pairing the same crowns shows that most of the difference is how each flight sees a tree:
+
+| pair | crowns | green share, nadir minus oblique |
+|---|---:|---:|
+| RGB | 48 | +0.0106 |
+| multispectral | 42 | -0.0051 |
+
+So flight geometry changes the colour metrics (RQ1), and the band set matters (RQ2): the
+multispectral set has no blue band and moves less, in the opposite direction. The second
+part of RQ2, comparing the indices with what the laser scanners record, is not covered
+here.
+
+## A.4 Species separation
+
+![**Figure A1.** Crown-level separation of Scots pine and Norway spruce. Left and centre: GCC from the nadir RGB cloud and NDVI from the nadir multispectral cloud, by species. Right: GCC against field DBH, showing that greenness also falls with tree size.](figures/fig7_species.png)
+
+| cloud | index | AUC | AUC, middle DBH quartiles |
+|---|---|---:|---:|
+| `Nadir_RGB` | GCC | 0.978 | 0.954 |
+| `Oblique_RGB` | GCC | 0.996 | 0.981 |
+| `Nadir_MS` | NDVI | 0.932 | 0.897 |
+| `Oblique_MS` | NDRE | 0.973 | 0.989 |
+
+AUC is the probability that a random spruce crown scores higher than a random pine crown.
+Spruce crowns are greener than pine in every acquisition. Greenness also falls with tree
+size (GCC against DBH r = -0.345), and the spruce here are smaller, but when I compare only
+trees in the middle two DBH quartiles the separation holds. The main practical result is
+that an uncalibrated RGB camera separates these two species as well as the multispectral
+camera does.
+
+These numbers come from two species, one plot and about 50 crowns, with spruce as the
+minority. They show that the two species differ clearly here, not that a classifier would
+work as well elsewhere.
