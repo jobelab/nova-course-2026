@@ -12,7 +12,8 @@ been surveyed in the field.
 Following the course teachers' advice, this report covers the two point cloud questions
 of my proposal. RQ4 asks how flight geometry changes the reconstructed canopy. RQ5 asks
 what a drone cloud can measure compared with laser scanning and the field data. The three
-spectral questions (RQ1 to RQ3) are summarised in Appendix A.
+spectral questions (RQ1 to RQ3) are summarised in Appendix A, and Appendix B is a
+glossary of the terms and acronyms used.
 
 My main results:
 
@@ -403,3 +404,63 @@ camera does.
 These numbers come from two species, one plot and about 50 crowns, with spruce as the
 minority. They show that the two species differ clearly here, not that a classifier would
 work as well elsewhere.
+
+<div style="break-before: page"></div>
+
+# Appendix B. Glossary
+
+<style>.glossary table { break-inside: auto; } .glossary tr { break-inside: avoid; }</style>
+
+::: {.glossary}
+
+| term | definition |
+|------------|------------------------------------------------|
+| **ALS** | Airborne laser scanning. Laser scanning from an aircraft, here a helicopter, looking down on the forest. |
+| **Arc coverage** | The share of a stem's circumference that has points on it. A circle fitted to a short arc is poorly constrained. |
+| **Area-based approach** | An inventory method that links point cloud metrics per grid cell to field plots, and predicts forest variables for every cell. |
+| **AUC** | Area under the ROC curve. Here, the probability that a randomly chosen spruce crown scores higher than a randomly chosen pine crown. 0.5 means no separation and 1.0 perfect separation. |
+| **Bias** | The mean difference between a measured value and the reference value. |
+| **Chromatic coordinates** | Each colour band divided by the sum of the bands. They cancel any constant scaling of the channels, so they work without radiometric calibration. |
+| **CHM** | Canopy height model. A raster of vegetation height above the ground, made by subtracting the terrain from the top surface. |
+| **Contemporaneous tree list** | A tree list for the plot from the same period as the scans, used here as a second reference for stem diameter. |
+| **Crown area** | The area of a tree crown as seen from above, taken from the segmented canopy height model. |
+| **Datum (vertical)** | The reference surface that heights are measured from. Two datasets on different vertical datums show a constant height offset. |
+| **DBH** | Diameter at breast height. Stem diameter measured 1.3 m above the ground. |
+| **Digital numbers** | The raw pixel values recorded by a camera, before any conversion to physical units such as reflectance. |
+| **DTM** | Digital terrain model. A raster of the ground surface elevation. |
+| **F1** | A detection score that combines precision and recall (their harmonic mean). 1.0 is perfect. |
+| **Field reference** | The trees measured on the ground in 2011 (position, diameter and species), used to check the point cloud results. |
+| **Form factor** | Stem volume divided by the volume of a cylinder with the same DBH and height. It describes how tapered a stem is. |
+| **GCC** | Green chromatic coordinate. The green band divided by the sum of the red, green and blue bands. |
+| **h95, p95** | The 95th percentile of point heights. A robust measure of the top of the canopy or of a single tree, less sensitive to outliers than the maximum. |
+| **Image matching** | Finding the same feature in overlapping images to compute its 3D position. The basis of a photogrammetric point cloud. |
+| **LAS** | The standard file format for point clouds. |
+| **Lidar** | Light detection and ranging. Measuring distance with laser pulses; laser scanning. |
+| **Marker-controlled watershed** | A segmentation method that treats the canopy height model as a landscape and grows one crown from each detected treetop. |
+| **Metashape** | Agisoft Metashape, the software used to produce the drone point clouds and orthomosaics. |
+| **MLS** | Mobile laser scanning. Laser scanning from a moving platform, here a handheld scanner carried through the plot. |
+| **Multispectral** | A camera that records several narrow bands. Here green, red, red edge and near infrared. |
+| **Nadir** | A camera pointing straight down. |
+| **NDRE** | Normalised difference red edge index, (NIR - red edge) / (NIR + red edge). |
+| **NDVI** | Normalised difference vegetation index, (NIR - red) / (NIR + red). |
+| **NIR** | Near infrared. Light just beyond the visible range, strongly reflected by healthy vegetation. |
+| **Normalisation (height)** | Subtracting the ground elevation from every point, so heights are above ground instead of above sea level. |
+| **Oblique** | A camera tilted away from vertical, so it also sees the sides of the crowns. |
+| **Occlusion** | Parts of the forest hidden from the scanner or camera by objects in front of them. |
+| **Orthomosaic** | A geometrically corrected image mosaic in which every pixel is seen from directly above. |
+| **Photogrammetry** | Measuring 3D geometry from overlapping photographs. |
+| **Point cloud** | A set of 3D points, each with coordinates and possibly attributes such as colour or intensity. |
+| **Precision** | The share of detected trees that match a real tree. Low precision means many false detections. |
+| **RANSAC** | Random sample consensus. A robust fitting method that repeatedly fits a shape (here a circle) to random subsets of points and keeps the fit most points agree with. |
+| **Recall** | The share of real trees that were detected. Low recall means many missed trees. |
+| **Red edge** | The narrow band between red and near infrared where vegetation reflectance rises steeply. |
+| **RGB** | Red, green and blue. A standard colour camera. |
+| **RH2000** | The Swedish national height system. |
+| **RMSE** | Root mean square error. A measure of the typical size of the error, including bias. |
+| **Suppressed tree** | A tree growing under the main canopy, shaded by its neighbours. |
+| **SWEREF99 TM** | The Swedish national coordinate system used for all data here. |
+| **Taper** | How stem diameter decreases from the base to the top of the tree. |
+| **TLS** | Terrestrial laser scanning. Laser scanning from a tripod on the ground, from several fixed positions. |
+| **UAV** | Uncrewed aerial vehicle; a drone. |
+
+:::

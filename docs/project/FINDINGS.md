@@ -437,6 +437,7 @@ files. Everything in this document is measured from the data.
 
 ## Status
 
-The analysis is complete. The final report (13 pages, with RQ1 to RQ3 in Appendix A) and the slides
+The analysis is complete. The final report (15 pages, with RQ1 to RQ3 in Appendix A and a glossary in
+Appendix B) and the slides
 (15) cover RQ4 and RQ5 and are in this folder, with the sources mirrored to `docs/project/` in the
 repository. What remains is the oral presentation.
