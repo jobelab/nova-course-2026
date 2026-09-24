@@ -27,15 +27,45 @@ My main results:
   and the mobile scanner. It would have made every drone tree height 2.089 m too tall, and
   nothing in the drone data could have shown it.
 
-# 1. Questions
+# 1. Introduction
 
-**RQ4.** How does flight geometry affect which canopy surface is reconstructed, and do
-structural attributes follow?
+## 1.1 Background
 
-**RQ5.** What can a photogrammetric cloud measure compared with co-located laser scanning
-and the field tree list?
+Airborne laser scanning (ALS) has been used operationally in forest inventory since 2002,
+when the area-based approach was introduced in Norway (SLU, 2016). Point clouds can also be
+made from overlapping images by image matching. They give canopy heights in the same way
+as laser data, but less information about forest density, so estimates of timber volume
+are worse (SLU, 2016). A drone makes such a photogrammetric cloud cheap to collect over a
+single stand.
 
-# 2. Data
+Ground-based scanners see the forest from below. Terrestrial laser scanning (TLS) is
+precise but suffers from occlusion, and mobile laser scanning (MLS) is faster but gives
+noisier data (Holvoet et al., 2025; Liang et al., 2016). Stems can be found in these
+clouds by fitting circles to thin horizontal slices and following them upward (Yrttimaa,
+2026). The platforms trade coverage for resolution: ALS covers large areas at lower
+resolution, and ground-based scanning small areas at high resolution (NOVA 2026, Day 4
+lecture). As a benchmark, Liang et al. (2016) give typical field inventory requirements of
+0 to 2 cm for DBH and 0.5 m for tree height.
+
+Plot 167 at Remningstorp was recorded with all of these: four drone flights, TLS, MLS,
+helicopter ALS and a field survey. This makes it possible to compare, on the same trees,
+what each instrument can measure.
+
+## 1.2 Aim and objectives
+
+My aim is to find out what a drone photogrammetric point cloud can measure on a forest
+plot, and how this depends on the flight, by comparing it with laser scanning and field
+data on the same trees. Following the course teachers' advice, I focus on the two point
+cloud questions of my proposal:
+
+1. **RQ4.** How does flight geometry (nadir against oblique) change the reconstructed
+   canopy surface, and do tree height, crown area and tree detection follow?
+2. **RQ5.** What can a drone cloud measure compared with ALS, TLS, MLS and the field tree
+   list, in terms of ground, canopy height, tree detection, stem diameter and volume?
+
+# 2. Materials and methods
+
+## 2.1 Study site and data
 
 The study plot is plot 167 at Remningstorp, Västergötland, Sweden, centred at
 E 420407.631, N 6481815.136 (SWEREF99 TM), with a ground elevation of 137.642 m (RH2000).
@@ -61,7 +91,7 @@ data. I score those two scanners only inside their box.
 The field reference is 74 stems surveyed in 2011 (45 Scots pine and 29 Norway spruce, DBH
 15.0 to 36.4 cm, mean spacing 4.12 m).
 
-# 3. Methods
+## 2.2 Methods
 
 I did all processing in Python with my own library (`novatrees`). Every number in this
 report comes from the scripts in the repository.
@@ -77,9 +107,9 @@ report comes from the scripts in the repository.
   with enough arc coverage and vertical continuity. I then followed each stem upward to
   get its taper and volume.
 
-# 4. Results
+# 3. Results
 
-## 4.1 The drone sees only the top of the canopy (RQ4, RQ5)
+## 3.1 The drone sees only the top of the canopy (RQ4, RQ5)
 
 ![**Figure 2.** The four drone clouds from above, clipped to the plot. Crowns are sharp in nadir and blurred in oblique.](figures/fig2_drone_from_above.png)
 
@@ -104,7 +134,7 @@ reconstructs surfaces the camera saw, and under a closed canopy that excludes th
 and the stems. On the upper canopy the drone matches the helicopter lidar: p95 is 23.6 to
 23.8 m for every drone cloud against 23.77 m for the ALS.
 
-## 4.2 A vertical offset only a second instrument could find (RQ5)
+## 3.2 A vertical offset only a second instrument could find (RQ5)
 
 Because the drone clouds have no ground, their heights depend on a lidar terrain model.
 When I checked the ALS terrain against 513,390 MLS ground points, I found a constant
@@ -119,7 +149,7 @@ The ALS terrain had the right shape but the wrong datum. Without this check ever
 tree height would have been 2.089 m too tall. The same check showed that the TLS heights
 had been normalised with 138.124 m, not the surveyed plot elevation of 137.642 m.
 
-## 4.3 Flight geometry changes crowns, not heights (RQ4)
+## 3.3 Flight geometry changes crowns, not heights (RQ4)
 
 I paired the same crowns between the nadir and oblique clouds:
 
@@ -135,7 +165,7 @@ Tree height changes by 0.1 to 0.2 m on 22 m trees, so it transfers between fligh
 geometries. Crown area does not: oblique crowns are about a third larger (median 22.0
 against 16.7 m²), because the side views widen and blur the crown edge.
 
-## 4.4 Tree detection (RQ4, RQ5)
+## 3.4 Tree detection (RQ4, RQ5)
 
 | cloud | tops | recall | precision | F1 |
 |---|---:|---:|---:|---:|
@@ -162,7 +192,7 @@ large trees are found, and about two thirds of the smallest are missed. These ar
 suppressed trees under the canopy. So stem counts are underestimated, while dominant
 height is nearly complete.
 
-## 4.5 Stems and volume (RQ5)
+## 3.5 Stems and volume (RQ5)
 
 The drone cannot measure stem diameter at all, because it never sees a stem. From below
 it works well:
@@ -185,7 +215,7 @@ unchanged (0.847 m³) and moved the form factor only from 0.452 to 0.462, becaus
 already reconstructs 86 % of these trees. What the drone adds is coverage: it sees the
 whole plot, including the 28 % that TLS and MLS did not cover.
 
-# 5. Discussion
+# 4. Discussion
 
 **RQ4.** Flight geometry changes the reconstructed canopy but not all attributes equally.
 Height transfers between nadir and oblique. Crown area and detection do not: oblique gives
@@ -202,10 +232,14 @@ information.
 | stem diameter | no | RMSE 1.3 cm |
 | ground | no, needs lidar | yes |
 
+The TLS diameter error of 1.3 cm is within the 0 to 2 cm that Liang et al. (2016) give
+as a typical requirement for DBH. The drone results agree with SLU (2016): image-based
+clouds give canopy height but not what lies below it.
+
 **Checks between instruments are necessary.** The 2.089 m offset was invisible inside any
 single dataset.
 
-# 6. Limitations
+# 5. Limitations
 
 The field survey is from 2011 and the scans are later, so some misses may be trees that
 died in between. I tuned detection against the same reference I score it on. Stem volume
@@ -213,7 +247,7 @@ has no field reference. I assume the two drone flights were at most one day
 apart. The differences between them are then mainly view geometry, although light
 conditions and the Metashape processing could still differ between flights.
 
-# 7. Conclusions
+# 6. Conclusions
 
 1. Canopy height from a drone is robust to flight geometry and matches helicopter lidar.
 2. Crown area and tree detection depend on flight geometry; nadir works better.
@@ -222,8 +256,32 @@ conditions and the Metashape processing could still differ between flights.
 5. Heights from a drone need an independent terrain check; here it removed a 2.089 m
    error.
 
-# 8. Code and data
+# 7. Code and data
 
 Code, notebooks, scripts and figures: `github.com/jobelab/nova-course-2026`
 (GPL-3.0-or-later). The point clouds are not in version control; their location and
 provenance are documented in the repository.
+
+# References
+
+Holvoet, J., Eichhorn, M.P., Giannetti, F., Kükenbrink, D., Liang, X., Mokroš, M., Novotný,
+J., Pitkänen, T.P., Puliti, S., Skudnik, M., Stereńczak, K., Terryn, L., Vega, C. and
+Torresan, C. (2025). Terrestrial and mobile laser scanning for national forest
+inventories: from theory to implementation. *Remote Sensing of Environment* 329, 114947.
+https://doi.org/10.1016/j.rse.2025.114947
+
+Liang, X., Kankare, V., Hyyppä, J., Wang, Y., Kukko, A., Haggrén, H., Yu, X., Kaartinen,
+H., Jaakkola, A., Guan, F., Holopainen, M. and Vastaranta, M. (2016). Terrestrial laser
+scanning in forest inventories. *ISPRS Journal of Photogrammetry and Remote Sensing* 115,
+63 to 77. https://doi.org/10.1016/j.isprsjprs.2016.01.006
+
+NOVA 2026, Day 4 lecture. Laser scanning-based forest inventory. Course lecture, NOVA:
+Introduction to point cloud processing for forest sciences, 2026.
+
+SLU (2016). *Remote sensing of forests*, version 1.0. Skogshushållningsserien
+compendium, Department of Forest Resource Management, Swedish University of Agricultural
+Sciences, Umeå.
+
+Yrttimaa, T. (2026). Computational approaches for detecting trees and reconstructing stem
+surface. Course lecture, NOVA: Introduction to point cloud processing for forest sciences,
+2026.
